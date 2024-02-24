@@ -16,6 +16,7 @@ _things we need to agree on: (sry i'm traumatized lol)_
 *   workflow
 
 [ ]: **typedefs and data structures**
+
 standardize:
 *   custom data types
 *   structs
