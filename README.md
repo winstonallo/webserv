@@ -1,12 +1,11 @@
 # TODO
 
-_things we need to agree on: (sry i'm traumatized lol)_
+**things we need to agree on:** _(sry i'm traumatized lol)_
 
 [ ]: **coding style**
 *   naming conventions
 *   indentation
 *   braces
-*   ...
 
 [ ]: **project/directory structure**
 
@@ -18,6 +17,7 @@ _things we need to agree on: (sry i'm traumatized lol)_
 [ ]: **typedefs and data structures**
 
 standardize:
+
 *   custom data types
 *   structs
 *   classes
@@ -29,4 +29,9 @@ standardize:
 
 [ ]: **workload splitting**
 *   define main components/modules & assign responsibilities
-*   prevent overlap & ensure full coverage of project
+*   prevent overlap
+*	ensure full coverage of project
+
+[ ]: **documentation standards(?)**
+*	inline doc
+*	external doc
