@@ -89,4 +89,74 @@ common features controllable with HTTP:
 * **relaxing origin constraint**
 	* Web browsers enforce strict separation between websites - only pages from the same origin can access all information of a Web page
 	-> HTTP headers can relax this separation
-* **Authentication**
+* **authentication**
+	* HTTP supports authentication, using:  for example:
+		* the ```WWW-Authenticate``` header
+		* setting a user-specific session using cookies
+* **proxy and tunneling**
+	* HTTP requests are able to go through proxies to cross network barriers
+* **sessions**
+	* HTTP cookies allow to link requests with the server state, creating sessions - this is useful for:
+		* e-commerce (shopping baskets)
+		* sites allowing user config
+
+## HTTP flow
+
+### client-server communication steps
+
+1. **open a TCP connection - the client may:**
+	* open a new connection
+	* reuse an existing connection
+	* open several conncetions
+2. **send a HTTP message**
+	```HTTP
+	GET / HTTP/1.1
+	Host: developer.mozilla.org 
+	Accept-Language: fr
+	```
+3. **read server response**
+	```HTTP
+	HTTP/1.1 200 OK
+	Date: Sat, 09 Oct 2010 14:28:02 GMT
+	Server: Apache
+	Last-Modified: Tue, 01 Dec 2009 20:18:22 GMT
+	ETag: "51142bc1-7449-479b075b2891b"
+	Accept-Ranges: bytes
+	Content-Length: 29769
+	Content-Type: text/html
+	<!DOCTYPE html>… (here come the 29769 bytes of the requested web page)
+	```
+4. **close or keep the connection for later requests**
+
+## HTTP messages
+
+HTTP messages (until HTTP/1.1) are human-readable.
+
+there are two types of HTTP messages, **_requests and responses_**, each has its own format
+
+### requests
+
+**requests consist of the following elements:**
+* HTTP method, for example:
+	* ``GET``
+	* ``POST``
+	* ``OPTIONS``
+	* ``HEAD``
+		* _in most cases, the client wants to ``GET`` a resource or ``POST`` the value of an HTML form_
+* the path to the resource - some URL, **without info that is obvious from the context**, like:
+	* the protocol (duh)
+	* the TCP port
+* the version of the HTTP protocol
+* optional: 
+	* optional headers
+	* a body, for some methods like ``POST``, which contains the resource sent
+
+### responses
+
+**responses consist of the following elements**
+* the version of the HTTP protocol
+* a ``status code``, (was the request successful?)
+* a status message, shortly describing the status code
+* HTTP ``headers``
+* optional: 
+	* a body containing the fetched resource
