@@ -70,4 +70,13 @@
 
 3. **headers**
 
-    requests/responses can include headers, which provide information about the message
+    * requests/responses can include headers, which provide information about the message
+    * parsing thoses headers means extracting ```key-value``` pair to understand the relayed information
+    ```HTTP 
+    Host: example.com
+    Content-Type: text/html
+    Content-Length: 256```
+
+4. **message body**
+    * the (optional) message body contains info related to the request/response
+    * parsing the body depends on the content type
