@@ -1,5 +1,8 @@
 # TODO
 
+## jira link
+https://awesome-webserver-arthur-spyros-danil.atlassian.net/jira/software/projects/SCRUM/boards/1/backlog
+
 **things we need to agree on:** _(sry i'm traumatized lol)_
 
 [ ]: **coding style**
