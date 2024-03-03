@@ -1,5 +1,7 @@
 # TODO
 
+⚠️think of cgi implementation from the start!⚠
+
 **jira board link** (let me know if you have better structure ideas)
 
 https://awesome-webserver-arthur-spyros-danil.atlassian.net/jira/software/projects/SCRUM/boards/1/backlog
