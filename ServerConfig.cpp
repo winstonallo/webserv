@@ -6,7 +6,7 @@
 /*   By: sgiochal <sgiochal@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/04 17:46:26 by sgiochal          #+#    #+#             */
-/*   Updated: 2024/03/04 18:33:37 by sgiochal         ###   ########.fr       */
+/*   Updated: 2024/03/04 19:06:36 by sgiochal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,11 +26,6 @@ ServerConfig::~ServerConfig()
 ServerConfig::ServerConfig(const ServerConfig& rhs)
 {
 	*this = rhs;
-}
-
-ServerConfig::ServerConfig(const int& tport, const std::string& tserver_name):port(tport), server_name(tserver_name)
-{
-
 }
 
 ServerConfig&	ServerConfig::operator=(const ServerConfig& rhs)
@@ -83,9 +78,10 @@ void	ServerConfig::setAccessLog(const std::string& log)
 	access_log = log;
 }
 
-LocationConfig&	ServerConfig::getLocation(int i) const
+LocationConfig&	ServerConfig::getLocation(int i)
 {
-	return (locations(i));
+	if (i > 0 && i < locations.size())
+		return (locations.at(i));
 }
 
 void	ServerConfig::addLocation(LocationConfig lc)

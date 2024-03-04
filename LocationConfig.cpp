@@ -6,7 +6,7 @@
 /*   By: sgiochal <sgiochal@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/04 18:14:48 by sgiochal          #+#    #+#             */
-/*   Updated: 2024/03/04 18:17:09 by sgiochal         ###   ########.fr       */
+/*   Updated: 2024/03/04 19:02:51 by sgiochal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,3 +58,12 @@ void	LocationConfig::setRoot(std::string rt)
 	root = rt; 
 }
 
+std::string	LocationConfig::getProxyPass() const
+{
+	return (proxy_pass);
+}
+
+void LocationConfig::setProxyPass(const std::string& pp)
+{
+	proxy_pass = pp;
+}

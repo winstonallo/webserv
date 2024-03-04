@@ -24,9 +24,7 @@ class ServerConfig
 											ServerConfig();
 											~ServerConfig();
 											ServerConfig(const ServerConfig& rhs);
-											ServerConfig(const int& tport, const std::string& tserver_name);
 		ServerConfig&						operator=(const ServerConfig& rhs);
-		
 
 		int									getPort() const;
 		void								setPort(int prt);
@@ -45,9 +43,9 @@ class ServerConfig
 		int									port;
 		std::string							server_name;
 		std::string							root;
-		std::vector<LocationConfig>			locations;
 		std::string							error_log;
-		std::string							access_log
+		std::string							access_log;
+		std::vector<LocationConfig>			locations;
 };
 
 #endif
