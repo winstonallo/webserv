@@ -3,24 +3,18 @@
 /*                                                        :::      ::::::::   */
 /*   Config.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abied-ch <abied-ch@student.42.fr>          +#+  +:+       +#+        */
+/*   By: arthur <arthur@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/04 17:57:16 by sgiochal          #+#    #+#             */
-/*   Updated: 2024/03/04 22:24:41 by abied-ch         ###   ########.fr       */
+/*   Updated: 2024/03/04 22:45:59 by arthur           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../inc/Config.hpp"
 
-Config::~Config()
-{
+Config::~Config() {}
 
-}
-
-Config::Config(const Config& rhs)
-{
-	*this = rhs;
-}
+Config::Config(const Config& rhs) {*this = rhs;}
 
 Config&	Config::operator=(const Config& rhs)
 {
@@ -30,6 +24,7 @@ Config&	Config::operator=(const Config& rhs)
 	return *this;
 }
 
+// default coonctructor (takes default path if called with no argument)
 Config::Config(const std::string& path)
 {
 	load_config(path);
@@ -46,10 +41,8 @@ void	Config::load_config(const std::string &config_path)
 		throw std::runtime_error("could not open config");
 	while (std::getline(config_file, line))
 	{
-		line = Parser::trim(line);
-		if (line.empty())
-			continue ;
-		line_to_map(line);
+		if (line.empty() == false)
+			line_to_map(Parser::trim(line));
 	}
 	config_file.close();
 }
@@ -65,9 +58,8 @@ void	Config::line_to_map(const std::string& line)
 	{
 		std::getline(input, value);
 		std::string trimmed_value = Parser::trim(value);
-		if (trimmed_value.empty())
-			return ;
-		config[Parser::trim(key)] = Parser::trim(value);
+		if (trimmed_value.empty() == false)
+			config[Parser::trim(key)] = trimmed_value;
 	}
 }
 
