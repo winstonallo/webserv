@@ -6,7 +6,7 @@
 /*   By: arthur <arthur@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/04 17:57:16 by sgiochal          #+#    #+#             */
-/*   Updated: 2024/03/04 22:45:59 by arthur           ###   ########.fr       */
+/*   Updated: 2024/03/04 22:49:16 by arthur           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,14 +52,15 @@ void	Config::load_config(const std::string &config_path)
 // @param line: line to trim and store
 void	Config::line_to_map(const std::string& line)
 {
-	std::istringstream input(line);
-	std::string key, value;
+	std::string 		key, value;
+	std::istringstream 	input(line);
+	
 	if (std::getline(input, key, ' '))
 	{
 		std::getline(input, value);
-		std::string trimmed_value = Parser::trim(value);
-		if (trimmed_value.empty() == false)
-			config[Parser::trim(key)] = trimmed_value;
+		value = Parser::trim(value);
+		if (value.empty() == false)
+			config[Parser::trim(key)] = value;
 	}
 }
 
