@@ -6,7 +6,7 @@
 /*   By: sgiochal <sgiochal@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/04 17:57:16 by sgiochal          #+#    #+#             */
-/*   Updated: 2024/03/04 18:23:30 by sgiochal         ###   ########.fr       */
+/*   Updated: 2024/03/04 18:44:26 by sgiochal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,12 +15,17 @@
 
 #include <iostream>
 #include <string>
+#include <fstream>
+#include <sstream>
+#include <vector>
 #include "ServerConfig.hpp"
 
 class Config 
 {
 	public:
 									Config();
+									Config(const std::string& path);
+		void						load_config(const std::string& path);
 									~Config();
 
 	private:
