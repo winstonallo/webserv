@@ -6,7 +6,7 @@
 /*   By: abied-ch <abied-ch@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/04 17:57:16 by sgiochal          #+#    #+#             */
-/*   Updated: 2024/03/04 22:18:02 by abied-ch         ###   ########.fr       */
+/*   Updated: 2024/03/04 22:24:41 by abied-ch         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,6 +51,7 @@ void	Config::load_config(const std::string &config_path)
 			continue ;
 		line_to_map(line);
 	}
+	config_file.close();
 }
 
 // splits string into key-value pair & stores in config map
