@@ -3,19 +3,14 @@
 /*                                                        :::      ::::::::   */
 /*   Config.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sgiochal <sgiochal@student.42.fr>          +#+  +:+       +#+        */
+/*   By: abied-ch <abied-ch@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/04 17:57:16 by sgiochal          #+#    #+#             */
-/*   Updated: 2024/03/04 18:45:36 by sgiochal         ###   ########.fr       */
+/*   Updated: 2024/03/04 19:58:01 by abied-ch         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Config.hpp"
-
-Config::Config()
-{
-	load_config("default_config.conf");
-}
+#include "../inc/Config.hpp"
 
 Config::~Config()
 {
@@ -29,19 +24,17 @@ Config::Config(const Config& rhs)
 
 Config&	Config::operator=(const Config& rhs)
 {
-	if (this != &rhs)
-	{
-		servconf = rhs.servconf;
-	}
-	return (*this);
+	this->access_logs_path = rhs.access_logs_path;
+	this->port = rhs.port;
+	this->server_name = rhs.server_name;
 }
 
-Config::Config(const std::string &path)
+Config::Config(const std::string& path)
 {
 	load_config(path);
 }
 
-void Config::load_config(const std::string &path)
+void Config::load_config(const std::string& path)
 {
 	std::string config;
 	std::ifstream config_file(path.c_str());
