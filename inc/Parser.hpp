@@ -1,5 +1,6 @@
 #ifndef PARSER_HPP
 #define PARSER_HPP
+#include <string>
 #pragma once
 
 #include "Headers.hpp"
@@ -11,6 +12,7 @@ class Parser
 
 		static std::string					trim(const std::string& str, const std::string& delimiters);
 		static std::vector <std::string> 	split(const std::string& str, const std::string& delimiters);
+		static std::string					trim_comment(const std::string& str, const std::string& delimiters);
 
 	private:
 		Parser();

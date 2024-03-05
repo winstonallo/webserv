@@ -39,11 +39,11 @@ void	Config::load_file_to_map(std::ifstream& config_file)
 {
 	std::string line;
 	std::string prev_line;
-	std::string key = TOP_LEVEL;
+	std::string key;
 	
 	while (std::getline(config_file, line))
 	{
-        line = Parser::trim(line, " \t\n");
+        line = Parser::trim_comment(Parser::trim(line, " \t\n"), "#;");
 		
         if (line.empty())
             continue ;
@@ -64,21 +64,16 @@ std::string	Config::get_primary_key(const std::string& line, const std::string& 
 	{
 		if (line.size() == 1) // if '{' is standalone, get key from previous line & special-case 'server'
 		{
-			if (prev_line == "server")
-				return TOP_LEVEL;
-			else
-				return prev_line;
+			return prev_line;
 		}
 		else // if '{' follows text, trim & use previous line as the key
 		{
-			key = Parser::trim(line, "{ \t\n");
-			if (key == "server")
-				return TOP_LEVEL;
-			else
-				return key;
+			return Parser::trim(line, "{ \t\n");
 		}
 	}
-	return (key); // no change in status -> return current key
+	else if (line[line.size() - 1] == '}')
+		return TOP_LEVEL;
+	return key; // no change in status -> return current key
 }
 
 // parses config line and stores it in map under appropriate keys

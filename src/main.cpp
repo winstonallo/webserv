@@ -1,10 +1,13 @@
 #include "../inc/Config.hpp"
 
-int main()
+int main(int argc, char **argv)
 {
 	try
 	{
-		Config config;
+		if (argc == 2)
+			Config config(argv[1]);
+		else
+			Config config;
 	}
 	catch (const std::exception &e)
 	{
