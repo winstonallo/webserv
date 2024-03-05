@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Config.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: codespace <codespace@student.42.fr>        +#+  +:+       +#+        */
+/*   By: abied-ch <abied-ch@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/04 17:57:16 by sgiochal          #+#    #+#             */
-/*   Updated: 2024/03/05 13:23:32 by codespace        ###   ########.fr       */
+/*   Updated: 2024/03/05 15:20:42 by abied-ch         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,39 +35,34 @@ Config::Config(const std::string& path)
 // @param config_path: path to config file
 void Config::load_config(const std::string &config_path) 
 {
-    std::string line;
-    std::ifstream config_file(config_path.c_str());
-    std::string current_primary_key;
-	std::string key;
+    std::string 	line;
+    std::string 	current_primary_key;
+	std::string 	key;
+    std::ifstream 	config_file(config_path.c_str());
     
     if (!config_file.is_open())
         throw std::runtime_error("could not open config file");
-
     while (std::getline(config_file, line))
 	{
         line = Parser::trim(line, " \t\n");
-        if (line.empty())
-            continue;
-
+        if (line.empty() == true)
+            continue ;
         if (line[line.size() - 1] == '{')
 		{
-            current_primary_key = Parser::trim(key.substr(0, key.size()), " \t\n");
+			if (line.size() != 1)
+				current_primary_key = Parser::trim(line, "{");
+			else
+				current_primary_key = Parser::trim(key.substr(0, key.size()), " \t\n");
 		}
-        else if (line.find('}') != std::string::npos || current_primary_key == "server")
-            current_primary_key.clear();
+        else if (line[line.size() - 1] == '}' || current_primary_key == "server")
+            current_primary_key = TOP_LEVEL;
         else 
 		{
-            std::vector<std::string> temp = Parser::split(line, " \t\n;{}");
-            if (current_primary_key.empty() == false)
+            std::vector <std::string> temp = Parser::split(line, " \t\n;{}");
+			for (size_t i = 1; i < temp.size(); i++)
 			{
-                for (size_t i = 1; i < temp.size(); i++)
-                    config[current_primary_key][temp[0]].push_back(temp[i]);
-            } 
-			else 
-			{
-                for (size_t i = 1; i < temp.size(); i++)
-                    config[TOP_LEVEL][temp[0]].push_back(temp[i]);
-            }
+				config[current_primary_key][temp[0]].push_back(temp[i]);
+			}
         }
 		key = line;
     }
