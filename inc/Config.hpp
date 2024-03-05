@@ -28,7 +28,8 @@ class Config
 	private:
 	
 		config_map								config;
-		
+		std::stack <std::string>				indentation_level;
+
 		Config(const Config& rhs);
 		Config&	operator=(const Config& rhs);
 };

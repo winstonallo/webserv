@@ -12,6 +12,7 @@
 #include <fstream>
 #include <stdexcept>
 #include "Parser.hpp"
+#include <stack>
 
 #define EXIT_FAILURE 1
 #define EXIT_SUCCESS 0
