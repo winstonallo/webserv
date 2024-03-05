@@ -42,7 +42,7 @@ void	Config::load_config(const std::string &config_path)
 	while (std::getline(config_file, line))
 	{
 		if (line.empty() == false)
-			map_line(Parser::trim(line));
+			map_line(Parser::trim(line, " ;{}\n\t"));
 	}
 	config_file.close();
 	store_values();
@@ -59,30 +59,17 @@ void	Config::map_line(const std::string& line)
 	if (std::getline(input, key, ' '))
 	{
 		std::getline(input, value);
-		value = Parser::trim(value);
+		value = Parser::trim(value, " \t\n{};");
 		if (value.empty() == false)
-			config[Parser::trim(key)] = value;
+			config[Parser::trim(key, " ;{}\n\t")] = value;
 	}
 }
 
+// stores the parsed values in their respective vector
 void	Config::store_values()
 {
 	server_names = Parser::split(config["server_name"], " ");
 	allowed_methods = Parser::split(config["allow_methods"], " ");
-}
-
-// stores server names in vector
-void	Config::set_server_names()
-{
-	std::string			name;
-	std::istringstream	input(config["server_name"]);
-
-	while (std::getline(input, name, ' '))
-	{
-		if (name.empty() == true)
-			continue ;
-		server_names.push_back(name);
-	}
 }
 
 // returns vector containing the server names specified in the config
