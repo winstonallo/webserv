@@ -1,19 +1,12 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Config.hpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: abied-ch <abied-ch@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/03/04 17:57:16 by sgiochal          #+#    #+#             */
-/*   Updated: 2024/03/04 22:12:53 by abied-ch         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #ifndef CONFIG_HPP
 #define CONFIG_HPP
+#pragma once
 
 #include "Headers.hpp"
+
+#define TOP_LEVEL "__top_level"
+
+typedef std::map <std::string, std::map <std::string, std::vector <std::string> > > config_map;
 
 class Config 
 {
@@ -27,20 +20,20 @@ class Config
 		void									set_server_names();
 		void									set_allowed_methods();
 
-		std::string								get_value(const std::string& key);
-		std::map <std::string, std::string> 	get_config() const;
+		std::vector <std::string>				get_value(const std::string& primary_key, const std::string& secondary_key);
+		config_map							 	get_config() const;
 		std::vector <std::string>				get_server_names() const;
 		std::vector <std::string>				get_allowed_methods() const;
 		void									store_values();
 
 	private:
 	
+		config_map								config;
+		
 		Config(const Config& rhs);
 		Config&	operator=(const Config& rhs);
-		
-		std::map <std::string, std::string> config;
-		std::vector <std::string>			server_names;
-		std::vector <std::string>			allowed_methods;
 };
+
+std::ostream& operator<<(std::ostream& os, const Config& config);
 
 #endif

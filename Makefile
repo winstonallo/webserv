@@ -14,6 +14,7 @@ SRCS   	= \
         $(SRCS_DIR)/main.cpp \
         $(SRCS_DIR)/Config.cpp \
         $(SRCS_DIR)/Parser.cpp \
+        $(SRCS_DIR)/Server.cpp \
 
 OBJS	= $(SRCS:${SRCS_DIR}/%.cpp=${OBJS_DIR}/%.o)
 

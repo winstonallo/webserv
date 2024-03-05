@@ -8,9 +8,9 @@ std::string		Parser::trim(const std::string& str, const std::string& delimiters)
 {
 	size_t	first = str.find_first_not_of(delimiters);
 	if (first == std::string::npos)
-		return "";
+		return ("");
 	size_t	last = str.find_last_not_of(delimiters);
-	return str.substr(first, (last - first + 1));
+	return (str.substr(first, (last - first + 1)));
 }
 
 // splits line based on delmiters
@@ -35,5 +35,5 @@ std::vector <std::string>	Parser::split(const std::string& str, const std::strin
 		ret.push_back(str.substr(left, right - left));
 		left = str.find_first_not_of(delimiters, right + 1);
 	}
-	return ret;
+	return (ret);
 }
