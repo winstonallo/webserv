@@ -1,5 +1,4 @@
 #include "../inc/Config.hpp"
-#include <exception>
 
 int main()
 {
@@ -10,5 +9,6 @@ int main()
 	catch (const std::exception &e)
 	{
 		std::cerr << "error: " << e.what() << std::endl;
+		return EXIT_FAILURE;
 	}
 }

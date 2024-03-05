@@ -42,15 +42,16 @@ void	Config::load_config(const std::string &config_path)
 	while (std::getline(config_file, line))
 	{
 		if (line.empty() == false)
-			line_to_map(Parser::trim(line));
+			map_line(Parser::trim(line));
 	}
 	config_file.close();
+	store_values();
 }
 
 // splits string into key-value pair & stores in config map
 // returns if value is empty
 // @param line: line to trim and store
-void	Config::line_to_map(const std::string& line)
+void	Config::map_line(const std::string& line)
 {
 	std::string 		key, value;
 	std::istringstream 	input(line);
@@ -62,6 +63,38 @@ void	Config::line_to_map(const std::string& line)
 		if (value.empty() == false)
 			config[Parser::trim(key)] = value;
 	}
+}
+
+void	Config::store_values()
+{
+	server_names = Parser::split(config["server_name"], " ");
+	allowed_methods = Parser::split(config["allow_methods"], " ");
+}
+
+// stores server names in vector
+void	Config::set_server_names()
+{
+	std::string			name;
+	std::istringstream	input(config["server_name"]);
+
+	while (std::getline(input, name, ' '))
+	{
+		if (name.empty() == true)
+			continue ;
+		server_names.push_back(name);
+	}
+}
+
+// returns vector containing the server names specified in the config
+std::vector <std::string> Config::get_server_names() const
+{
+	return server_names;
+}
+
+// returns vector containing allowed methods specified in the config
+std::vector <std::string> Config::get_allowed_methods() const
+{
+	return allowed_methods;
 }
 
 // returns value from the config map

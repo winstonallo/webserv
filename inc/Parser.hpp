@@ -9,7 +9,8 @@ class Parser
 {
 	public:
 
-		static std::string	trim(const std::string& str);
+		static std::string					trim(const std::string& str);
+		static std::vector <std::string> 	split(const std::string& str, const std::string& delimiters);
 
 	private:
 		Parser();

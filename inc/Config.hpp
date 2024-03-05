@@ -23,10 +23,15 @@ class Config
 		~Config();
 
 		void									load_config(const std::string& config_path);
-		void									line_to_map(const std::string& line);
+		void									map_line(const std::string& line);
+		void									set_server_names();
+		void									set_allowed_methods();
 
 		std::string								get_value(const std::string& key);
 		std::map <std::string, std::string> 	get_config() const;
+		std::vector <std::string>				get_server_names() const;
+		std::vector <std::string>				get_allowed_methods() const;
+		void									store_values();
 
 	private:
 	
@@ -34,6 +39,8 @@ class Config
 		Config&	operator=(const Config& rhs);
 		
 		std::map <std::string, std::string> config;
+		std::vector <std::string>			server_names;
+		std::vector <std::string>			allowed_methods;
 };
 
 #endif
