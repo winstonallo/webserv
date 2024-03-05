@@ -28,7 +28,6 @@ std::vector <std::string>	Parser::split(const std::string& str, const std::strin
 		right = str.find_first_of(delimiters, left);
 		if (right == std::string::npos)
 		{
-			std::cout << str.substr(left, right - left) << std::endl;
 			if (left != std::string::npos)
 				ret.push_back(str.substr(left));
 			break ;

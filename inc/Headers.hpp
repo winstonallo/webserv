@@ -16,4 +16,10 @@
 #define EXIT_FAILURE 1
 #define EXIT_SUCCESS 0
 
+#define BOLD "\033[1m"
+#define RESET "\033[0m"
+#define UNDERLINE "\033[4m"
+
+#define TOP_LEVEL "top_level"
+
 #endif

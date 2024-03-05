@@ -4,10 +4,7 @@
 
 #include "Headers.hpp"
 
-#define TOP_LEVEL "__top_level"
-
 typedef std::map <std::string, std::map <std::string, std::vector <std::string> > > config_map;
-
 class Config 
 {
 	public:
@@ -16,7 +13,9 @@ class Config
 		~Config();
 
 		void									load_config(const std::string& config_path);
-		void									map_line(const std::string& line);
+		void									load_line_to_map(const std::string& line, std::string& primary_key);
+		void									load_file_to_map(std::ifstream& config_file);
+		std::string								get_primary_key(const std::string& line, const std::string& key, std::string& current_key);
 		void									set_server_names();
 		void									set_allowed_methods();
 
