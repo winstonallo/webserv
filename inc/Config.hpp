@@ -9,7 +9,7 @@ class Config
 {
 	public:
 	
-		Config(const std::string& path="default_config.conf");
+		Config(const std::string& path="webserv.conf");
 		~Config();
 
 		void									load_config(const std::string& config_path);
