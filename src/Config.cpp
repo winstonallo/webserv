@@ -71,15 +71,12 @@ void	Config::get_primary_key(const std::string& line, const std::string& prev_li
 			indentation_level.push(Parser::trim(line, "{ \t\n"));
 		}
 	}
-	else if (line[line.size() - 1] == '}')
+	int closing_brackets = std::count(line.begin(), line.end(), '}');
+	while (--closing_brackets > 0)
 	{
-		int brackets = std::count(line.begin(), line.end(), '}');
-		while (--brackets)
-			indentation_level.pop();
+		indentation_level.pop();
 	}
-	 // no change in status -> return current key
 }
-
 // parses config line and stores it in map under appropriate keys
 //
 // takes a single line of the config & splits it into components
