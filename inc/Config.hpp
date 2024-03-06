@@ -14,7 +14,6 @@ class Config
 		~Config();
 
 		void									load_config(const std::string& config_path);
-		void									load_line_to_map(const std::string& line, std::string& primary_key);
 		void									load_file_to_map(std::ifstream& config_file);
 		void									get_primary_key(const std::string& line, const std::string& key);
 		void									set_server_names();
@@ -30,7 +29,7 @@ class Config
 	
 		size_t									max_nesting_level;
 		config_map								config;
-		std::stack <std::string>				nesting_level;
+		std::vector<std::string> 				nesting_level;
 
 		Config(const Config& rhs);
 		Config&	operator=(const Config& rhs);

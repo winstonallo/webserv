@@ -48,28 +48,33 @@ std::string		Parser::trim_comment(const std::string& str, const std::string& del
 	return str.substr(0, str.find_first_of(delimiters));
 }
 
-std::vector<std::string> Parser::split_keep_delimiters(const std::string& str, const std::string& delimiters) {
+// splits a string by delimiters, also adding the delimiters into the vector as their own strings
+std::vector<std::string> Parser::split_keep_delimiters(const std::string& str, const std::string& delimiters) 
+{
     size_t left = 0;
     size_t right;
     std::vector<std::string> ret;
 
-    while (left < str.size()) {
+    while (left < str.size()) 
+	{
         right = str.find_first_of(delimiters, left);
         
-        // Add the non-delimiter part
-        if (right != std::string::npos) {
-            if (right > left) { // Avoid adding empty strings
-                ret.push_back(Parser::trim(str.substr(left, right - left), "\t\n "));
+		if (right != std::string::npos) 
+		{
+            if (right > left) 
+			{
+				std::string content = Parser::trim(str.substr(left, right - left), "\t\n ");
+				if (content.empty() == false)
+                	ret.push_back(content);
             }
-            // Add the delimiter itself as a separate element
             ret.push_back(Parser::trim(str.substr(right, 1), "\t\n "));
             left = right + 1;
-        } else {
-            // If no more delimiters, add the rest of the string
+        } 
+		else 
+		{
             ret.push_back(Parser::trim(str.substr(left), "\t\n "));
             break;
         }
     }
-
     return ret;
 }
