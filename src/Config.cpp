@@ -4,6 +4,10 @@
  */
 
 #include "../inc/Config.hpp"
+#include <sstream>
+#include <string>
+#include <variant>
+#include <vector>
 
 // default constructor: loads config from path - "default_config.conf" if no param
 Config::Config(const std::string& path)
@@ -11,94 +15,25 @@ Config::Config(const std::string& path)
 	load_config(path);
 }
 
-// reads & stores config from path
-//
-// @param 	config_path: path to config file
-//
-// opens config_file and passes it to load_file_to_map for parsing
-void	Config::load_config(const std::string &config_path) 
-{    
-    std::ifstream 	config_file(config_path.c_str());
-    
-	if (config_file.is_open() == false)
-		throw std::runtime_error("could not open config file");
-
-	load_file_to_map(config_file);
-
-	std::cout << *this;
-    config_file.close();
-}
-
-// loads config file into structured map
-//
-// @param 	config_file: input file stream opened with the config file
-//
-// parses each line of the file, extracts & organizes them into
-// hierarchical map structure for easy access
-void	Config::load_file_to_map(std::ifstream& config_file)
+void	Config::load_config(const std::string& path)
 {
-	std::string line;
-	std::string prev_line;
-	std::string key;
-	
-	while (std::getline(config_file, line))
-	{
-        line = Parser::trim_comment(Parser::trim(line, " \t\n"), "#;");
-		
-        if (line.empty())
-            continue ;
-		// get the map key we want to assign the line to
-		get_primary_key(line, prev_line);
-		// store the line in the map
-		load_line_to_map(line, indentation_level.top());
-		
-		prev_line = line;
-    }
-}
+	std::ifstream				config_file(path.c_str());
+	std::stringstream			buffer;
+	std::string					line;
+	std::string					dont_ask_rn;
+	std::vector <std::string> 	keys(4, "");
 
-// determines the appropriate primary key for storing configuration settings 
-// based on the current and previous lines
-void	Config::get_primary_key(const std::string& line, const std::string& prev_line)
-{
-	if (line[line.size() - 1] == '{') 
+	buffer << config_file.rdbuf();
+	std::vector <std::string> vec = Parser::split_keep_delimiters(buffer.str(), "{};");
+	for (std::vector<std::string>::iterator it = vec.begin(); it != vec.end(); it++)
+		std::cout << (*it) << std::endl;
+	nesting_level.push(Parser::trim(Parser::trim_comment(line, "#"), " \t\n"));
+	while (std::getline(config_file, line, '{'))
 	{
-		if (line.size() == 1) // if '{' is standalone, get key from previous line & special-case 'server'
-		{
-			indentation_level.push(prev_line);
-		}
-		else // if '{' follows text, trim & use previous line as the key
-		{
-			indentation_level.push(Parser::trim(line, "{ \t\n"));
-		}
+		keys[nesting_level.size() - 1] = nesting_level.top();
+		max_nesting_level = std::max(nesting_level.size(), max_nesting_level); // keep track of nesting level
 	}
-	int closing_brackets = std::count(line.begin(), line.end(), '}');
-	while (--closing_brackets > 0)
-	{
-		indentation_level.pop();
-	}
-}
-// parses config line and stores it in map under appropriate keys
-//
-// takes a single line of the config & splits it into components
-// to store it hierarchically
-// expects the line to contain a key-value pair, where the key is the first
-// element, and subsequent ones are the values
-//
-// @param 	line: config line to be parsed
-// @param 	primary_key: map key where the result will be stored 
-// 
-// @operations:
-// 		1. 	splits trimmed line into individual components based on config delimiters
-// 		2. 	uses the first element of the split as the secondary key within the 
-// 			current primary scope
-void		Config::load_line_to_map(const std::string& line, std::string& primary_key)
-{
-	std::vector <std::string>	key_values = Parser::split(line, " \t\n;{}");
-	
-	for (size_t i = 1; i < key_values.size(); i++) // use index 0 as the secondary key & the rest as the value
-	{
-		config[primary_key][key_values[0]].push_back(key_values[i]);
-	}
+	config_file.close();
 }
 
 // returns value from the config map
@@ -106,10 +41,10 @@ void		Config::load_line_to_map(const std::string& line, std::string& primary_key
 // @param 	primary_key: primary key for required value (TOP_LEVEL for top level values)
 // @param 	secondary_key: secondary key for required value (eg: 'listen'for the port)
 // @return	value: requested value
-std::vector <std::string>	Config::get_value(const std::string& primary_key, const std::string& secondary_key)
-{
-	return config[primary_key][secondary_key];
-}
+// std::vector <std::string>	Config::get_value(const std::string& primary_key, const std::string& secondary_key)
+// {
+// 	return config[primary_key][secondary_key];
+// }
 
 // returns the config map
 config_map	Config::get_config() const
@@ -124,12 +59,20 @@ std::ostream& operator<<(std::ostream& os, const Config& config)
 	for (config_map::iterator it = map.begin(); it != map.end(); ++it)
 	{
 		std::cout << BOLD << UNDERLINE << it->first << RESET << "\n" << std::endl;
-		for (std::map<std::string, std::vector<std::string> >::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+		for (std::map <std::string, std::map <std::string, std::map <std::string, std::vector <std::string> > > >::iterator yo = it->second.begin(); yo != it->second.end(); yo++)
 		{
-			std::cout << "\t" << BOLD << it2->first << RESET << std::endl;
-			for (std::vector<std::string>::iterator it3 = it2->second.begin(); it3 != it2->second.end(); ++it3)
+			std::cout << BOLD << UNDERLINE << yo->first << RESET << "\n" << std::endl;
+			for (std::map <std::string, std::map <std::string, std::vector <std::string> > >::iterator i = yo->second.begin(); i != yo->second.end(); i++)
 			{
-				std::cout << "\t\t" << *it3 << std::endl;
+				std::cout << BOLD << UNDERLINE << i->first << RESET << "\n" << std::endl;
+				for (std::map<std::string, std::vector<std::string> >::iterator it2 = i->second.begin(); it2 != i->second.end(); ++it2)
+				{
+					std::cout << "\t" << BOLD << it2->first << RESET << std::endl;
+					for (std::vector<std::string>::iterator it3 = it2->second.begin(); it3 != it2->second.end(); ++it3)
+					{
+						std::cout << "\t\t" << *it3 << std::endl;
+					}
+				}
 			}
 		}
 	}

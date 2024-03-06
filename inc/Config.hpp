@@ -1,10 +1,11 @@
 #ifndef CONFIG_HPP
 #define CONFIG_HPP
+#include <cstddef>
 #pragma once
 
 #include "Headers.hpp"
 
-typedef std::map <std::string, std::map <std::string, std::vector <std::string> > > config_map;
+typedef std::map <std::string, std::map <std::string, std::map <std::string, std::map <std::string, std::vector <std::string> > > > > config_map;
 class Config 
 {
 	public:
@@ -27,8 +28,9 @@ class Config
 
 	private:
 	
+		size_t									max_nesting_level;
 		config_map								config;
-		std::stack <std::string>				indentation_level;
+		std::stack <std::string>				nesting_level;
 
 		Config(const Config& rhs);
 		Config&	operator=(const Config& rhs);

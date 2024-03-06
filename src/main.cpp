@@ -1,4 +1,4 @@
-#include "../inc/Config.hpp"
+#include "../inc/Headers.hpp"
 
 int main(int argc, char **argv)
 {
