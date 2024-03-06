@@ -48,9 +48,9 @@ void	Config::load_file_to_map(std::ifstream& config_file)
         if (line.empty())
             continue ;
 		// get the map key we want to assign the line to
-		key = get_primary_key(line, prev_line, key);
+		get_primary_key(line, prev_line);
 		// store the line in the map
-		load_line_to_map(line, key);
+		load_line_to_map(line, indentation_level.top());
 		
 		prev_line = line;
     }
@@ -58,22 +58,26 @@ void	Config::load_file_to_map(std::ifstream& config_file)
 
 // determines the appropriate primary key for storing configuration settings 
 // based on the current and previous lines
-std::string	Config::get_primary_key(const std::string& line, const std::string& prev_line, std::string& key)
+void	Config::get_primary_key(const std::string& line, const std::string& prev_line)
 {
 	if (line[line.size() - 1] == '{') 
 	{
 		if (line.size() == 1) // if '{' is standalone, get key from previous line & special-case 'server'
 		{
-			return prev_line;
+			indentation_level.push(prev_line);
 		}
 		else // if '{' follows text, trim & use previous line as the key
 		{
-			return Parser::trim(line, "{ \t\n");
+			indentation_level.push(Parser::trim(line, "{ \t\n"));
 		}
 	}
 	else if (line[line.size() - 1] == '}')
-		return TOP_LEVEL;
-	return key; // no change in status -> return current key
+	{
+		int brackets = std::count(line.begin(), line.end(), '}');
+		while (--brackets)
+			indentation_level.pop();
+	}
+	 // no change in status -> return current key
 }
 
 // parses config line and stores it in map under appropriate keys
