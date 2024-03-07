@@ -59,6 +59,7 @@ void	Config::parse_config_from_vector(const std::vector <std::string>& config)
 		}
 	}
 	validate_nesting();
+	std::cout << *this;
 }
 
 // stores the key value pairs into the correct map position
