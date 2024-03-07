@@ -168,7 +168,6 @@ std::ostream& operator<<(std::ostream& os, const Config& config)
 			std::cout << "\t" << (*its) << std::endl; 
 		}
 	}
-
 	return os;
 }
 

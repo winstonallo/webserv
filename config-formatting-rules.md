@@ -9,7 +9,7 @@ every character following **`#`** will be ignored in parsing until the next newl
 a new scope is to be opened/closed by **`{}`** and declared with a name, eg:
 
 ```yaml
-/admin # this will used as the scope key
+/admin # this will be used as the scope key
 { # opening brace
 	root	/tmp; # value level
 } # closing brace
@@ -39,7 +39,7 @@ if (num_of_opening_braces != num_of_closing_braces)
 }
 ```
 ### value level:
-a line followed (excluding comments) by **`;`** will be parsed as value level, eg:
+a line ended (excluding comments) by **`;`** will be parsed as value level, eg:
 
 `allowed_methods	POST GET;`
 
