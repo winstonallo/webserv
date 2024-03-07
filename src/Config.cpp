@@ -4,10 +4,6 @@
 */
 
 #include "../inc/Config.hpp"
-#include <cstddef>
-#include <sstream>
-#include <stdexcept>
-#include <string>
 
 // default constructor: loads config from path
 // 
@@ -16,7 +12,7 @@ Config::Config(const std::string& path)
 {
 	if (path.substr(path.size() - 5) != ".conf") // check for valid file extension
 	{
-		throw std::runtime_error("accepted config file format: .conf");
+		throw std::runtime_error("'" + path + "': invalid file extension (expected: .conf)");
 	}
 
 	load_config_from_file(path);
@@ -134,7 +130,7 @@ void	Config::validate_config_header(const std::vector <std::string>& config)
 {
 	if (config[0].substr(0, 7) != "webserv")
 	{
-        throw std::runtime_error("please use the correct config header (webserv)");
+        throw std::runtime_error("invalid config file header: '" + config[0] + "', please use 'webserv'");
 	}
 
 	if (config[1] != "{")
