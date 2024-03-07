@@ -17,8 +17,8 @@ class Config
 
 		void												load_config_from_file(const std::string& config_path);
 		void												parse_config_from_vector(const std::vector <std::string>& config);
-		void												handle_open_brace(const std::string& new_key);
-		void												handle_closing_brace();
+		void												handle_opening_brace(const std::string& prev_line);
+		void												handle_closing_brace(const std::string& prev_line);
 		void												store_key_value_pairs(const std::string& line);
 		void												validate_nesting();
 		void												validate_config_header(const std::vector <std::string>& config);

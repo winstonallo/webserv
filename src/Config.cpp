@@ -4,7 +4,9 @@
 */
 
 #include "../inc/Config.hpp"
+#include <cstddef>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 
 // default constructor: loads config from path
@@ -62,11 +64,11 @@ void	Config::parse_config_from_vector(const std::vector <std::string>& config)
 	{
 		if (config[i] == "{") // entering new scope -> push new path to stack
 		{
-			_nesting_level.push(_nesting_level.top() + ":" + config[i - 1]);
+			handle_opening_brace(config[i - 1]);
 		}
 		else if (config[i] == "}") // leaving scope
 		{
-			handle_closing_brace();
+			handle_closing_brace(config[i - 1]);
 		}
 		else if (config[i] == ";") // reached 'bottom' scope -> store values
 		{
@@ -96,16 +98,29 @@ void	Config::store_key_value_pairs(const std::string& line)
 	_nesting_level.pop();
 }
 
+void	Config::handle_opening_brace(const std::string& prev_line)
+{
+	if (prev_line.find_first_of(";{}") != std::string::npos)
+	{
+		throw std::runtime_error("uninitialized scope");
+	}
+	_nesting_level.push(_nesting_level.top() + ":" + prev_line);
+}
+
 // checks whether the stack is empty before popping
 //
 // if yes: throw a runtime_error
 //
 // else: pop top value from the stack and keep going
-void	Config::handle_closing_brace()
+void	Config::handle_closing_brace(const std::string& prev_line)
 {
 	if (_nesting_level.empty() == true)
 	{
 		throw std::runtime_error("extraneous closing brace");
+	}
+	else if (prev_line != ";" and prev_line != "}")
+	{
+		throw std::runtime_error("unterminated value scope at '" + prev_line + "'");
 	}
 	_nesting_level.pop();
 }
