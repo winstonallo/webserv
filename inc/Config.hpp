@@ -17,12 +17,10 @@ class Config
 
 		void												load_config_from_file(const std::string& config_path);
 		void												parse_config_from_vector(const std::vector <std::string>& config);
-		void												process_config_elements(const std::vector <std::string>& config, const size_t i);
 		void												handle_open_brace(const std::string& new_key);
 		void												handle_closing_brace();
-		void												store_key_value_pairs(const std::string& line, std::vector <std::string>& keys);
-		void												set_default_keys(std::vector <std::string>& keys);
-		void												validate_nesting_depth_limit();
+		void												store_key_value_pairs(const std::string& line);
+		void												validate_nesting();
 		void												validate_config_header(const std::vector <std::string>& config);
 
 		std::map <std::string, std::vector <std::string> >	get_config() const;
