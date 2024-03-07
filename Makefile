@@ -36,13 +36,11 @@ run		: re
 fclean	: clean
 		$(RM) $(NAME)
 		$(RM) $(OBJS_DIR)
+		$(RM) webserv.d
 
 clean:
 	$(RM) $(OBJS)
 
 re		: fclean all
 
-database: clean
-	$(CXX) $(CXXFLAGS) -DDATABASE='"$(DB)"' -o $(NAME) $(SRCS)
-
-.PHONY	: all clean fclean re run database
+.PHONY	: all clean fclean re run
