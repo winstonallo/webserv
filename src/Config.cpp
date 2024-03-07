@@ -4,13 +4,8 @@
 */
 
 #include "../inc/Config.hpp"
-#include <algorithm>
 #include <cstddef>
-#include <sstream>
 #include <stdexcept>
-#include <string>
-#include <variant>
-#include <vector>
 
 // default constructor: loads config from path - "default_config.conf" if no param
 Config::Config(const std::string& path)
@@ -23,6 +18,7 @@ Config::Config(const std::string& path)
 
 void Config::load_config(const std::string& path)
 {
+	size_t						max_nesting_level = 0;
     std::ifstream 				config_file(path.c_str());
     std::stringstream 			buffer;
     std::vector<std::string> 	keys(5);
@@ -37,25 +33,24 @@ void Config::load_config(const std::string& path)
 	if (split[1] != "{")
 		throw std::runtime_error("please use '{ }' for indentation");
 
-	nesting_level.push_back("");
+	nesting_level.push("");
     for (size_t i = 2; i < split.size(); ++i) 
 	{
-		if (split[i] == "{") // this part seems fine afaict
+		if (split[i] == "{")
 		{
-            nesting_level.push_back("");
+            nesting_level.push("");
 
 			keys[nesting_level.size() - 1] = split[i - 1];
-			std::cout <<"current index: " << nesting_level.size() -1 <<" - "<< split[i - 1] << std::endl;
         } 
 		else if (split[i] == "}")
 		{
-			if (!nesting_level.empty()) 
+			if (nesting_level.empty() == false) 
 			{
                 keys[nesting_level.size() - 1] = "";
-                nesting_level.pop_back();
+            	nesting_level.pop();
             }
 			else
-				throw std::runtime_error("extraneous closing brace in config file - fuck off");
+				throw std::runtime_error("extraneous closing brace in config file");
         } 
 		else if (split[i] != ";") 
 		{
@@ -76,10 +71,13 @@ void Config::load_config(const std::string& path)
                 }
             }
         }
+		max_nesting_level = std::max(nesting_level.size(), max_nesting_level);
+		if (max_nesting_level > 5)
+			throw std::runtime_error("no need to nest your config this deep man");
     }
 	if (nesting_level.size() != 0)
-		throw std::runtime_error("missing closing brace in config - fuck off");
-    // std::cout << *this;
+		throw std::runtime_error("missing closing brace in config");
+    std::cout << *this;
     config_file.close();
 }
 

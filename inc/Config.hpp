@@ -1,6 +1,7 @@
 #ifndef CONFIG_HPP
 #define CONFIG_HPP
 #include <cstddef>
+#include <vector>
 #pragma once
 
 #include "Headers.hpp"
@@ -27,9 +28,8 @@ class Config
 
 	private:
 	
-		size_t									max_nesting_level;
-		config_map								config;
-		std::vector<std::string> 				nesting_level;
+		config_map								config;				// see typedef above map
+		std::stack <std::string> 				nesting_level;		// keeps track of nesting level
 
 		Config(const Config& rhs);
 		Config&	operator=(const Config& rhs);
