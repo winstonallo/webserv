@@ -62,6 +62,12 @@ void	Config::validate_config_header(const std::vector <std::string>& config)
 		throw std::runtime_error("please use '{ }' for indentation");
 }
 
+// reads current line of the config and makes decision based on delimiters
+//
+// @param config: config as vector of strings 
+// @param i: current config index
+//
+// we need to use the index here because we might have to access the previous line in some cases
 void	Config::process_config_elements(const std::vector <std::string>& config, const size_t i)
 {
 	if (config[i] == "{")
@@ -108,6 +114,10 @@ void	Config::handle_closing_brace()
 	}
 }
 
+// stores the values into the corresponding key of the map
+//
+// @param line: current line to store
+// @param keys: vector of keys corresponding to the current nesting level
 void	Config::store_key_value_pairs(const std::string& line, std::vector <std::string>& keys)
 {
 	std::vector<std::string> temp = Parser::split(line, " \t\n");
@@ -124,6 +134,7 @@ void	Config::store_key_value_pairs(const std::string& line, std::vector <std::st
 	}
 }
 
+// set cleared key levels to their original values to prevent empty keys
 void	Config::set_default_keys(std::vector <std::string>& keys)
 {
 	if (keys[0].empty())
@@ -136,6 +147,7 @@ void	Config::set_default_keys(std::vector <std::string>& keys)
 		keys[2] = "__server_specs";
 }
 
+// validate the nesting depth against a maximum of 5
 void	Config::validate_nesting_depth_limit()
 {
 	_max_nesting_level = std::max(_nesting_level.size(), _max_nesting_level);
