@@ -7,7 +7,7 @@
 
 #include "Headers.hpp"
 
-typedef std::map <std::string, std::map <std::string, std::map <std::string, std::map <std::string, std::vector <std::string> > > > > config_map;
+// typedef std::map <std::string, std::map <std::string, std::map <std::string, std::map <std::string, std::vector <std::string> > > > > config_map;
 class Config 
 {
 	public:
@@ -15,24 +15,24 @@ class Config
 		Config(const std::string& path="webserv.conf");
 		~Config();
 
-		void						load_config_from_file(const std::string& config_path);
-		void						parse_config_from_vector(const std::vector <std::string>& config);
-		void						process_config_elements(const std::vector <std::string>& config, const size_t i);
-		void						handle_open_brace(const std::string& new_key);
-		void						handle_closing_brace();
-		void						store_key_value_pairs(const std::string& line, std::vector <std::string>& keys);
-		void						set_default_keys(std::vector <std::string>& keys);
-		void						validate_nesting_depth_limit();
-		void						validate_config_header(const std::vector <std::string>& config);
+		void												load_config_from_file(const std::string& config_path);
+		void												parse_config_from_vector(const std::vector <std::string>& config);
+		void												process_config_elements(const std::vector <std::string>& config, const size_t i);
+		void												handle_open_brace(const std::string& new_key);
+		void												handle_closing_brace();
+		void												store_key_value_pairs(const std::string& line, std::vector <std::string>& keys);
+		void												set_default_keys(std::vector <std::string>& keys);
+		void												validate_nesting_depth_limit();
+		void												validate_config_header(const std::vector <std::string>& config);
 
-		config_map					get_config() const;
+		std::map <std::string, std::vector <std::string> >	get_config() const;
 
 	private:
 	
-		config_map					_config;				// see typedef above map
-		std::stack <std::string> 	_nesting_level;		// keeps track of nesting level
-		size_t						_max_nesting_level;
-		std::vector <std::string>	_keys;
+		std::stack <std::string> 							_nesting_level;		// keeps track of nesting level
+		size_t												_max_nesting_level;
+		std::vector <std::string>							_keys;
+		std::map <std::string, std::vector <std::string> >	_config;
 
 		Config(const Config& rhs);
 		Config&	operator=(const Config& rhs);

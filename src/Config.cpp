@@ -4,6 +4,9 @@
 */
 
 #include "../inc/Config.hpp"
+#include <cstddef>
+#include <stdexcept>
+#include <vector>
 
 // default constructor: loads config from path - "default_config.conf" if no param
 Config::Config(const std::string& path) : _max_nesting_level(0), _keys(std::vector <std::string>(5))
@@ -31,21 +34,33 @@ void	Config::parse_config_from_vector(const std::vector <std::string>& config)
 {
 	validate_config_header(config);
 
-	_nesting_level.push(""); // init stack
+	_nesting_level.push(config[0]);
 
-    for (size_t i = 2; i < config.size(); ++i) 
+	for (size_t i = 2; i < config.size(); i++)
 	{
-		process_config_elements(config, i);
+		if (config[i] == "{")
+		{
+			_nesting_level.push(_nesting_level.top() + ":" + config[i - 1]);
+		}
+		else if (config[i] == "}")
+		{
+			if (_nesting_level.empty() == true)
+				throw std::runtime_error("extraneous closing brace");
+			_nesting_level.pop();
+		}
+		else if (config[i] == ";")
+		{
+			std::vector <std::string> bottom_pair = Parser::split(config[i - 1], " \t\n");
 
-		validate_nesting_depth_limit();
-    }
-	if (_nesting_level.size() != 0)
-	{
-		throw std::runtime_error("missing closing brace in config");
+			_nesting_level.push(_nesting_level.top() + ":" + bottom_pair[0]);
+
+			for (size_t j = 1; j < bottom_pair.size(); j++)
+				_config[_nesting_level.top()].push_back(bottom_pair[j]);
+
+			_nesting_level.pop();
+		}
 	}
-	_max_nesting_level = 0;
-
-    std::cout << *this;
+	std::cout << *this;
 }
 
 // validate header of the config file
@@ -62,103 +77,7 @@ void	Config::validate_config_header(const std::vector <std::string>& config)
 		throw std::runtime_error("please use '{ }' for indentation");
 }
 
-// reads current line of the config and makes decision based on delimiters
-//
-// @param config: config as vector of strings 
-// @param i: current config index
-//
-// we need to use the index here because we might have to access the previous line in some cases
-void	Config::process_config_elements(const std::vector <std::string>& config, const size_t i)
-{
-	if (config[i] == "{")
-	{
-		handle_open_brace(config[i - 1]);
-	} 
-	else if (config[i] == "}")
-	{
-		handle_closing_brace();
-	} 
-	else if (config[i] != ";") // reached value level -> store in map
-	{
-		store_key_value_pairs(config[i], _keys);
-	}
-}
-
-// handle opening brackets
-//
-// @param new_key: key to update the key map with
-//
-// pushes to the stack, signifying additional level of nesting
-void	Config::handle_open_brace(const std::string& new_key)
-{
-	_nesting_level.push("");
-
-	_keys[_nesting_level.size() - 1] = new_key;
-}
-
-// handle closing brackets
-//
-// if stack is not empty, we pop it and update the key map
-// else if it is empty -> one too many closing brackets -> throw error
-void	Config::handle_closing_brace()
-{
-	if (_nesting_level.empty() == false) 
-	{
-		_keys[_nesting_level.size() - 1] = "";
-
-		_nesting_level.pop();
-	}
-	else
-	{
-		throw std::runtime_error("extraneous closing brace in config file");
-	}
-}
-
-// stores the values into the corresponding key of the map
-//
-// @param line: current line to store
-// @param keys: vector of keys corresponding to the current nesting level
-void	Config::store_key_value_pairs(const std::string& line, std::vector <std::string>& keys)
-{
-	std::vector<std::string> temp = Parser::split(line, " \t\n");
-
-	if (temp.empty() == false) 
-	{
-		for (size_t k = _nesting_level.size(); k < keys.size() - 1 ; ++k)
-			keys[k] = "";
-		for (size_t j = 1; j < temp.size(); ++j)
-		{
-			set_default_keys(keys);
-			_config[keys[0]][keys[1]][keys[2]][temp[0]].push_back(temp[j]);
-		}
-	}
-}
-
-// set cleared key levels to their original values to prevent empty keys
-void	Config::set_default_keys(std::vector <std::string>& keys)
-{
-	if (keys[0].empty())
-		keys[0] = "__top_level";
-
-	if (keys[1].empty())
-		keys[1] = "__sec_level";
-	
-	if (keys[2].empty())
-		keys[2] = "__server_specs";
-}
-
-// validate the nesting depth against a maximum of 5
-void	Config::validate_nesting_depth_limit()
-{
-	_max_nesting_level = std::max(_nesting_level.size(), _max_nesting_level);
-	
-	if (_max_nesting_level > 5)
-	{
-		throw std::runtime_error("no need to nest your config this deep man");
-	}
-}
-
-config_map	Config::get_config() const
+std::map <std::string, std::vector <std::string> >	Config::get_config() const
 {
 	return _config;
 }
@@ -166,27 +85,16 @@ config_map	Config::get_config() const
 // output operator overload for debugging
 std::ostream& operator<<(std::ostream& os, const Config& config) 
 {
-	config_map map = config.get_config();
-	for (config_map::iterator it = map.begin(); it != map.end(); ++it)
+	std::map <std::string, std::vector <std::string> > map = config.get_config();
+
+	for (std::map <std::string, std::vector <std::string> >::iterator it = map.begin(); it != map.end(); it++)
 	{
-		std::cout << "" << BOLD << UNDERLINE << it->first << RESET << "\n" << std::endl;
-		for (std::map <std::string, std::map <std::string, std::map <std::string, std::vector <std::string> > > >::iterator yo = it->second.begin(); yo != it->second.end(); yo++)
-		{
-			std::cout << "\t" << BOLD << UNDERLINE << yo->first << RESET << "\n" << std::endl;
-			for (std::map <std::string, std::map <std::string, std::vector <std::string> > >::iterator i = yo->second.begin(); i != yo->second.end(); i++)
-			{
-				std::cout << "\t\t" << BOLD << UNDERLINE << i->first << RESET << "\n" << std::endl;
-				for (std::map<std::string, std::vector<std::string> >::iterator it2 = i->second.begin(); it2 != i->second.end(); ++it2)
-				{
-					std::cout << "\t\t\t" << BOLD << it2->first << RESET << std::endl;
-					for (std::vector<std::string>::iterator it3 = it2->second.begin(); it3 != it2->second.end(); ++it3)
-					{
-						std::cout << "\t\t\t\t" << *it3 << std::endl;
-					}
-				}
-			}
-		}
+		std::cout << "key: " << it->first << std::endl;
+		std::cout << "\tvalue(s): " << std::endl;
+		for (std::vector <std::string>::iterator its = it->second.begin(); its != it->second.end(); its++)
+			std::cout << "\t\t" << (*its) << std::endl; 
 	}
+
 	return os;
 }
 
