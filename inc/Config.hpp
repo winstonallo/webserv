@@ -1,6 +1,7 @@
 #ifndef CONFIG_HPP
 #define CONFIG_HPP
 #include <cstddef>
+#include <string>
 #include <vector>
 #pragma once
 
@@ -14,22 +15,24 @@ class Config
 		Config(const std::string& path="webserv.conf");
 		~Config();
 
-		void									load_config(const std::string& config_path);
-		void									load_file_to_map(std::ifstream& config_file);
-		void									get_primary_key(const std::string& line, const std::string& key);
-		void									set_server_names();
-		void									set_allowed_methods();
+		void						load_config_from_file(const std::string& config_path);
+		void						parse_config_from_vector(const std::vector <std::string>& config);
+		void						process_config_elements(const std::vector <std::string>& config, const size_t i);
+		void						handle_open_brace(const std::string& new_key);
+		void						handle_closing_brace();
+		void						store_key_value_pairs(const std::string& line, std::vector <std::string>& keys);
+		void						set_default_keys(std::vector <std::string>& keys);
+		void						validate_nesting_depth_limit();
+		void						validate_config_header(const std::vector <std::string>& config);
 
-		std::vector <std::string>				get_value(const std::string& primary_key, const std::string& secondary_key);
-		config_map							 	get_config() const;
-		std::vector <std::string>				get_server_names() const;
-		std::vector <std::string>				get_allowed_methods() const;
-		void									store_values();
+		config_map					get_config() const;
 
 	private:
 	
-		config_map								config;				// see typedef above map
-		std::stack <std::string> 				nesting_level;		// keeps track of nesting level
+		config_map					_config;				// see typedef above map
+		std::stack <std::string> 	_nesting_level;		// keeps track of nesting level
+		size_t						_max_nesting_level;
+		std::vector <std::string>	_keys;
 
 		Config(const Config& rhs);
 		Config&	operator=(const Config& rhs);
