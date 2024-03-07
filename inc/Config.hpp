@@ -22,14 +22,14 @@ class Config
 		void												store_key_value_pairs(const std::string& line);
 		void												validate_nesting();
 		void												validate_config_header(const std::vector <std::string>& config);
+		void												validate_config(const std::string& config);
+		std::string											remove_comments(const std::string& config);
 
 		std::map <std::string, std::vector <std::string> >	get_config() const;
 
 	private:
 	
 		std::stack <std::string> 							_nesting_level;		// keeps track of nesting level
-		size_t												_max_nesting_level;
-		std::vector <std::string>							_keys;
 		std::map <std::string, std::vector <std::string> >	_config;
 
 		Config(const Config& rhs);

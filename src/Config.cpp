@@ -1,14 +1,16 @@
 /* 
 	config class implementation
-	handles loading, parsing, and accessing config settings from a file
+	handles loading, parsing, and accessing config settings from .conf file
 */
 
 #include "../inc/Config.hpp"
+#include <sstream>
+#include <string>
 
 // default constructor: loads config from path
 // 
 // @param path: path to the configuration file (default: 'webserv.conf')
-Config::Config(const std::string& path) : _max_nesting_level(0), _keys(std::vector <std::string>(5))
+Config::Config(const std::string& path)
 {
 	if (path.substr(path.size() - 5) != ".conf") // check for valid file extension
 	{
@@ -18,11 +20,24 @@ Config::Config(const std::string& path) : _max_nesting_level(0), _keys(std::vect
 	load_config_from_file(path);
 }
 
+std::string	Config::remove_comments(const std::string& config)
+{
+	std::string			cleaned_config;
+	std::string			line;
+	std::istringstream	input(config);
+
+	while (std::getline(input, line))
+	{
+		cleaned_config += Parser::trim_comment(line, "#") + "\n";
+	}
+	return cleaned_config;
+}
+
 // open config file
 // reads into string for easier splitting
 //
 // @param path: path to the configuration file (default: 'webserv.conf')
-void Config::load_config_from_file(const std::string& path)
+void 	Config::load_config_from_file(const std::string& path)
 {
     std::ifstream 				config_file(path.c_str());
     std::stringstream 			buffer;
@@ -33,7 +48,7 @@ void Config::load_config_from_file(const std::string& path)
 
  	// split the config into a string vector
 	// keep the delimiters for easier tracking of nesting level
-	parse_config_from_vector(Parser::split_keep_delimiters(buffer.str(), "{};"));
+	parse_config_from_vector(Parser::split_keep_delimiters(remove_comments(buffer.str()), "{};"));
 }
 
 // this assumes that the config file is correctly structured -> getting started on validation
@@ -59,7 +74,6 @@ void	Config::parse_config_from_vector(const std::vector <std::string>& config)
 		}
 	}
 	validate_nesting();
-	std::cout << *this;
 }
 
 // stores the key value pairs into the correct map position
