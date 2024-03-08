@@ -23,6 +23,4 @@
 #define RESET "\033[0m"
 #define UNDERLINE "\033[4m"
 
-#define TOP_LEVEL "top_level"
-
 #endif

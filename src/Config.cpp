@@ -144,7 +144,7 @@ void	Config::handle_closing_brace(const std::string& prev_line)
 	{
 		throw std::runtime_error("extraneous closing brace");
 	}
-	else if (prev_line != ";" and prev_line != "}")
+	else if (prev_line.find_first_of("{};") == std::string::npos)
 	{
 		throw std::runtime_error("unterminated value scope at '" + prev_line + "'");
 	}
@@ -191,7 +191,7 @@ std::ostream& operator<<(std::ostream& os, const Config& config)
 
 	for (std::map <std::string, std::vector <std::string> >::iterator it = map.begin(); it != map.end(); it++)
 	{
-		std::cout << BOLD << it->first << RESET << std::endl;
+		std::cout << "config[" << it->first << "]" << std::endl;
 
 		for (std::vector <std::string>::iterator its = it->second.begin(); its != it->second.end(); its++)
 		{
