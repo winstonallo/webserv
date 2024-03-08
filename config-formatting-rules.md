@@ -8,14 +8,14 @@ every character following **`#`** will be ignored in parsing until the next newl
 ### declare a scope
 a new scope is to be opened/closed by **`{}`** and declared with a name, eg:
 
-```yaml
+```conf
 /admin # this will be used as the scope key
 { # opening brace
 	root	/tmp; # value level
 } # closing brace
 ```
 failure to initialize a scope with a name will cause the configuration file to be considered invalid, eg:
-```yaml
+```conf
 ... 
 } # opening new scope with no identifier
 {
@@ -48,7 +48,7 @@ the line will be split into words (by whitespaces), the first word being conside
 thus, a line followed by **`;`** & containing less than 2 words will be considered invalid and ignored in parsing.
 ### duplicate keys within scope
 duplicate keys within the same scope will be merged, eg:
-```yaml
+```conf
 webserv
 {
 	port			80;
@@ -60,7 +60,7 @@ webserv
 **-->** `config["webserv:server_name"] = "domain.com", "www.domain.com"`
 ### empty scopes
 empty scopes, eg:
-```
+```conf
 routes
 {
 
