@@ -4,7 +4,6 @@
 */
 
 #include "../inc/Config.hpp"
-#include <stdexcept>
 
 // default constructor: loads config from path
 // 
@@ -19,6 +18,9 @@ Config::Config(const std::string& path)
 	load_config_from_file(path);
 }
 
+// loops through the config and removes the comments from each line
+//
+// @param config:	unprocessed config file as a string
 std::string	Config::remove_comments(const std::string& config)
 {
 	std::string			cleaned_config;
@@ -60,7 +62,11 @@ void 	Config::load_config_from_file(const std::string& path)
 	parse_config_from_vector(Parser::split_keep_delimiters(remove_comments(buffer.str()), "{};"));
 }
 
-// this assumes that the config file is correctly structured -> getting started on validation
+// loops through the config and dispatches the lines for processing based on delimiters
+//
+// @param config:	config file as a vector, split by (including) delimiters & without comments
+//
+// also performs some error handling
 void	Config::parse_config_from_vector(const std::vector <std::string>& config)
 {
 	validate_config_header(config);
@@ -105,6 +111,15 @@ void	Config::store_key_value_pairs(const std::string& line)
 	_nesting_level.pop();
 }
 
+// pushes the new path to the stack to signify a new scope
+//
+// @param prev_line: 	previous token, used for the path initialization
+// 						& error handling
+// 
+// if the previous line is a delimiter, it means the current
+// scope was not initialized with a name -> throw error
+// 
+// else, update the stack
 void	Config::handle_opening_brace(const std::string& prev_line)
 {
 	if (prev_line.find_first_of(";{}") != std::string::npos)
@@ -114,9 +129,13 @@ void	Config::handle_opening_brace(const std::string& prev_line)
 	_nesting_level.push(_nesting_level.top() + ":" + prev_line);
 }
 
-// checks whether the stack is empty before popping
+// updates the scope and performs some error handling
 //
-// if yes: throw a runtime_error
+// @param prev_line: 	previous config token, used for error handling
+//
+// if the stack is empty before popping: error
+//
+// else if the previous line is neither a '}' nor a ';': previous scope not terminated: error
 //
 // else: pop top value from the stack and keep going
 void	Config::handle_closing_brace(const std::string& prev_line)
