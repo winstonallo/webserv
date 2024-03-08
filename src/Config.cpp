@@ -4,6 +4,7 @@
 */
 
 #include "../inc/Config.hpp"
+#include <stdexcept>
 
 // default constructor: loads config from path
 // 
@@ -40,7 +41,17 @@ void 	Config::load_config_from_file(const std::string& path)
     std::ifstream 				config_file(path.c_str());
     std::stringstream 			buffer;
 
+	if (config_file.is_open() == false)
+	{
+		throw std::runtime_error("'" + path + "' could not be opened");
+	}
+
     buffer << config_file.rdbuf();
+
+	if (buffer.str().empty() == true)
+	{
+		throw std::runtime_error("'" + path + "' is empty");
+	}
 
     config_file.close();
 
