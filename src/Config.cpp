@@ -8,9 +8,11 @@
 // default constructor: loads config from path
 // 
 // @param path: path to the configuration file (default: 'webserv.conf')
+//
+// checks the file extension against expected value and passes the file path to the parser
 Config::Config(const std::string& path)
 {
-	if (path.substr(path.size() - 5) != ".conf") // check for valid file extension
+	if (path.substr(path.size() - 5) != ".conf")
 	{
 		throw std::runtime_error("'" + path + "': invalid file extension (expected: .conf)");
 	}
@@ -21,10 +23,10 @@ Config::Config(const std::string& path)
 // loops through the config and removes the comments from each line
 //
 // @param config:	unprocessed config file as a string
+// @return:			config file without comments but in the same structure	
 std::string	Config::remove_comments(const std::string& config)
 {
-	std::string			cleaned_config;
-	std::string			line;
+	std::string			cleaned_config, line;
 	std::istringstream	input(config);
 
 	while (std::getline(input, line))
@@ -34,8 +36,10 @@ std::string	Config::remove_comments(const std::string& config)
 	return cleaned_config;
 }
 
-// open config file
+// opens config file
 // reads into string for easier splitting
+// removes the comments
+// splits the string by (including) delimiters
 //
 // @param path: path to the configuration file (default: 'webserv.conf')
 void 	Config::load_config_from_file(const std::string& path)
@@ -57,8 +61,6 @@ void 	Config::load_config_from_file(const std::string& path)
 
     config_file.close();
 
- 	// split the config into a string vector
-	// keep the delimiters for easier tracking of nesting level
 	parse_config_from_vector(Parser::split_keep_delimiters(remove_comments(buffer.str()), "{};"));
 }
 
@@ -66,24 +68,28 @@ void 	Config::load_config_from_file(const std::string& path)
 //
 // @param config:	config file as a vector, split by (including) delimiters & without comments
 //
-// also performs some error handling
+// 1.	validates the config header
+// 2.	pushes key to the stack when entering scope
+// 3.	pops stack when leaving scope
+// 4.	stores values when reaching bottom level
+// 5.	validates correct number of braces
 void	Config::parse_config_from_vector(const std::vector <std::string>& config)
 {
 	validate_config_header(config);
 
-	_nesting_level.push(config[0]); // initialize the nesting_level stack with the top value (webserv)
+	_nesting_level.push(config[0]);
 
 	for (size_t i = 2; i < config.size(); i++)
 	{
-		if (config[i] == "{") // entering new scope -> push new path to stack
+		if (config[i] == "{")
 		{
 			handle_opening_brace(config[i - 1]);
 		}
-		else if (config[i] == "}") // leaving scope
+		else if (config[i] == "}")
 		{
 			handle_closing_brace(config[i - 1]);
 		}
-		else if (config[i] == ";") // reached 'bottom' scope -> store values
+		else if (config[i] == ";")
 		{
 			store_key_value_pairs(config[i - 1]);
 		}
@@ -95,8 +101,8 @@ void	Config::parse_config_from_vector(const std::vector <std::string>& config)
 //
 // @param line: bottom (value level) pair line
 //
-// splits the line by whitespaces, assuming the first index is the key
-// stores the rest into the value vector of the map
+// adds the first word of the line to map key
+// adds subsequent words to the value vector 
 void	Config::store_key_value_pairs(const std::string& line)
 {
 	std::vector <std::string> bottom_pair = Parser::split(line, " \t\n");
@@ -148,7 +154,10 @@ void	Config::handle_closing_brace(const std::string& prev_line)
 	{
 		throw std::runtime_error("unterminated value scope at '" + prev_line + "'");
 	}
-	_nesting_level.pop();
+	else 
+	{
+		_nesting_level.pop();
+	}
 }
 
 // validate header of the config file
