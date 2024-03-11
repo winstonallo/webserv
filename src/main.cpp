@@ -11,7 +11,7 @@ int main(int argc, char **argv)
 	}
 	catch (const std::exception &e)
 	{
-		std::cerr << "webserv: error: " << e.what() << std::endl;
+		std::cerr << "error: " << e.what() << std::endl;
 		return EXIT_FAILURE;
 	}
 }

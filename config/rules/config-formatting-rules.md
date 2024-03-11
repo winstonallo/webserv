@@ -1,11 +1,17 @@
 # expected config format
+invalid custom config will result in fallback to 'config/webserv.conf'
 
 ## header
-the webserv config is to be prefixed by the keyword **`webserv`**, directly followed (excluding comments & whitespaces) by an opening brace **`{`**.
+* **invalid config file header:** the webserv config is to be prefixed by the keyword **`webserv`**
+* **missing opening brace:** the header must be directly followed (excluding comments & whitespaces) by an opening brace **`{`**.
 ## comments
 every character following **`#`** will be ignored in parsing until the next newline.
 ## scopes
 ### declare a scope
+#### error messages:
+* missing closing brace
+* extraneous closing brace
+
 a new scope is to be opened/closed by **`{}`** and declared with a name, eg:
 
 ```conf
@@ -14,10 +20,20 @@ a new scope is to be opened/closed by **`{}`** and declared with a name, eg:
 	root	/tmp; # value level
 } # closing brace
 ```
-failure to initialize a scope with a name will cause the configuration file to be considered invalid, eg:
+* **uninitialized scope:** failure to initialize a scope with a name will cause the configuration file to be considered invalid:
+
+**invalid**:
 ```conf
-... 
+...                                       
 } # opening new scope with no identifier
+{                                        
+	root	/tmp;      
+}                        
+```
+**valid**:
+```conf
+...
+/admin # this is needed for storing the values
 {
 	root	/tmp;
 }

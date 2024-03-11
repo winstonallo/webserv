@@ -8,7 +8,7 @@ class Config
 {
 	public:
 	
-		Config(const std::string& path="webserv.conf");
+		Config(const std::string& path="config/webserv.conf");
 		~Config();
 
 		void												load_config_from_file(const std::string& config_path);
@@ -21,7 +21,8 @@ class Config
 		void												validate_config(const std::string& config);
 		std::string											remove_comments(const std::string& config);
 
-		std::string											error_on_line(const std::string& message, int line_count);
+		std::string											error_on_line(const std::string& issue, int line_count);
+		std::string											error(const std::string& message);
 
 		std::map <std::string, std::vector <std::string> >	get_config() const;
 

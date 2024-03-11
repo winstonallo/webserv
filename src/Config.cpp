@@ -4,8 +4,7 @@
 */
 
 #include "../inc/Config.hpp"
-#include <algorithm>
-#include <stdexcept>
+#include <sstream>
 
 // default constructor: loads config from path
 // 
@@ -16,7 +15,7 @@ Config::Config(const std::string& path) : _config_file_path(path)
 {
 	if (path.substr(path.size() - 5) != EXPECTED_EXT)
 	{
-		throw std::runtime_error(error_on_line(CONF_INVALID_EXT, 0));
+		throw std::runtime_error(error_on_line(INVALID_EXT, 0));
 	}
 
 	load_config_from_file(path);
@@ -51,14 +50,14 @@ void 	Config::load_config_from_file(const std::string& path)
 
 	if (config_file.is_open() == false)
 	{
-		throw std::runtime_error("'" + path + "' could not be opened");
+		throw std::runtime_error(error(NOT_FOUND));
 	}
 
     buffer << config_file.rdbuf();
 
 	if (buffer.str().empty() == true)
 	{
-		throw std::runtime_error(error_on_line(CONF_EMPTY, 0));
+		throw std::runtime_error(error_on_line(EMPTY, 0));
 	}
 
     config_file.close();
@@ -97,7 +96,6 @@ void	Config::parse_config_from_vector(const std::vector <std::pair <std::string,
 		}
 	}
 	validate_nesting(config[config.size() - 1].second + 1);
-	std::cout << *this;
 }
 
 // stores the key value pairs into the correct map position
@@ -110,7 +108,7 @@ void	Config::store_key_value_pairs(const std::pair <std::string, int> line)
 {
 	if (line.first.find("\n") != std::string::npos)
 	{
-		throw std::runtime_error(error_on_line(CONF_UNEXPECTED_NL, line.second));
+		throw std::runtime_error(error_on_line(UNEXPECTED_NL, line.second + 1));
 	}
 	std::vector <std::string> bottom_pair = Parser::split(line.first, " \t");
 
@@ -137,7 +135,7 @@ void	Config::handle_opening_brace(const std::pair <std::string, int>& prev_line)
 {
 	if (prev_line.first.find_first_of(";{}") != std::string::npos)
 	{
-		throw std::runtime_error("uninitialized scope");
+		throw std::runtime_error(error_on_line(UNINITIALIZED_SCOPE, prev_line.second + 1));
 	}
 	_nesting_level.push(_nesting_level.top() + ":" + prev_line.first);
 }
@@ -155,11 +153,11 @@ void	Config::handle_closing_brace(const std::pair <std::string, int>& prev_line)
 {
 	if (_nesting_level.empty() == true)
 	{
-		throw std::runtime_error("extraneous closing brace");
+		throw std::runtime_error(error_on_line(EXTRA_CLOSING_BRACE, prev_line.second + 1));
 	}
 	else if (prev_line.first.find_first_of("{};") == std::string::npos)
 	{
-		throw std::runtime_error("unterminated value scope at '" + prev_line.first + "'");
+		throw std::runtime_error(error_on_line(UNTERM_VALUE_SCOPE, prev_line.second + 1));
 	}
 	else 
 	{
@@ -176,12 +174,12 @@ void	Config::validate_config_header(const std::vector <std::pair <std::string, i
 {
 	if (Parser::trim(config[0].first.substr(0, 7), " \t\n") != "webserv")
 	{
-        throw std::runtime_error("invalid config file header: '" + config[0].first + "', please use 'webserv'");
+        throw std::runtime_error(error_on_line(INV_HEADER, config[0].second));
 	}
 
 	if (config[1].first != "{")
 	{
-		throw std::runtime_error("please use '{ }' for indentation");
+		throw std::runtime_error(error_on_line(MISSING_OPENING_BRACE, config[1].second));
 	}
 }
 
@@ -190,7 +188,7 @@ void	Config::validate_nesting(int line_count)
 {
 	if (_nesting_level.empty() == false)
 	{
-		throw std::runtime_error(error_on_line(CONF_CLOSING_BRACE, line_count));
+		throw std::runtime_error(error_on_line(MISSING_CLOSING_BRACE, line_count));
 	}
 }
 
@@ -217,9 +215,26 @@ std::ostream& operator<<(std::ostream& os, const Config& config)
 	return os;
 }
 
-std::string	Config::error_on_line(const std::string& message, int line_count)
+std::string	Config::error(const std::string& message)
 {
-	return _config_file_path + " (line " + Parser::itoa(line_count) + "): " + message;
+	std::string error = strerror(errno);
+
+	if (error == "Success")
+	{
+		error = "";
+	}
+
+	return _config_file_path + ": " + message + ": " + error;
+}
+
+std::string	Config::error_on_line(const std::string& issue, int line_count)
+{
+	std::ostringstream oss;
+
+	oss << _config_file_path << " (line " << line_count << "): ";
+	oss << issue << "\n>\n> ";
+	oss << FALLBACK << "\n>\n> " << RULES;
+	return oss.str();
 }
 
 Config::~Config() {}
