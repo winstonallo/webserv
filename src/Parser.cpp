@@ -51,9 +51,9 @@ std::string		Parser::trim_comment(const std::string& str, const std::string& del
 // splits a string by delimiters, also adding the delimiters into the vector as their own strings
 std::vector<std::string> Parser::split_keep_delimiters(const std::string& str, const std::string& delimiters) 
 {
-    size_t left = 0;
-    size_t right;
-    std::vector<std::string> ret;
+    size_t 						left = 0;
+    size_t 						right;
+    std::vector <std::string> 	ret;
 
     while (left < str.size()) 
 	{

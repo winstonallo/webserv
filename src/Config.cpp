@@ -4,6 +4,8 @@
 */
 
 #include "../inc/Config.hpp"
+#include <algorithm>
+#include <stdexcept>
 
 // default constructor: loads config from path
 // 
@@ -95,7 +97,6 @@ void	Config::parse_config_from_vector(const std::vector <std::string>& config)
 		}
 	}
 	validate_nesting();
-	std::cout << *this;
 }
 
 // stores the key value pairs into the correct map position
@@ -106,7 +107,11 @@ void	Config::parse_config_from_vector(const std::vector <std::string>& config)
 // adds subsequent words to the value vector 
 void	Config::store_key_value_pairs(const std::string& line)
 {
-	std::vector <std::string> bottom_pair = Parser::split(line, " \t\n");
+	if (line.find("\n") != std::string::npos)
+	{
+		throw std::runtime_error("unexpected newline at '" + line + "', terminate value lines with ';'");
+	}
+	std::vector <std::string> bottom_pair = Parser::split(line, " \t");
 
 	_nesting_level.push(_nesting_level.top() + ":" + bottom_pair[0]);
 
