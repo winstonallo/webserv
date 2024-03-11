@@ -1,10 +1,6 @@
 #ifndef CONFIG_HPP
 #define CONFIG_HPP
-#include <cstddef>
-#include <string>
-#include <vector>
 #pragma once
-
 #include "Headers.hpp"
 
 // typedef std::map <std::string, std::map <std::string, std::map <std::string, std::map <std::string, std::vector <std::string> > > > > config_map;
@@ -20,15 +16,18 @@ class Config
 		void												handle_opening_brace(const std::pair <std::string, int>& prev_line);
 		void												handle_closing_brace(const std::pair <std::string, int>& prev_line);
 		void												store_key_value_pairs(const std::pair <std::string, int> prev_line);
-		void												validate_nesting();
+		void												validate_nesting(int line_count);
 		void												validate_config_header(const std::vector <std::pair <std::string, int> >& config);
 		void												validate_config(const std::string& config);
 		std::string											remove_comments(const std::string& config);
+
+		std::string											error_on_line(const std::string& message, int line_count);
 
 		std::map <std::string, std::vector <std::string> >	get_config() const;
 
 	private:
 	
+		std::string											_config_file_path;
 		std::stack <std::string> 							_nesting_level;		// keeps track of nesting level
 		std::map <std::string, std::vector <std::string> >	_config;
 

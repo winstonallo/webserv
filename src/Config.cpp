@@ -12,11 +12,11 @@
 // @param path: path to the configuration file (default: 'webserv.conf')
 //
 // checks the file extension against expected value and passes the file path to the parser
-Config::Config(const std::string& path)
+Config::Config(const std::string& path) : _config_file_path(path)
 {
-	if (path.substr(path.size() - 5) != ".conf")
+	if (path.substr(path.size() - 5) != EXPECTED_EXT)
 	{
-		throw std::runtime_error("'" + path + "': invalid file extension (expected: .conf)");
+		throw std::runtime_error(error_on_line(CONF_INVALID_EXT, 0));
 	}
 
 	load_config_from_file(path);
@@ -58,7 +58,7 @@ void 	Config::load_config_from_file(const std::string& path)
 
 	if (buffer.str().empty() == true)
 	{
-		throw std::runtime_error("'" + path +  + "' is empty");
+		throw std::runtime_error(error_on_line(CONF_EMPTY, 0));
 	}
 
     config_file.close();
@@ -96,8 +96,8 @@ void	Config::parse_config_from_vector(const std::vector <std::pair <std::string,
 			store_key_value_pairs(config[i - 1]);
 		}
 	}
+	validate_nesting(config[config.size() - 1].second + 1);
 	std::cout << *this;
-	validate_nesting();
 }
 
 // stores the key value pairs into the correct map position
@@ -110,7 +110,7 @@ void	Config::store_key_value_pairs(const std::pair <std::string, int> line)
 {
 	if (line.first.find("\n") != std::string::npos)
 	{
-		throw std::runtime_error("line " + Parser::itoa(line.second) + ": unexpected newline"" terminate value lines with ';'");
+		throw std::runtime_error(error_on_line(CONF_UNEXPECTED_NL, line.second));
 	}
 	std::vector <std::string> bottom_pair = Parser::split(line.first, " \t");
 
@@ -186,11 +186,11 @@ void	Config::validate_config_header(const std::vector <std::pair <std::string, i
 }
 
 // ensures that no nesting scope is left open
-void	Config::validate_nesting()
+void	Config::validate_nesting(int line_count)
 {
 	if (_nesting_level.empty() == false)
 	{
-		throw std::runtime_error("missing closing brace");
+		throw std::runtime_error(error_on_line(CONF_CLOSING_BRACE, line_count));
 	}
 }
 
@@ -215,6 +215,11 @@ std::ostream& operator<<(std::ostream& os, const Config& config)
 		}
 	}
 	return os;
+}
+
+std::string	Config::error_on_line(const std::string& message, int line_count)
+{
+	return _config_file_path + " (line " + Parser::itoa(line_count) + "): " + message;
 }
 
 Config::~Config() {}
