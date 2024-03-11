@@ -14,6 +14,15 @@
 #include "Parser.hpp"
 #include <stack>
 #include <algorithm>
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <netdb.h>
+#include <fcntl.h>
+#include <sys/select.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <unistd.h>
+#include <sys/time.h>
 #include "Config.hpp"
 
 #define EXIT_FAILURE 1
@@ -22,5 +31,7 @@
 #define BOLD "\033[1m"
 #define RESET "\033[0m"
 #define UNDERLINE "\033[4m"
+
+#define TOP_LEVEL "top_level"
 
 #endif
