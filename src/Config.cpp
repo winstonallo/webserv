@@ -167,7 +167,7 @@ void	Config::handle_closing_brace(const std::string& prev_line)
 // checks whether the config has the right header and is opened by '{'
 void	Config::validate_config_header(const std::vector <std::string>& config)
 {
-	if (config[0].substr(0, 7) != "webserv")
+	if (Parser::trim(config[0].substr(0, 7), " \t\n") != "webserv")
 	{
         throw std::runtime_error("invalid config file header: '" + config[0] + "', please use 'webserv'");
 	}
