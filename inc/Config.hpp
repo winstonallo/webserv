@@ -16,12 +16,12 @@ class Config
 		~Config();
 
 		void												load_config_from_file(const std::string& config_path);
-		void												parse_config_from_vector(const std::vector <std::string>& config);
-		void												handle_opening_brace(const std::string& prev_line);
-		void												handle_closing_brace(const std::string& prev_line);
-		void												store_key_value_pairs(const std::string& line);
+		void												parse_config_from_vector(const std::vector < std::pair <std::string, int> >& config);
+		void												handle_opening_brace(const std::pair <std::string, int>& prev_line);
+		void												handle_closing_brace(const std::pair <std::string, int>& prev_line);
+		void												store_key_value_pairs(const std::pair <std::string, int> prev_line);
 		void												validate_nesting();
-		void												validate_config_header(const std::vector <std::string>& config);
+		void												validate_config_header(const std::vector <std::pair <std::string, int> >& config);
 		void												validate_config(const std::string& config);
 		std::string											remove_comments(const std::string& config);
 

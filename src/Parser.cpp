@@ -1,4 +1,5 @@
 #include "../inc/Parser.hpp"
+#include <sstream>
 #include <string>
 
 // trims line based on delimiters
@@ -49,32 +50,60 @@ std::string		Parser::trim_comment(const std::string& str, const std::string& del
 }
 
 // splits a string by delimiters, also adding the delimiters into the vector as their own strings
-std::vector<std::string> Parser::split_keep_delimiters(const std::string& str, const std::string& delimiters) 
-{
-    size_t 						left = 0;
-    size_t 						right;
-    std::vector <std::string> 	ret;
+std::vector <std::pair <std::string, int> > Parser::split_keep_delimiters(const std::string& str, const std::string& delimiters) {
+        size_t left = 0;
+        size_t right;
+        std::vector< std::pair<std::string, int> > ret;
+        int line_number = 0;
 
-    while (left < str.size()) 
-	{
-        right = str.find_first_of(delimiters, left);
-        
-		if (right != std::string::npos) 
-		{
-            if (right > left) 
-			{
-				std::string content = Parser::trim(str.substr(left, right - left), "\t\n ");
-				if (content.empty() == false)
-                	ret.push_back(content);
+        while (left < str.size()) {
+            right = str.find_first_of(delimiters, left);
+
+            if (right != std::string::npos) {
+                std::string segment = str.substr(left, right - left);
+                // Check the segment for newlines and adjust line_number accordingly
+                for(size_t i = 0; i < segment.length(); ++i) {
+                    if(segment[i] == '\n') {
+                        ++line_number;
+                    }
+                }
+
+                if (!segment.empty()) {
+                    std::string content = Parser::trim(segment, "\t\n ");
+                    if (!content.empty())
+                        ret.push_back(std::make_pair(content, line_number));
+                }
+                // Handle the delimiter itself
+                std::string delimiter(1, str[right]);
+                if (!delimiter.empty()) {
+                    // Increment line_number if the delimiter is a newline
+                    if(delimiter == "\n") {
+                        ++line_number;
+                    }
+                    ret.push_back(std::make_pair(delimiter, line_number));
+                }
+                left = right + 1;
+            } else {
+                std::string remaining = str.substr(left);
+                // Check the remaining part for newlines and adjust line_number accordingly
+                for(size_t i = 0; i < remaining.length(); ++i) {
+                    if(remaining[i] == '\n') {
+                        ++line_number;
+                    }
+                }
+                std::string content = Parser::trim(remaining, "\t\n ");
+                if (!content.empty())
+                    ret.push_back(std::make_pair(content, line_number));
+                break;
             }
-            ret.push_back(Parser::trim(str.substr(right, 1), "\t\n "));
-            left = right + 1;
-        } 
-		else 
-		{
-            ret.push_back(Parser::trim(str.substr(left), "\t\n "));
-            break;
         }
+        return ret;
     }
-    return ret;
+
+std::string	Parser::itoa(int num)
+{
+	std::ostringstream	oss;
+
+	oss << num;
+	return oss.str();
 }
