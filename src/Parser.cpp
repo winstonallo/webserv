@@ -26,8 +26,7 @@ std::string		Parser::trim(const std::string& str, const std::string& delimiters)
 // @return	vector of strings
 std::vector <std::string>	Parser::split(const std::string& str, const std::string& delimiters)
 {
-	size_t						left = str.find_first_not_of(delimiters, 0);
-	size_t						right;
+	size_t						left = str.find_first_not_of(delimiters, 0), right = 0;
 	std::vector <std::string>	ret;
 	
 	while (left != std::string::npos)
@@ -41,6 +40,44 @@ std::vector <std::string>	Parser::split(const std::string& str, const std::strin
 		}
 		ret.push_back(str.substr(left, right - left));
 		left = str.find_first_not_of(delimiters, right + 1);
+	}
+	return ret;
+}
+
+std::vector <std::string>	Parser::split_keep_quoted_words(const std::string& str, const std::string& delimiters)
+{
+	bool						in_quotes = false;
+	size_t						left = 0, right = 0;
+	std::vector <std::string>	ret;
+
+	while (right < str.size())
+	{
+		if (str[right] == '"' && (right == 0 || str[right - 1] != '\\'))
+		{
+			in_quotes = !in_quotes;
+			if (in_quotes == false)
+			{
+				ret.push_back(str.substr(left + 1, right - left - 1));
+				left = right + 1;
+			}
+			else
+			{
+				left = right;
+			}
+		}
+		else if (in_quotes == false && delimiters.find(str[right]) != std::string::npos)
+		{
+			if (left != right)
+			{
+				ret.push_back(str.substr(left, right - left));
+			}
+			left = right + 1;
+		}
+		right++;
+	}
+	if (in_quotes == false && left < str.size())
+	{
+		ret.push_back(str.substr(left));
 	}
 	return ret;
 }

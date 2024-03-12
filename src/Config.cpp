@@ -67,7 +67,7 @@ void 	Config::load_config_from_file(const std::string& path)
 
 // loops through the config and dispatches the lines for processing based on delimiters
 //
-// @param config:	config file as a vector, split by (including) delimiters & without comments
+// @param config:	config file as a vector of pairs (line & line_number), split by (including) delimiters & without comments
 //
 // 1.	validates the config header
 // 2.	pushes key to the stack when entering scope
@@ -96,6 +96,7 @@ void	Config::parse_config_from_vector(const std::vector <std::pair <std::string,
 		}
 	}
 	validate_nesting(config[config.size() - 1].second + 1);
+	std::cout << *this;
 }
 
 // stores the key value pairs into the correct map position
@@ -110,7 +111,8 @@ void	Config::store_key_value_pairs(const std::pair <std::string, int> line)
 	{
 		throw std::runtime_error(error_on_line(UNEXPECTED_NL, line.second + 1));
 	}
-	std::vector <std::string> bottom_pair = Parser::split(line.first, " \t");
+
+	std::vector <std::string> bottom_pair = Parser::split_keep_quoted_words(line.first, " \t");
 
 	_nesting_level.push(_nesting_level.top() + ":" + bottom_pair[0]);
 
