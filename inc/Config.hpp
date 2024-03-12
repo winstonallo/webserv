@@ -15,6 +15,7 @@ class Config
 
 		std::map <std::string, std::vector <std::string> >	get_config() const;
 		std::string											get_error_page(const int error_code);
+		std::map <int, std::string>							get_error_pages_map();
 
 	private:
 

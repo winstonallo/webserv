@@ -10,8 +10,7 @@ int main(int argc, char **argv)
 			config_path = argv[1];
 
 		Config config(config_path);
-
-		std::cout << config.get_error_page(404) << std::endl;
+		std::map <std::string, Config> map;
 	}
 	catch (const std::exception &e)
 	{

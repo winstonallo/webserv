@@ -202,6 +202,12 @@ void	Config::validate_nesting(int line_count)
 	}
 }
 
+std::map <int, std::string>	Config::get_error_pages_map()
+{
+	std::vector <int> 			expected_status_codes;
+	std::map <int, std::string> error_pages_map;
+}
+
 std::string	Config::get_error_page(const int error_code)
 {
 	std::string key = "webserv:error_pages:" + Parser::itoa(error_code);
