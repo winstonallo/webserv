@@ -4,10 +4,14 @@ int main(int argc, char **argv)
 {
 	try
 	{
+		std::string config_path = "";
+
 		if (argc == 2)
-			Config config(argv[1]);
-		else
-			Config config;
+			config_path = argv[1];
+
+		Config config(config_path);
+
+		std::cout << config.get_error_page(404) << std::endl;
 	}
 	catch (const std::exception &e)
 	{

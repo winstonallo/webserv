@@ -5,6 +5,7 @@
 
 #include "../inc/Config.hpp"
 #include <sstream>
+#include <vector>
 
 // default constructor: loads config from path
 // 
@@ -13,12 +14,16 @@
 // checks the file extension against expected value and passes the file path to the parser
 Config::Config(const std::string& path) : _config_file_path(path)
 {
-	if (path.substr(path.size() - 5) != EXPECTED_EXT)
+	if (_config_file_path == "")
+	{
+		_config_file_path = "config/webserv.conf";
+	}
+	if (_config_file_path.substr(_config_file_path.size() - 5) != EXPECTED_EXT)
 	{
 		throw std::runtime_error(error_on_line(INVALID_EXT, 0));
 	}
 
-	load_config_from_file(path);
+	load_config_from_file(_config_file_path);
 }
 
 // loops through the config and removes the comments from each line
@@ -96,7 +101,6 @@ void	Config::parse_config_from_vector(const std::vector <std::pair <std::string,
 		}
 	}
 	validate_nesting(config[config.size() - 1].second + 1);
-	std::cout << *this;
 }
 
 // stores the key value pairs into the correct map position
@@ -198,27 +202,25 @@ void	Config::validate_nesting(int line_count)
 	}
 }
 
+std::string	Config::get_error_page(const int error_code)
+{
+	std::string key = "webserv:error_pages:" + Parser::itoa(error_code);
+
+	std::map <std::string, std::vector <std::string> >::iterator it = _config.find(key);
+	if (it != _config.end())
+	{
+		return it->second[0];
+	}
+	else 
+	{
+		return NULL;
+	}
+}
+
 // @return: config map
 std::map <std::string, std::vector <std::string> >	Config::get_config() const
 {
 	return _config;
-}
-
-// output operator overload for debugging
-std::ostream& operator<<(std::ostream& os, const Config& config) 
-{
-	std::map <std::string, std::vector <std::string> > map = config.get_config();
-
-	for (std::map <std::string, std::vector <std::string> >::iterator it = map.begin(); it != map.end(); it++)
-	{
-		std::cout << "config[" << it->first << "]" << std::endl;
-
-		for (std::vector <std::string>::iterator its = it->second.begin(); its != it->second.end(); its++)
-		{
-			std::cout << "\t" << (*its) << std::endl; 
-		}
-	}
-	return os;
 }
 
 std::string	Config::error(const std::string& message)
@@ -242,6 +244,24 @@ std::string	Config::error_on_line(const std::string& issue, int line_count)
 	oss << FALLBACK << "\n>\n> " << RULES;
 	return oss.str();
 }
+
+// output operator overload for debugging
+std::ostream& operator<<(std::ostream& os, const Config& config) 
+{
+	std::map <std::string, std::vector <std::string> > map = config.get_config();
+
+	for (std::map <std::string, std::vector <std::string> >::iterator it = map.begin(); it != map.end(); it++)
+	{
+		std::cout << "config[" << it->first << "]" << std::endl;
+
+		for (std::vector <std::string>::iterator its = it->second.begin(); its != it->second.end(); its++)
+		{
+			std::cout << "\t" << (*its) << std::endl; 
+		}
+	}
+	return os;
+}
+
 
 Config::~Config() {}
 
