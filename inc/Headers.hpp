@@ -37,7 +37,10 @@
 #define MISSING_OPENING_BRACE "missing opening brace - use '{ }' for nesting"
 #define INVALID_EXT "invalid file extension (expected: '.conf')"
 #define INV_HEADER "invalid config file header (expected: 'webserv')"
+#define UNCLOSED_QUOTE "unclosed quote sequence"
+
 #define NOT_FOUND "could not open file"
+
 
 #define FALLBACK "falling back to default config: '\033[1mconfig/webserv.conf\033[0m'"
 

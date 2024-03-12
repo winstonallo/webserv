@@ -91,45 +91,52 @@ std::string		Parser::trim_comment(const std::string& str, const std::string& del
 
 std::vector <std::pair <std::string, int> > Parser::split_keep_delimiters(const std::string& str, const std::string& delimiters)
 {
-	int 										line_number = 1;
+	int 										line_number = 1, quote_number = 0;
 	bool										in_quotes = false;
 	size_t 										left = 0, right = 0;
 	std::vector	<std::pair<std::string, int> > 	ret;
 
 	while (right <= str.size()) 
 	{
-		if (str[right] == '"' && (right == 0 || str[right - 1] != '\\'))
+		if (str[right] == '"')
 		{
 			in_quotes = !in_quotes;
+			quote_number++;
 		}
 		else if (in_quotes == false && (right == str.size() || delimiters.find(str[right]) != std::string::npos))
 		{
 			if (left < right)
 			{
-				std::string segment = Parser::trim(str.substr(left, right - left), "\t\n ");
-				if (segment != "")
-				{
-					ret.push_back(std::make_pair(segment, line_number));
-				}
+				std::string segment = str.substr(left, right - left);
 				line_number += std::count(segment.begin(), segment.end(), '\n');
+				if (Parser::trim(segment, "\t\n ") != "")
+				{
+					ret.push_back(std::make_pair(Parser::trim(segment, "\t\n "), line_number));
+				}
 			}
 			if (right < str.size())
 			{
 				std::string delimiter(1, str[right]);
-				if (delimiter != " ")
-				{
+				if (delimiter != "\n" && delimiter.find_first_of("\t\n ") == std::string::npos)
 					ret.push_back(std::make_pair(delimiter, line_number));
-				}
+				line_number += std::count(delimiter.begin(), delimiter.end(), '\n');
 			}	
 			left = right + 1;
 		}
 		if (in_quotes == true && right == str.size() - 1)
 		{
-			std::string segment = Parser::trim(str.substr(left, right - left), "\t\n ");
-			ret.push_back(std::make_pair(Parser::trim(segment, "\t\n "), line_number));
+			std::string segment = str.substr(left, right - left);
 			line_number += std::count(segment.begin(), segment.end(), '\n');
+			if (Parser::trim(segment, "\t\n ") != "")
+				ret.push_back(std::make_pair(Parser::trim(segment, "\t\n "), line_number));
 		}
 		right++;
+	}
+	if (quote_number % 2 != 0)
+	{
+		std::vector <std::pair <std::string, int> > error;
+		error.push_back(std::make_pair(UNCLOSED_QUOTE, line_number));
+		return error;
 	}
 	return ret;
 }

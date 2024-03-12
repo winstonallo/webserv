@@ -174,6 +174,10 @@ void	Config::handle_closing_brace(const std::pair <std::string, int>& prev_line)
 // checks whether the config has the right header and is opened by '{'
 void	Config::validate_config_header(const std::vector <std::pair <std::string, int> >& config)
 {
+	if (config[0].first == UNCLOSED_QUOTE)
+	{
+		throw std::runtime_error(error_on_line(UNCLOSED_QUOTE, config[0].second));
+	}
 	if (Parser::trim(config[0].first.substr(0, 7), " \t\n") != "webserv")
 	{
         throw std::runtime_error(error_on_line(INV_HEADER, config[0].second));
