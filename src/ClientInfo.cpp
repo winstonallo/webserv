@@ -3,15 +3,15 @@
 /*                                                        :::      ::::::::   */
 /*   ClientInfo.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sgiochal <sgiochal@student.42.fr>          +#+  +:+       +#+        */
+/*   By: abied-ch <abied-ch@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/10 10:35:13 by sgiochal          #+#    #+#             */
-/*   Updated: 2024/03/11 18:11:10 by sgiochal         ###   ########.fr       */
+/*   Updated: 2024/03/12 20:49:01 by abied-ch         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 
-#include "ClientInfo.hpp"
+#include "../inc/Headers.hpp"
 
 ClientInfo::ClientInfo()
 {

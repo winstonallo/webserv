@@ -3,15 +3,15 @@
 /*                                                        :::      ::::::::   */
 /*   LocationInfo.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sgiochal <sgiochal@student.42vienna.com>   +#+  +:+       +#+        */
+/*   By: abied-ch <abied-ch@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/08 11:58:09 by sgiochal          #+#    #+#             */
-/*   Updated: 2024/03/08 12:01:07 by sgiochal         ###   ########.fr       */
+/*   Updated: 2024/03/12 20:48:47 by abied-ch         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 
-#include "LocationInfo.hpp"
+#include "../inc/Headers.hpp"
 
 LocationInfo::LocationInfo()
 {

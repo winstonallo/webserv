@@ -3,20 +3,18 @@
 /*                                                        :::      ::::::::   */
 /*   Node.hpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sgiochal <sgiochal@student.42.fr>          +#+  +:+       +#+        */
+/*   By: abied-ch <abied-ch@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/10 16:29:24 by sgiochal          #+#    #+#             */
-/*   Updated: 2024/03/11 12:17:27 by sgiochal         ###   ########.fr       */
+/*   Updated: 2024/03/12 20:51:02 by abied-ch         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef NODE_HPP
 #define NODE_HPP
+#pragma once
 
-#include <string>
-#include <iostream>
-#include <sys/socket.h>
-#include <arpa/inet.h>
+#include "Headers.hpp"
 
 enum node_types 
 {

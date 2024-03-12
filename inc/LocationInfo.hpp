@@ -3,21 +3,19 @@
 /*                                                        :::      ::::::::   */
 /*   LocationInfo.hpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sgiochal <sgiochal@student.42vienna.com>   +#+  +:+       +#+        */
+/*   By: abied-ch <abied-ch@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/08 11:58:09 by sgiochal          #+#    #+#             */
-/*   Updated: 2024/03/08 12:03:24 by sgiochal         ###   ########.fr       */
+/*   Updated: 2024/03/12 20:51:22 by abied-ch         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 
 #ifndef LOCATIONINFO_HPP
 #define LOCATIONINFO_HPP
+#pragma once
 
-#include <iostream>
-#include <string>
-
-
+#include "Headers.hpp"
 class LocationInfo 
 {
 	public:

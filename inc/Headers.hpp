@@ -12,7 +12,6 @@
 #include <cstddef>
 #include <fstream>
 #include <stdexcept>
-#include "Parser.hpp"
 #include <stack>
 #include <algorithm>
 #include <arpa/inet.h>
@@ -24,17 +23,17 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <sys/time.h>
-#include "Config.hpp"
-#include "ConfigUtils.hpp"
 #include <clocale>
 #include <cstring>
+#include <string>
+#include <iostream>
+#include <sys/socket.h>
+#include <arpa/inet.h>
 
-#define EXIT_FAILURE 1
-#define EXIT_SUCCESS 0
-
-#define BOLD "\033[1m"
-#define RESET "\033[0m"
-#define UNDERLINE "\033[4m"
+class Director;
+class ServerInfo;
+class ClientInfo;
+class Config;
 
 #define EXPECTED_EXT ".conf"
 
@@ -55,6 +54,24 @@
 #define FALLBACK "falling back to default config: '\033[1mconfig/webserv.conf\033[0m'"
 
 #define RULES "refer to '\033[1mconfig/rules/config-formatting-rules.md\033[0m' for more details"
+
+#include "Node.hpp"
+#include "ServerInfo.hpp"
+#include "ClientInfo.hpp"
+#include "Config.hpp"
+#include "Log.hpp"
+#include "Utils.hpp"
+#include "LocationInfo.hpp"
+#include "Director.hpp"
+
+#define EXIT_FAILURE 1
+#define EXIT_SUCCESS 0
+
+#define BOLD "\033[1m"
+#define RESET "\033[0m"
+#define UNDERLINE "\033[4m"
+
+
 
 
 #endif
