@@ -2,3 +2,4 @@ webserv
 obj
 *.o
 *.d
+*.log
