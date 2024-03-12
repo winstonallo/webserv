@@ -12,15 +12,9 @@
 
 #ifndef DIRECTOR_HPP
 #define DIRECTOR_HPP
+#pragma once
 
-#include <iostream>
-#include <string.h>
-#include <map>
-#include <vector>
-#include "Node.hpp"
-#include "ClientInfo.hpp"
-#include "ServerInfo.hpp"
-#include "Log.hpp"
+#include "Headers.hpp"
 
 #define MSG_SIZE 50000
 

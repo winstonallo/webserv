@@ -3,9 +3,7 @@
 	handles loading, parsing, and accessing config settings from .conf file
 */
 
-#include "../inc/Config.hpp"
-#include <sstream>
-#include <vector>
+#include "../inc/Headers.hpp"
 
 // default constructor: loads config from path
 // 
@@ -37,7 +35,7 @@ std::string	Config::remove_comments(const std::string& config)
 
 	while (std::getline(input, line))
 	{
-		cleaned_config += Parser::trim_comment(line, "#") + "\n";
+		cleaned_config += Utils::trim_comment(line, "#") + "\n";
 	}
 	return cleaned_config;
 }
@@ -67,7 +65,7 @@ void 	Config::load_config_from_file(const std::string& path)
 
  	// split the config into a string vector
 	// keep the delimiters for easier tracking of nesting level
-	parse_config_from_vector(Parser::split_keep_delimiters(remove_comments(buffer.str()), "{};"));
+	parse_config_from_vector(Utils::split_keep_delimiters(remove_comments(buffer.str()), "{};"));
 }
 
 // loops through the config and dispatches the lines for processing based on delimiters
@@ -117,7 +115,7 @@ void	Config::store_key_value_pairs(const std::pair <std::string, int> line)
 		throw std::runtime_error(error_on_line(UNEXPECTED_NL, line.second + 1));
 	}
 
-	std::vector <std::string> bottom_pair = Parser::split_keep_quoted_words(line.first, " \t");
+	std::vector <std::string> bottom_pair = Utils::split_keep_quoted_words(line.first, " \t");
 
 	_nesting_level.push(_nesting_level.top() + ":" + bottom_pair[0]);
 
@@ -186,7 +184,7 @@ void	Config::validate_config_header(const std::vector <std::pair <std::string, i
 	{
 		throw std::runtime_error(error_on_line(UNCLOSED_QUOTE, config[0].second));
 	}
-	if (Parser::trim(config[0].first.substr(0, 7), " \t\n") != "webserv")
+	if (Utils::trim(config[0].first.substr(0, 7), " \t\n") != "webserv")
 	{
         throw std::runtime_error(error_on_line(INV_HEADER, config[0].second));
 	}
@@ -206,14 +204,14 @@ void	Config::validate_nesting(int line_count)
 	}
 }
 
-void	Config::dispatch_values()
+void	Config::dispatch_values() 
 {
 	for (std::map <std::string, std::vector <std::string> >::iterator it = _config.begin(); it != _config.end(); it++)
 	{
-		if (it->first.substr(0, 20) == "webserv:error_pages:")
+		if (it->first.substr(0, it->first.find_last_of(":")) == "webserv:error_pages")
 		{
 			int status_code = std::atoi(it->first.substr(it->first.size() - 3).c_str());
-			if (ConfigUtils::file_exists(it->second[0]) == true)
+			if (Utils::file_exists(it->second[0]) == true)
 			{
 				_error_pages[status_code] = it->second[0];
 			}

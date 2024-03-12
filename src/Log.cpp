@@ -3,14 +3,14 @@
 /*                                                        :::      ::::::::   */
 /*   Log.cpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sgiochal <sgiochal@student.42.fr>          +#+  +:+       +#+        */
+/*   By: abied-ch <abied-ch@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/11 19:25:56 by sgiochal          #+#    #+#             */
-/*   Updated: 2024/03/12 19:35:27 by sgiochal         ###   ########.fr       */
+/*   Updated: 2024/03/12 21:03:23 by abied-ch         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Log.hpp"
+#include "../inc/Headers.hpp"
 
 Log::Log()
 {}

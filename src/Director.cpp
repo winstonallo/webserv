@@ -11,8 +11,7 @@
 /* ************************************************************************** */
 
 
-#include "Director.hpp"
-#include <sstream>
+#include "../inc/Headers.hpp"
 
 Director::Director():fdmax(-1)
 {}

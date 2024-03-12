@@ -1,10 +1,10 @@
 #ifndef SERVERINFO_HPP
 #define SERVERINFO_HPP
+#pragma once
 
 #include "Headers.hpp"
-#include "Node.hpp"
-#include "ClientInfo.hpp"
-#include "LocationInfo.hpp"
+
+class LocationInfo;
 
 class ServerInfo : public Node
 {

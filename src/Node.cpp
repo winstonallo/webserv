@@ -3,15 +3,15 @@
 /*                                                        :::      ::::::::   */
 /*   Node.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sgiochal <sgiochal@student.42.fr>          +#+  +:+       +#+        */
+/*   By: abied-ch <abied-ch@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/10 16:29:24 by sgiochal          #+#    #+#             */
-/*   Updated: 2024/03/12 19:30:36 by sgiochal         ###   ########.fr       */
+/*   Updated: 2024/03/12 20:49:15 by abied-ch         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 
-#include "Node.hpp"
+#include "../inc/Headers.hpp"
 
 Node::Node()
 {
