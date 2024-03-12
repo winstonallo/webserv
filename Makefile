@@ -8,20 +8,25 @@ SRCS_DIR	= src
 
 OBJS_DIR	= obj
 
-CXXFLAGS	= -Wall -Wextra -Werror -MP -MD -std=c++98 -g
+CXXFLAGS	= -Wall -Wextra -Werror -MP -MD -std=c++98 -g -Iinc
 
 SRCS   	= \
-        $(SRCS_DIR)/main.cpp \
+		$(SRCS_DIR)/Node.cpp \
+		$(SRCS_DIR)/ClientInfo.cpp \
+		$(SRCS_DIR)/LocationInfo.cpp \
+		$(SRCS_DIR)/ServerInfo.cpp \
+		$(SRCS_DIR)/Log.cpp \
+		$(SRCS_DIR)/Director.cpp \
         $(SRCS_DIR)/Config.cpp \
         $(SRCS_DIR)/ConfigUtils.cpp \
         $(SRCS_DIR)/Parser.cpp \
-        $(SRCS_DIR)/Server.cpp \
+        $(SRCS_DIR)/main.cpp \
 
 OBJS	= $(SRCS:${SRCS_DIR}/%.cpp=${OBJS_DIR}/%.o)
 
 DEPS	= $(OBJS:%.o=%.d)
 
-$(NAME): $(OBJS)
+$(NAME): res $(OBJS)
 	$(CXX) $(CXXFLAGS) -o $(NAME) $(OBJS)
 
 $(OBJS_DIR)/%.o: $(SRCS_DIR)/%.cpp
@@ -30,6 +35,9 @@ $(OBJS_DIR)/%.o: $(SRCS_DIR)/%.cpp
 
 
 all		: $(NAME)
+
+res		:
+		@reset
 
 run		: re
 		@clear

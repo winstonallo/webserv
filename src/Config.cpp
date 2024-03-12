@@ -29,10 +29,10 @@ Config::Config(const std::string& path) : _config_file_path(path)
 // loops through the config and removes the comments from each line
 //
 // @param config:	unprocessed config file as a string
-// @return:			config file without comments but in the same structure	
 std::string	Config::remove_comments(const std::string& config)
 {
-	std::string			cleaned_config, line;
+	std::string			cleaned_config;
+	std::string			line;
 	std::istringstream	input(config);
 
 	while (std::getline(input, line))
@@ -42,10 +42,8 @@ std::string	Config::remove_comments(const std::string& config)
 	return cleaned_config;
 }
 
-// opens config file
+// open config file
 // reads into string for easier splitting
-// removes the comments
-// splits the string by (including) delimiters
 //
 // @param path: path to the configuration file (default: 'webserv.conf')
 void 	Config::load_config_from_file(const std::string& path)
@@ -67,6 +65,8 @@ void 	Config::load_config_from_file(const std::string& path)
 
     config_file.close();
 
+ 	// split the config into a string vector
+	// keep the delimiters for easier tracking of nesting level
 	parse_config_from_vector(Parser::split_keep_delimiters(remove_comments(buffer.str()), "{};"));
 }
 
@@ -172,10 +172,7 @@ void	Config::handle_closing_brace(const std::pair <std::string, int>& prev_line)
 	{
 		throw std::runtime_error(error_on_line(UNTERM_VALUE_SCOPE, prev_line.second + 1));
 	}
-	else 
-	{
-		_nesting_level.pop();
-	}
+	_nesting_level.pop();
 }
 
 // validate header of the config file
@@ -269,7 +266,7 @@ std::ostream& operator<<(std::ostream& os, const Config& config)
 
 	for (std::map <std::string, std::vector <std::string> >::iterator it = map.begin(); it != map.end(); it++)
 	{
-		std::cout << "config[" << it->first << "]" << std::endl;
+		std::cout << BOLD << it->first << RESET << std::endl;
 
 		for (std::vector <std::string>::iterator its = it->second.begin(); its != it->second.end(); its++)
 		{
