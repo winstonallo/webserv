@@ -14,8 +14,7 @@ class Config
 
 
 		std::map <std::string, std::vector <std::string> >	get_config() const;
-		std::string											get_error_page(const int error_code);
-		std::map <int, std::string>							get_error_pages_map();
+		std::map <int, std::string>							get_error_pages();
 
 	private:
 
@@ -31,10 +30,15 @@ class Config
 		void												validate_config_header(const std::vector <std::pair <std::string, int> >& config);
 		void												validate_config(const std::string& config);
 		std::string											remove_comments(const std::string& config);
+
+		void												dispatch_values();
 	
 		std::string											_config_file_path;
 		std::stack <std::string> 							_nesting_level;		// keeps track of nesting level
+		
 		std::map <std::string, std::vector <std::string> >	_config;
+
+		std::map <int, std::string>							_error_pages;
 
 		Config(const Config& rhs);
 		Config&	operator=(const Config& rhs);

@@ -16,6 +16,7 @@
 #include <stack>
 #include <algorithm>
 #include "Config.hpp"
+#include "ConfigUtils.hpp"
 #include <clocale>
 #include <cstring>
 

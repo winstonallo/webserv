@@ -101,6 +101,7 @@ void	Config::parse_config_from_vector(const std::vector <std::pair <std::string,
 		}
 	}
 	validate_nesting(config[config.size() - 1].second + 1);
+	dispatch_values();
 }
 
 // stores the key value pairs into the correct map position
@@ -123,6 +124,12 @@ void	Config::store_key_value_pairs(const std::pair <std::string, int> line)
 	for (size_t j = 1; j < bottom_pair.size(); j++)
 	{
 		_config[_nesting_level.top()].push_back(bottom_pair[j]);
+	}
+
+	if (_nesting_level.top().substr(0, 20) == "webserv:error_pages:")
+	{
+		int status_code = std::atoi(_nesting_level.top().substr(_nesting_level.top().size() - 3).c_str());
+		_error_pages[status_code] = _config[_nesting_level.top()][0];
 	}
 
 	_nesting_level.pop();
@@ -202,25 +209,29 @@ void	Config::validate_nesting(int line_count)
 	}
 }
 
-std::map <int, std::string>	Config::get_error_pages_map()
+void	Config::dispatch_values()
 {
-	std::vector <int> 			expected_status_codes;
-	std::map <int, std::string> error_pages_map;
+	for (std::map <std::string, std::vector <std::string> >::iterator it = _config.begin(); it != _config.end(); it++)
+	{
+		if (it->first.substr(0, 20) == "webserv:error_pages:")
+		{
+			int status_code = std::atoi(it->first.substr(it->first.size() - 3).c_str());
+			if (ConfigUtils::file_exists(it->second[0]) == true)
+			{
+				_error_pages[status_code] = it->second[0];
+			}
+			else
+			{
+				// insert fallback logic here
+			}
+		}
+	}
 }
 
-std::string	Config::get_error_page(const int error_code)
+// @return:	error pages map
+std::map <int, std::string>	Config::get_error_pages()
 {
-	std::string key = "webserv:error_pages:" + Parser::itoa(error_code);
-
-	std::map <std::string, std::vector <std::string> >::iterator it = _config.find(key);
-	if (it != _config.end())
-	{
-		return it->second[0];
-	}
-	else 
-	{
-		return NULL;
-	}
+	return _error_pages;
 }
 
 // @return: config map
@@ -267,7 +278,6 @@ std::ostream& operator<<(std::ostream& os, const Config& config)
 	}
 	return os;
 }
-
 
 Config::~Config() {}
 

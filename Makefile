@@ -13,6 +13,7 @@ CXXFLAGS	= -Wall -Wextra -Werror -MP -MD -std=c++98 -g
 SRCS   	= \
         $(SRCS_DIR)/main.cpp \
         $(SRCS_DIR)/Config.cpp \
+        $(SRCS_DIR)/ConfigUtils.cpp \
         $(SRCS_DIR)/Parser.cpp \
         $(SRCS_DIR)/Server.cpp \
 
