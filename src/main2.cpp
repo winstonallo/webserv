@@ -1,7 +1,4 @@
 #include "../inc/Headers.hpp"
-#include "../inc/ServerInfo.hpp"
-#include "../inc/Director.hpp"
-#include "../inc/Log.hpp"
 
 int main(int argc, char **argv)
 {

@@ -1,6 +1,5 @@
 #ifndef CONFIG_HPP
 #define CONFIG_HPP
-#pragma once
 
 #include "Headers.hpp"
 
