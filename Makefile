@@ -26,7 +26,7 @@ OBJS	= $(SRCS:${SRCS_DIR}/%.cpp=${OBJS_DIR}/%.o)
 
 DEPS	= $(OBJS:%.o=%.d)
 
-$(NAME): res $(OBJS)
+$(NAME): $(OBJS)
 	$(CXX) $(CXXFLAGS) -o $(NAME) $(OBJS)
 
 $(OBJS_DIR)/%.o: $(SRCS_DIR)/%.cpp
@@ -35,9 +35,6 @@ $(OBJS_DIR)/%.o: $(SRCS_DIR)/%.cpp
 
 
 all		: $(NAME)
-
-res		:
-		@reset
 
 run		: re
 		@clear
