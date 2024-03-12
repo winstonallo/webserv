@@ -1,6 +1,5 @@
 #ifndef UTILS_HPP
 #define UTILS_HPP
-#pragma once
 
 #include "Headers.hpp"
 

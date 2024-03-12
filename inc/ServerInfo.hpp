@@ -1,6 +1,5 @@
 #ifndef SERVERINFO_HPP
 #define SERVERINFO_HPP
-#pragma once
 
 #include "Headers.hpp"
 

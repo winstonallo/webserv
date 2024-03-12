@@ -1,6 +1,5 @@
 #ifndef HEADER_HPP
 #define HEADER_HPP
-#pragma once
 
 #include <iostream>
 #include <cerrno>
