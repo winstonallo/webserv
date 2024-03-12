@@ -6,7 +6,7 @@
 /*   By: sgiochal <sgiochal@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/10 16:29:24 by sgiochal          #+#    #+#             */
-/*   Updated: 2024/03/11 18:05:40 by sgiochal         ###   ########.fr       */
+/*   Updated: 2024/03/12 19:30:36 by sgiochal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,9 +25,7 @@ Node::~Node()
 
 Node::Node(int tfd, const struct sockaddr_storage& taddr, size_t taddr_len, enum node_types tp):
 	fd(tfd), addr(taddr), addr_len(taddr_len), type(tp)
-{
-	std::cout << "Node is type : " << type << std::endl;
-}
+{}
 
 Node::Node(const Node& rhs)
 {

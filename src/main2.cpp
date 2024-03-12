@@ -7,12 +7,20 @@ int main(int argc, char **argv)
 {
 	(void)argc;
 	(void)argv;
-	// if (argc != 2)
-	// {
-	// 	std::cerr << "Error. Invalid number of arguments." << std::endl;
-	// 	std::cerr << "Usage: " << argv[0] << " [config file <.conf>]" << std::endl;
-	// 	return 1;
-	// }
+	Log::log("Hello my friend!");
+	Log::log("Error message", STD_ERR);
+	Log::log("This is an general log", ERROR_FILE | ACCEPT_FILE | STD_ERR | STD_OUT);
+	Log::log("This is an accept log",STD_OUT);
+	Log::set_error_file("new_error_file.log");
+	Log::log("Message on the new_error_file.log", ERROR_FILE);
+
+/*
+	if (argc != 2)
+	{
+		std::cerr << "Error. Invalid number of arguments." << std::endl;
+		std::cerr << "Usage: " << argv[0] << " [config file <.conf>]" << std::endl;
+		return 1;
+	}
 	ServerInfo server_info;
 	server_info.set_port(8080);
 	server_info.set_type(SERVER_NODE);
@@ -31,7 +39,6 @@ int main(int argc, char **argv)
 	}
 	return 0;
 
-/*
 	try
 	{
 		if (argc == 2)

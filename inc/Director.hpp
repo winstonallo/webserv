@@ -20,6 +20,7 @@
 #include "Node.hpp"
 #include "ClientInfo.hpp"
 #include "ServerInfo.hpp"
+#include "Log.hpp"
 
 #define MSG_SIZE 50000
 

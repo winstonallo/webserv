@@ -59,7 +59,9 @@ int	Director::init_server(ServerInfo *si)
 	pt << si->get_port();
 	if ((rv = getaddrinfo(NULL, pt.str().c_str(), &hints, &ai)) != 0) 
 	{
-		std::cerr << "Error reading addrinfo: " << gai_strerror(rv) << std::endl;
+		std::stringstream ss;
+		ss << "Error reading addrinfo: " << gai_strerror(rv) << std::endl;
+		Log::log(ss.str(), ERROR_FILE | STD_ERR);
 		return -1;
 	}
 	for (p = ai; p != NULL; p = p->ai_next)
@@ -67,14 +69,18 @@ int	Director::init_server(ServerInfo *si)
 		listener = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
 		if (listener < 0)
 		{
-			std::cerr << "Error opening socket: " << strerror(errno) << std::endl;	
+			std::stringstream ss;
+			ss << "Error opening socket: " << strerror(errno) << std::endl;	
+			Log::log(ss.str(), ERROR_FILE | STD_ERR);
 			continue;
 		}
 		setsockopt(listener, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
 		if (bind(listener, p->ai_addr, p->ai_addrlen) < 0)
 		{
 			close(listener);
-			std::cerr << "Bind error: " << strerror(errno) << std::endl;
+			std::stringstream ss;
+			ss << "Bind error: " << strerror(errno) << std::endl;
+			Log::log(ss.str(), ERROR_FILE | STD_ERR);
 			continue;
 		}
 		si->set_fd(listener);
@@ -85,7 +91,9 @@ int	Director::init_server(ServerInfo *si)
 
 	if (p == NULL)
 	{
-		std::cerr << "Select server failed to bind." << std::endl;
+		std::stringstream ss;
+		ss << "Select server failed to bind." << std::endl;
+		Log::log(ss.str(), ERROR_FILE | STD_ERR);
 		return -1;
 	}
 	si->set_fd(listener);
@@ -106,12 +114,16 @@ int	Director::init_servers()
 		int listener = it->get_fd();
 		if (fcntl(listener, F_SETFL, O_NONBLOCK) < 0)
 		{
-			std::cerr << "Error unblocking socket: " << strerror(errno) << std::endl;
+			std::stringstream ss;
+			ss << "Error unblocking socket: " << strerror(errno) << std::endl;
+			Log::log(ss.str(), ERROR_FILE | STD_ERR);
 			return -1;
 		}
 		if (listen(listener, 800) == -1)
 		{
-			std::cerr << "Error listening: " << strerror(errno) << std::endl;
+			std::stringstream ss;
+			ss << "Error listening: " << strerror(errno) << std::endl;
+			Log::log(ss.str(), ERROR_FILE | STD_ERR);
 			return -1;
 		}
 		FD_SET(listener, &read_fds);
@@ -138,7 +150,9 @@ int	Director::run_servers()
 		timeout_time.tv_usec = 0;
 		if ((ret = select(fdmax + 1, &readfds_backup, &writefds_backup, NULL, &timeout_time)) < 0 )
 		{
-			std::cerr << "Error while select: " << strerror(errno) << std::endl;
+			std::stringstream ss;
+			ss << "Error while select: " << strerror(errno) << std::endl;
+			Log::log(ss.str(), ERROR_FILE | STD_ERR);
 			return -1;
 		}
 		for (int i = 0; i <= fdmax; i++)
@@ -148,7 +162,9 @@ int	Director::run_servers()
 				if (FD_ISSET(i, &readfds_backup))
 					if(create_client_connection(i) < 0)
 					{
-						std::cerr << "Error creating a client connection: " << std::endl;
+						std::stringstream ss;
+						ss << "Error creating a client connection: " << std::endl;
+						Log::log(ss.str(), ERROR_FILE | STD_ERR);
 						exit(2);
 					}
 				
@@ -158,12 +174,20 @@ int	Director::run_servers()
 				if (FD_ISSET(i, &readfds_backup))
 				{
 					if(read_from_client(i) < 0)
+					{
+						std::stringstream ss;
 						std::cerr << "Error reading from client: " << std::endl;
+						Log::log(ss.str(), ERROR_FILE | STD_ERR);
+					}
 				}
 				if (FD_ISSET(i, &write_fds))
 				{
 					if(write_to_client(i) < 0)
+					{
+						std::stringstream ss;
 						std::cerr << "Error writing to client." << std::endl;
+						Log::log(ss.str(), ERROR_FILE | STD_ERR);
+					}
 				}
 			}
 		}
@@ -180,7 +204,9 @@ int	Director::create_client_connection(int listener)
 	int newfd = accept(listener, (struct sockaddr *)&remoteaddr, &addrlen);
 	if (newfd == -1)
 	{
-		std::cout << "Error accepting client: " << strerror(errno) << std::endl;
+		std::stringstream	ss;
+		ss << "Error accepting client: " << strerror(errno) << std::endl;
+		Log::log(ss.str(), ERROR_FILE | STD_ERR);
 		return -1;
 	}
 	else
@@ -190,25 +216,25 @@ int	Director::create_client_connection(int listener)
 		if (nodes.find(newfd) == nodes.end())
 		{
 			nodes[newfd] = new ClientInfo(newfd, remoteaddr, (size_t)addrlen);
-			// if (nodes[newfd]->get_type() == 1)
-			// 	std::cout << "Client has type: Server" << std::endl;
-			// else if (nodes[newfd]->get_type() == 2)
-			// 	std::cout << "Client has type: Client" << std::endl; 
 		}
 		else
 		{
 			std::cerr << "Tried to overwrite socket: " << newfd << std::endl;
 			exit(2);
 		}
-		std::cout << "New connection from ";
-		std::cout << inet_ntop(remoteaddr.ss_family,
-												get_in_addr((struct sockaddr *)&remoteaddr),
-												remoteIP,
-												INET6_ADDRSTRLEN);
-		std::cout << " on socket " << newfd << std::endl;
+		std::stringstream ss2;
+
+		ss2 << "New connection from ";
+		ss2 << inet_ntop(remoteaddr.ss_family,
+						get_in_addr((struct sockaddr *)&remoteaddr),
+						remoteIP, INET6_ADDRSTRLEN);
+		ss2 << " on socket " << newfd << std::endl;
+		Log::log(ss2.str(), ACCEPT_FILE | STD_OUT);
 		if (fcntl(newfd, F_SETFL, O_NONBLOCK) < 0)
 		{
-			std::cerr << "Error while non-blocking: " << strerror(errno) << std::endl;
+			std::stringstream ss3;
+			ss3 << "Error while non-blocking: " << strerror(errno) << std::endl;
+			Log::log(ss3.str(), ERROR_FILE | STD_ERR);
 			delete nodes[newfd];
 			nodes.erase(newfd);
 			close(newfd);
@@ -225,7 +251,9 @@ int	Director::read_from_client(int client_fd)
 	int		num = read(client_fd, msg, MSG_SIZE);
 	if (!num)
 	{
-		std::cout << "Connection closed by client " << client_fd << std::endl;
+		std::stringstream ss;
+		ss << "Connection closed by client " << client_fd << std::endl;
+		Log::log(ss.str(), ACCEPT_FILE | STD_OUT);
 		if (FD_ISSET(client_fd, &write_fds))
 			FD_CLR(client_fd, &write_fds);
 		if (FD_ISSET(client_fd, &read_fds))
@@ -240,15 +268,15 @@ int	Director::read_from_client(int client_fd)
 	{
 		if (num == -1)
 		{
-			std::cout << "Error reading from socket: " << client_fd << std::endl;
+			std::stringstream ss;
+			ss << "Error reading from socket: " << client_fd << std::endl;
+			Log::log(ss.str(), ERROR_FILE | STD_ERR);
 			return -1;	
 		}
 		std::cout << msg;
-	//	std::cout.write(msg, MSG_SIZE);
 	}
 	return 0;
 }
-
 
 int	Director::write_to_client(int fd)
 {
