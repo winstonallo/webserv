@@ -109,7 +109,15 @@ routes
 ```
 will be ignored in parsing and have no effect on the configuration of the server.
 ## characters
-#### escape characters
+### special characters
+the following characters are reserved:
+* '**;**'
+* '**{**'
+* '**}**'
+* '**#**'
+
+they can be escaped using double quotes if needed in a value
+### escape characters
 any escape like **`\t`**, **`\n`**, **`\\`** will be parsed as literals, eg:
 
 `host	local\nhost;` will be read as `config["webserv:host"] = "localhost"`
