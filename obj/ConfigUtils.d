@@ -1,4 +1,5 @@
-obj/Config.o: src/Config.cpp src/../inc/Config.hpp inc/Headers.hpp \
+obj/ConfigUtils.o: src/ConfigUtils.cpp src/../inc/ConfigUtils.hpp \
+  inc/Headers.hpp \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../include/c++/11/iostream \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../include/x86_64-linux-gnu/c++/11/bits/c++config.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../include/x86_64-linux-gnu/c++/11/bits/os_defines.h \
@@ -218,7 +219,7 @@ obj/Config.o: src/Config.cpp src/../inc/Config.hpp inc/Headers.hpp \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../include/c++/11/cstring \
   /usr/include/string.h /usr/include/strings.h
 
-src/../inc/Config.hpp:
+src/../inc/ConfigUtils.hpp:
 
 inc/Headers.hpp:
 

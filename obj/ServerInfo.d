@@ -124,6 +124,11 @@ obj/ServerInfo.o: src/ServerInfo.cpp src/../inc/ServerInfo.hpp \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../include/c++/11/bits/ostream.tcc \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../include/c++/11/istream \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../include/c++/11/bits/istream.tcc \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../include/c++/11/cerrno \
+  /usr/include/errno.h /usr/include/x86_64-linux-gnu/bits/errno.h \
+  /usr/include/linux/errno.h /usr/include/x86_64-linux-gnu/asm/errno.h \
+  /usr/include/asm-generic/errno.h /usr/include/asm-generic/errno-base.h \
+  /usr/include/x86_64-linux-gnu/bits/types/error_t.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../include/c++/11/fstream \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../include/c++/11/bits/codecvt.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../include/c++/11/cstdio \
@@ -136,11 +141,6 @@ obj/ServerInfo.o: src/ServerInfo.cpp src/../inc/ServerInfo.hpp \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../include/x86_64-linux-gnu/c++/11/bits/basic_file.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../include/x86_64-linux-gnu/c++/11/bits/c++io.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../include/c++/11/bits/fstream.tcc \
-  /usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../include/c++/11/cerrno \
-  /usr/include/errno.h /usr/include/x86_64-linux-gnu/bits/errno.h \
-  /usr/include/linux/errno.h /usr/include/x86_64-linux-gnu/asm/errno.h \
-  /usr/include/asm-generic/errno.h /usr/include/asm-generic/errno-base.h \
-  /usr/include/x86_64-linux-gnu/bits/types/error_t.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../include/c++/11/sstream \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../include/c++/11/bits/sstream.tcc \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../include/c++/11/vector \
@@ -214,7 +214,10 @@ obj/ServerInfo.o: src/ServerInfo.cpp src/../inc/ServerInfo.hpp \
   /usr/include/x86_64-linux-gnu/bits/getopt_core.h \
   /usr/include/x86_64-linux-gnu/bits/unistd_ext.h \
   /usr/include/linux/close_range.h \
-  /usr/include/x86_64-linux-gnu/sys/time.h inc/Config.hpp inc/Node.hpp \
+  /usr/include/x86_64-linux-gnu/sys/time.h inc/Config.hpp \
+  inc/ConfigUtils.hpp \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../include/c++/11/cstring \
+  /usr/include/string.h /usr/include/strings.h inc/Node.hpp \
   inc/ClientInfo.hpp inc/LocationInfo.hpp
 
 src/../inc/ServerInfo.hpp:
@@ -481,6 +484,22 @@ inc/Headers.hpp:
 
 /usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../include/c++/11/bits/istream.tcc:
 
+/usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../include/c++/11/cerrno:
+
+/usr/include/errno.h:
+
+/usr/include/x86_64-linux-gnu/bits/errno.h:
+
+/usr/include/linux/errno.h:
+
+/usr/include/x86_64-linux-gnu/asm/errno.h:
+
+/usr/include/asm-generic/errno.h:
+
+/usr/include/asm-generic/errno-base.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/error_t.h:
+
 /usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../include/c++/11/fstream:
 
 /usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../include/c++/11/bits/codecvt.h:
@@ -504,22 +523,6 @@ inc/Headers.hpp:
 /usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../include/x86_64-linux-gnu/c++/11/bits/c++io.h:
 
 /usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../include/c++/11/bits/fstream.tcc:
-
-/usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../include/c++/11/cerrno:
-
-/usr/include/errno.h:
-
-/usr/include/x86_64-linux-gnu/bits/errno.h:
-
-/usr/include/linux/errno.h:
-
-/usr/include/x86_64-linux-gnu/asm/errno.h:
-
-/usr/include/asm-generic/errno.h:
-
-/usr/include/asm-generic/errno-base.h:
-
-/usr/include/x86_64-linux-gnu/bits/types/error_t.h:
 
 /usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../include/c++/11/sstream:
 
@@ -686,6 +689,14 @@ inc/Parser.hpp:
 /usr/include/x86_64-linux-gnu/sys/time.h:
 
 inc/Config.hpp:
+
+inc/ConfigUtils.hpp:
+
+/usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../include/c++/11/cstring:
+
+/usr/include/string.h:
+
+/usr/include/strings.h:
 
 inc/Node.hpp:
 

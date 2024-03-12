@@ -4,18 +4,26 @@
 */
 
 #include "../inc/Config.hpp"
+#include <sstream>
+#include <vector>
 
 // default constructor: loads config from path
 // 
 // @param path: path to the configuration file (default: 'webserv.conf')
-Config::Config(const std::string& path)
+//
+// checks the file extension against expected value and passes the file path to the parser
+Config::Config(const std::string& path) : _config_file_path(path)
 {
-	if (path.substr(path.size() - 5) != ".conf") // check for valid file extension
+	if (_config_file_path == "")
 	{
-		throw std::runtime_error("'" + path + "': invalid file extension (expected: .conf)");
+		_config_file_path = "config/webserv.conf";
+	}
+	if (_config_file_path.substr(_config_file_path.size() - 5) != EXPECTED_EXT)
+	{
+		throw std::runtime_error(error_on_line(INVALID_EXT, 0));
 	}
 
-	load_config_from_file(path);
+	load_config_from_file(_config_file_path);
 }
 
 // loops through the config and removes the comments from each line
@@ -45,14 +53,14 @@ void 	Config::load_config_from_file(const std::string& path)
 
 	if (config_file.is_open() == false)
 	{
-		throw std::runtime_error("'" + path + "' could not be opened");
+		throw std::runtime_error(error(NOT_FOUND));
 	}
 
     buffer << config_file.rdbuf();
 
 	if (buffer.str().empty() == true)
 	{
-		throw std::runtime_error("'" + path + "' is empty");
+		throw std::runtime_error(error_on_line(EMPTY, 0));
 	}
 
     config_file.close();
@@ -64,48 +72,64 @@ void 	Config::load_config_from_file(const std::string& path)
 
 // loops through the config and dispatches the lines for processing based on delimiters
 //
-// @param config:	config file as a vector, split by (including) delimiters & without comments
+// @param config:	config file as a vector of pairs (line & line_number), split by (including) delimiters & without comments
 //
-// also performs some error handling
-void	Config::parse_config_from_vector(const std::vector <std::string>& config)
+// 1.	validates the config header
+// 2.	pushes key to the stack when entering scope
+// 3.	pops stack when leaving scope
+// 4.	stores values when reaching bottom level
+// 5.	validates correct number of braces
+void	Config::parse_config_from_vector(const std::vector <std::pair <std::string, int> >& config)
 {
 	validate_config_header(config);
 
-	_nesting_level.push(config[0]); // initialize the nesting_level stack with the top value (webserv)
+	_nesting_level.push(config[0].first);
 
 	for (size_t i = 2; i < config.size(); i++)
 	{
-		if (config[i] == "{") // entering new scope -> push new path to stack
+		if (config[i].first == "{")
 		{
 			handle_opening_brace(config[i - 1]);
 		}
-		else if (config[i] == "}") // leaving scope
+		else if (config[i].first == "}")
 		{
 			handle_closing_brace(config[i - 1]);
 		}
-		else if (config[i] == ";") // reached 'bottom' scope -> store values
+		else if (config[i].first == ";")
 		{
 			store_key_value_pairs(config[i - 1]);
 		}
 	}
-	validate_nesting();
+	validate_nesting(config[config.size() - 1].second + 1);
+	dispatch_values();
 }
 
 // stores the key value pairs into the correct map position
 //
 // @param line: bottom (value level) pair line
 //
-// splits the line by whitespaces, assuming the first index is the key
-// stores the rest into the value vector of the map
-void	Config::store_key_value_pairs(const std::string& line)
+// adds the first word of the line to map key
+// adds subsequent words to the value vector 
+void	Config::store_key_value_pairs(const std::pair <std::string, int> line)
 {
-	std::vector <std::string> bottom_pair = Parser::split(line, " \t\n");
+	if (line.first.find("\n") != std::string::npos)
+	{
+		throw std::runtime_error(error_on_line(UNEXPECTED_NL, line.second + 1));
+	}
+
+	std::vector <std::string> bottom_pair = Parser::split_keep_quoted_words(line.first, " \t");
 
 	_nesting_level.push(_nesting_level.top() + ":" + bottom_pair[0]);
 
 	for (size_t j = 1; j < bottom_pair.size(); j++)
 	{
 		_config[_nesting_level.top()].push_back(bottom_pair[j]);
+	}
+
+	if (_nesting_level.top().substr(0, 20) == "webserv:error_pages:")
+	{
+		int status_code = std::atoi(_nesting_level.top().substr(_nesting_level.top().size() - 3).c_str());
+		_error_pages[status_code] = _config[_nesting_level.top()][0];
 	}
 
 	_nesting_level.pop();
@@ -120,13 +144,13 @@ void	Config::store_key_value_pairs(const std::string& line)
 // scope was not initialized with a name -> throw error
 // 
 // else, update the stack
-void	Config::handle_opening_brace(const std::string& prev_line)
+void	Config::handle_opening_brace(const std::pair <std::string, int>& prev_line)
 {
-	if (prev_line.find_first_of(";{}") != std::string::npos)
+	if (prev_line.first.find_first_of(";{}") != std::string::npos)
 	{
-		throw std::runtime_error("uninitialized scope");
+		throw std::runtime_error(error_on_line(UNINITIALIZED_SCOPE, prev_line.second + 1));
 	}
-	_nesting_level.push(_nesting_level.top() + ":" + prev_line);
+	_nesting_level.push(_nesting_level.top() + ":" + prev_line.first);
 }
 
 // updates the scope and performs some error handling
@@ -138,15 +162,15 @@ void	Config::handle_opening_brace(const std::string& prev_line)
 // else if the previous line is neither a '}' nor a ';': previous scope not terminated: error
 //
 // else: pop top value from the stack and keep going
-void	Config::handle_closing_brace(const std::string& prev_line)
+void	Config::handle_closing_brace(const std::pair <std::string, int>& prev_line)
 {
 	if (_nesting_level.empty() == true)
 	{
-		throw std::runtime_error("extraneous closing brace");
+		throw std::runtime_error(error_on_line(EXTRA_CLOSING_BRACE, prev_line.second + 1));
 	}
-	else if (prev_line != ";" and prev_line != "}")
+	else if (prev_line.first.find_first_of("{};") == std::string::npos)
 	{
-		throw std::runtime_error("unterminated value scope at '" + prev_line + "'");
+		throw std::runtime_error(error_on_line(UNTERM_VALUE_SCOPE, prev_line.second + 1));
 	}
 	_nesting_level.pop();
 }
@@ -156,32 +180,83 @@ void	Config::handle_closing_brace(const std::string& prev_line)
 // @param config: vector of strings with the split config
 //
 // checks whether the config has the right header and is opened by '{'
-void	Config::validate_config_header(const std::vector <std::string>& config)
+void	Config::validate_config_header(const std::vector <std::pair <std::string, int> >& config)
 {
-	if (config[0].substr(0, 7) != "webserv")
+	if (config[0].first == UNCLOSED_QUOTE)
 	{
-        throw std::runtime_error("invalid config file header: '" + config[0] + "', please use 'webserv'");
+		throw std::runtime_error(error_on_line(UNCLOSED_QUOTE, config[0].second));
+	}
+	if (Parser::trim(config[0].first.substr(0, 7), " \t\n") != "webserv")
+	{
+        throw std::runtime_error(error_on_line(INV_HEADER, config[0].second));
 	}
 
-	if (config[1] != "{")
+	if (config[1].first != "{")
 	{
-		throw std::runtime_error("please use '{ }' for indentation");
+		throw std::runtime_error(error_on_line(MISSING_OPENING_BRACE, config[1].second));
 	}
 }
 
 // ensures that no nesting scope is left open
-void	Config::validate_nesting()
+void	Config::validate_nesting(int line_count)
 {
 	if (_nesting_level.empty() == false)
 	{
-		throw std::runtime_error("missing closing brace");
+		throw std::runtime_error(error_on_line(MISSING_CLOSING_BRACE, line_count));
 	}
+}
+
+void	Config::dispatch_values()
+{
+	for (std::map <std::string, std::vector <std::string> >::iterator it = _config.begin(); it != _config.end(); it++)
+	{
+		if (it->first.substr(0, 20) == "webserv:error_pages:")
+		{
+			int status_code = std::atoi(it->first.substr(it->first.size() - 3).c_str());
+			if (ConfigUtils::file_exists(it->second[0]) == true)
+			{
+				_error_pages[status_code] = it->second[0];
+			}
+			else
+			{
+				// insert fallback logic here
+			}
+		}
+	}
+}
+
+// @return:	error pages map
+std::map <int, std::string>	Config::get_error_pages()
+{
+	return _error_pages;
 }
 
 // @return: config map
 std::map <std::string, std::vector <std::string> >	Config::get_config() const
 {
 	return _config;
+}
+
+std::string	Config::error(const std::string& message)
+{
+	std::string error = strerror(errno);
+
+	if (error == "Success")
+	{
+		error = "";
+	}
+
+	return _config_file_path + ": " + message + ": " + error;
+}
+
+std::string	Config::error_on_line(const std::string& issue, int line_count)
+{
+	std::ostringstream oss;
+
+	oss << _config_file_path << " (line " << line_count << "): ";
+	oss << issue << "\n>\n> ";
+	oss << FALLBACK << "\n>\n> " << RULES;
+	return oss.str();
 }
 
 // output operator overload for debugging
