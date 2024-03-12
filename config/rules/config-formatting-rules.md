@@ -115,3 +115,5 @@ any escape like **`\t`**, **`\n`**, **`\\`** will be parsed as literals, eg:
 `host	local\nhost;` will be read as `config["webserv:host"] = "localhost"`
 ## multi-word tokens
 any token containing whitespaces ('\n', '\t' or ' ') is to be enclosed by double quotes (**"**).
+#### error messages: 
+* **unclosed quote sequence**: quote sequence left open
