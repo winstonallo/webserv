@@ -1,4 +1,7 @@
-#include "../inc/Headers.hpp"
+
+#include <iostream>
+#include "ServerInfo.hpp"
+#include "Director.hpp"
 
 int main(int argc, char **argv)
 {

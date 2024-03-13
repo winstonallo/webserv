@@ -1,7 +1,12 @@
 #ifndef LOG_HPP 
 #define LOG_HPP
 
-#include "Headers.hpp"
+#include <iostream>
+#include <fstream> 
+#include <string>
+#include <sstream>
+#include <sys/time.h>
+#include <map>
 
 enum LogDest
 {

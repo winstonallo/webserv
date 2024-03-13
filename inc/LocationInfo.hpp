@@ -1,7 +1,7 @@
 #ifndef LOCATIONINFO_HPP
 #define LOCATIONINFO_HPP
 
-#include "Headers.hpp"
+#include <string>
 
 // TODO
 
