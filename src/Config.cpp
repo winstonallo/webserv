@@ -227,7 +227,7 @@ void	Config::dispatch_values()
 		}
 		else if (it->first.substr(0, 14) == "webserv:server")
 		{
-			_servers[Utils::extract_numeric_value(it->first)][it->first.substr(it->first.find_last_of(":") + 1)] = _config[it->first];
+			_servers[Utils::extract_numeric_value(it->first)][it->first.substr(it->first.find_last_of("0123456789") + 2)] = _config[it->first];
 		}
 	}
 }
