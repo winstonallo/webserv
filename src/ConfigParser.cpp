@@ -97,7 +97,6 @@ void	ConfigParser::parse_config_from_vector(const std::vector <std::pair <std::s
 		}
 	}
 	validate_nesting(config[config.size() - 1].second + 1);
-	dispatch_values();
 }
 
 // stores the key value pairs into the correct map position
@@ -209,28 +208,7 @@ void	ConfigParser::validate_nesting(int line_count)
 	}
 }
 
-void	ConfigParser::dispatch_values() 
-{
-	for (std::map <std::string, std::vector <std::string> >::iterator it = _config.begin(); it != _config.end(); it++)
-	{
-		if (it->first.substr(0, it->first.find_last_of(":")) == "webserv:error_pages")
-		{
-			int status_code = std::atoi(it->first.substr(it->first.size() - 3).c_str());
-			if (Utils::file_exists(it->second[0]) == true)
-			{
-				_error_pages[status_code] = it->second[0];
-			}
-			else
-			{
-				// TODO: insert fallback logic here
-			}
-		}
-		else if (it->first.substr(0, 14) == "webserv:server")
-		{
-			_servers[Utils::extract_numeric_value(it->first)][it->first.substr(it->first.find_last_of("0123456789") + 2)] = _config[it->first];
-		}
-	}
-}
+
 
 std::map <int, std::map <std::string, std::vector <std::string> > >	ConfigParser::get_servers()
 {

@@ -6,19 +6,24 @@
 #include <map>
 #include <iostream>
 #include <vector>
+#include <cstdlib>
+#include "Utils.hpp"
 
 class ConfigDispatcher
 {
     public:
 
-        ConfigDispatcher(std::map <std::string, std::vector <std::string> > raw_config=NULL);
+        void                                                                dispatch_values();
+        void                                                                handle_error_page(const std::pair <std::string, std::vector <std::string> >& key_value);
+
+        ConfigDispatcher(const std::map <std::string, std::vector <std::string> >& raw_config=std::map<std::string, std::vector<std::string> >());
         ~ConfigDispatcher();
 
     private:
 
         std::map <std::string, std::vector <std::string> >                  _raw_config;
 
-        std::map <int, std::map <std::string, std::vector <std::string> >   _servers;
+        std::map <int, std::map <std::string, std::vector <std::string> > > _servers;
         std::map <int, std::string>                                         _error_pages;
 
         ConfigDispatcher(const ConfigDispatcher& rhs);

@@ -16,8 +16,6 @@ class ConfigParser
 		ConfigParser(const std::string& path="config/webserv.conf");
 		~ConfigParser();
 
-
-
 		std::map <std::string, std::vector <std::string> >						get_config() const;
 		std::map <int, std::string>												get_error_pages();
 		std::map <int, std::map <std::string, std::vector <std::string> > >		get_servers();
