@@ -10,6 +10,8 @@ enum node_types
 	CLIENT_NODE
 };
 
+// purpose: An Parent Class that has as childs the ServerInfo and the ClientInfo.
+// 			It exist as a polymorphic target for an iteration container for both of these classes. 
 class Node 
 {
 	public:

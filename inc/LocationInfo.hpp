@@ -2,6 +2,9 @@
 #define LOCATIONINFO_HPP
 
 #include "Headers.hpp"
+
+// TODO
+
 class LocationInfo 
 {
 	public:
