@@ -1,7 +1,7 @@
 #ifndef CLIENTINFO_HPP
 #define CLIENTINFO_HPP
 
-#include "Headers.hpp"
+#include "Node.hpp"
 
 class ClientInfo : public Node 
 {

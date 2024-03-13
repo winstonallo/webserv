@@ -1,7 +1,10 @@
 #ifndef LOG_HPP 
 #define LOG_HPP
 
-#include "Headers.hpp"
+#include <iostream>
+#include <map>
+#include <fstream>
+#include <sstream>
 
 enum LogDest
 {

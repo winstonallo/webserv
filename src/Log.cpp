@@ -1,4 +1,4 @@
-#include "../inc/Headers.hpp"
+#include "../inc/Log.hpp"
 
 Log::Log()
 {}

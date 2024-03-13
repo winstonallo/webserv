@@ -1,4 +1,5 @@
-#include "../inc/Headers.hpp"
+#include "../inc/Config.hpp"
+#include "../inc/Director.hpp"
 
 int main(int argc, char **argv)
 {

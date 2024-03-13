@@ -1,7 +1,8 @@
 #ifndef LOCATIONINFO_HPP
 #define LOCATIONINFO_HPP
 
-#include "Headers.hpp"
+#include <iostream>
+
 class LocationInfo 
 {
 	public:

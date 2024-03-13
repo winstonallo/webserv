@@ -1,7 +1,20 @@
 #ifndef DIRECTOR_HPP
 #define DIRECTOR_HPP
 
-#include "Headers.hpp"
+#include <map>
+#include <vector>
+#include <iostream>
+#include <sstream>
+#include <fstream>
+#include <cstdlib>
+#include <cstdio>
+#include <unistd.h>
+#include <cstring>
+#include <fcntl.h>
+#include <netdb.h>
+#include "ClientInfo.hpp"
+#include "Log.hpp"
+#include "ServerInfo.hpp"
 
 #define MSG_SIZE 50000
 

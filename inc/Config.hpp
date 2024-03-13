@@ -38,7 +38,7 @@ class Config
 		void												dispatch_values();
 	
 		std::string											_config_file_path;
-		std::stack <std::string> 							_nesting_level;		// keeps track of nesting level
+		std::stack <std::string> 							_nesting_level;
 		
 		std::map <std::string, std::vector <std::string> >	_config;
 

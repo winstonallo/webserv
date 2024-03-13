@@ -1,9 +1,9 @@
 #ifndef SERVERINFO_HPP
 #define SERVERINFO_HPP
 
-#include "Headers.hpp"
-
-class LocationInfo;
+#include "Node.hpp"
+#include "LocationInfo.hpp"
+#include <vector>
 
 class ServerInfo : public Node
 {

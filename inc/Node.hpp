@@ -1,7 +1,8 @@
 #ifndef NODE_HPP
 #define NODE_HPP
 
-#include "Headers.hpp"
+#include <ostream>
+#include <arpa/inet.h>
 
 enum node_types 
 {

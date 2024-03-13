@@ -1,4 +1,4 @@
-#include "../inc/Headers.hpp"
+#include "../inc/ServerInfo.hpp"
 
 ServerInfo::ServerInfo() {}
 
