@@ -6,12 +6,24 @@
 
 int main(int argc, char **argv)
 {
+	(void)argc;
+	(void)argv;
 	try
 	{
-		if (argc == 2)
-			Config config(argv[1]);
-		else
-			Config config;
+		Config config;
+		std::map <int, std::map <std::string, std::vector <std::string> > > servers = config.get_servers();
+		for (std::map <int, std::map <std::string, std::vector <std::string> > >::iterator it = servers.begin(); it != servers.end(); it++)
+		{
+			std::cout << it->first << ": " << std::endl;
+			for (std::map <std::string, std::vector <std::string> >::iterator itt = it->second.begin(); itt != it->second.end(); itt++)
+			{
+				std::cout << "\t" << itt->first << ": " << std::endl;
+				for (size_t i = 0; i < itt->second.size(); i++)
+				{
+					std::cout << "\t\t" << itt->second[i] << std::endl;
+				}
+			}
+		}
 	}
 	catch (const std::exception &e)
 	{

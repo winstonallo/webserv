@@ -98,7 +98,6 @@ void	Config::parse_config_from_vector(const std::vector <std::pair <std::string,
 	}
 	validate_nesting(config[config.size() - 1].second + 1);
 	dispatch_values();
-	std::cout << *this;
 }
 
 // stores the key value pairs into the correct map position
@@ -223,10 +222,19 @@ void	Config::dispatch_values()
 			}
 			else
 			{
-				// insert fallback logic here
+				// TODO: insert fallback logic here
 			}
 		}
+		else if (it->first.substr(0, 14) == "webserv:server")
+		{
+			_servers[Utils::extract_numeric_value(it->first)][it->first.substr(it->first.find_last_of(":") + 1)] = _config[it->first];
+		}
 	}
+}
+
+std::map <int, std::map <std::string, std::vector <std::string> > >	Config::get_servers()
+{
+	return _servers;
 }
 
 // @return:	error pages map
