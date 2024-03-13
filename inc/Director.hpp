@@ -1,26 +1,7 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Director.hpp                                 :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: sgiochal <sgiochal@student.42vienna.com>   +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/03/08 12:17:46 by sgiochal          #+#    #+#             */
-/*   Updated: 2024/03/09 00:47:40 by sgiochal         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #ifndef DIRECTOR_HPP
 #define DIRECTOR_HPP
 
-#include <iostream>
-#include <string.h>
-#include <map>
-#include <vector>
-#include "Node.hpp"
-#include "ClientInfo.hpp"
-#include "ServerInfo.hpp"
-#include "Log.hpp"
+#include "Headers.hpp"
 
 #define MSG_SIZE 50000
 

@@ -18,15 +18,14 @@ SRCS   	= \
 		$(SRCS_DIR)/Log.cpp \
 		$(SRCS_DIR)/Director.cpp \
         $(SRCS_DIR)/Config.cpp \
-        $(SRCS_DIR)/ConfigUtils.cpp \
-        $(SRCS_DIR)/Parser.cpp \
+        $(SRCS_DIR)/Utils.cpp \
         $(SRCS_DIR)/main.cpp \
 
 OBJS	= $(SRCS:${SRCS_DIR}/%.cpp=${OBJS_DIR}/%.o)
 
 DEPS	= $(OBJS:%.o=%.d)
 
-$(NAME): res $(OBJS)
+$(NAME): $(OBJS)
 	$(CXX) $(CXXFLAGS) -o $(NAME) $(OBJS)
 
 $(OBJS_DIR)/%.o: $(SRCS_DIR)/%.cpp
@@ -36,11 +35,8 @@ $(OBJS_DIR)/%.o: $(SRCS_DIR)/%.cpp
 
 all		: $(NAME)
 
-res		:
-		@reset
-
 run		: re
-		@clear
+
 
 fclean	: clean
 		$(RM) $(NAME)

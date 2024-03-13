@@ -1,22 +1,7 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Node.hpp                                           :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: sgiochal <sgiochal@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/03/10 16:29:24 by sgiochal          #+#    #+#             */
-/*   Updated: 2024/03/11 12:17:27 by sgiochal         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #ifndef NODE_HPP
 #define NODE_HPP
 
-#include <string>
-#include <iostream>
-#include <sys/socket.h>
-#include <arpa/inet.h>
+#include "Headers.hpp"
 
 enum node_types 
 {

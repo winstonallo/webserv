@@ -1,20 +1,7 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   ClientInfo.hpp                                     :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: sgiochal <sgiochal@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/03/10 10:35:13 by sgiochal          #+#    #+#             */
-/*   Updated: 2024/03/11 07:30:52 by sgiochal         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #ifndef CLIENTINFO_HPP
 #define CLIENTINFO_HPP
 
-#include <iostream>
-#include "Node.hpp"
+#include "Headers.hpp"
 
 class ClientInfo : public Node 
 {

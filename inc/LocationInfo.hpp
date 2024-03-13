@@ -1,23 +1,7 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   LocationInfo.hpp                                   :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: sgiochal <sgiochal@student.42vienna.com>   +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/03/08 11:58:09 by sgiochal          #+#    #+#             */
-/*   Updated: 2024/03/08 12:03:24 by sgiochal         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
-
 #ifndef LOCATIONINFO_HPP
 #define LOCATIONINFO_HPP
 
-#include <iostream>
-#include <string>
-
-
+#include "Headers.hpp"
 class LocationInfo 
 {
 	public:

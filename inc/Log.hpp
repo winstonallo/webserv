@@ -1,25 +1,7 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Log.hpp                                            :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: sgiochal <sgiochal@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/03/11 19:25:56 by sgiochal          #+#    #+#             */
-/*   Updated: 2024/03/12 18:08:43 by sgiochal         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #ifndef LOG_HPP 
 #define LOG_HPP
 
-#include <iostream>
-#include <string>
-#include <sstream>
-#include <map>
-#include <ctime>
-#include <fstream>
-
+#include "Headers.hpp"
 
 enum LogDest
 {

@@ -2,9 +2,8 @@
 #define SERVERINFO_HPP
 
 #include "Headers.hpp"
-#include "Node.hpp"
-#include "ClientInfo.hpp"
-#include "LocationInfo.hpp"
+
+class LocationInfo;
 
 class ServerInfo : public Node
 {
