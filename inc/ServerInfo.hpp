@@ -5,6 +5,9 @@
 
 class LocationInfo;
 
+//purpose:	Data class for the parsed values (from the config file)
+//			It is used for the initialization and the running of the servers.
+
 class ServerInfo : public Node
 {
 	public:

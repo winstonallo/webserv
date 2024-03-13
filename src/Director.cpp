@@ -18,11 +18,20 @@ Director&	Director::operator=(const Director& rhs)
 	return (*this);
 }
 
+// purpose:	adds si to the vector of server informations
+//
+// argument: is -> the ServerInfo to be added 
 void	Director::add_server_info(ServerInfo si)
 {
 	server_infos.push_back(si);
 }
 
+// purpose: gets the inner address of sockaddr sa for both cases that 
+// 			its a IPv4 and IPv6 address.
+//
+// argument: sa -> pointer to the given sockaddr of the addrinfo
+//
+// return void* -> pointer to the inner address.
 void*	Director::get_in_addr(struct sockaddr *sa)
 {
 	if (sa->sa_family == AF_INET)
@@ -30,6 +39,15 @@ void*	Director::get_in_addr(struct sockaddr *sa)
 	return &(((struct sockaddr_in6 *)sa)->sin6_addr);
 }
 
+// purpose: Initializes the Server that is passed in with ServerInfo*.
+// 			We loop through the addreses of the Server and create for each one
+//			a listener socket, which we set to be port-reusable and bind it to a port.
+// 			we also save information to the ServerInfo (file descriptor, address)
+//
+// argument: si -> pointer to the Server information which we 
+// 			 got from config parsing.
+//
+// return: int -> -1 if there was an error 0 if successfull
 int	Director::init_server(ServerInfo *si)
 {
 	struct addrinfo hints, *ai, *p;
@@ -87,6 +105,14 @@ int	Director::init_server(ServerInfo *si)
 	return 0;
 }
 
+
+// purpose: Take the ServerInfos which we got from Config parsing
+// 			and Initializes each one of them, set them so they don't block
+// 			and makes them listen. The sockets are but in the read set for 
+// 			the select method. We also add the server to the map of nodes 
+// 			which is used for iterating through them.
+//
+// return: int -> -1 if there was an error 0 if successfull
 int	Director::init_servers()
 {
 	FD_ZERO(&read_fds);
@@ -122,6 +148,12 @@ int	Director::init_servers()
 	return 0;
 }
 
+// purpose: In a loop we poll (with select) the statuses of the sockets.
+// 			if they are ready for reading they create a new client sockets (if 
+// 			its a server) and handle incoming or outgoing messages (if it's a client)
+// 			we have a timeout of 5sec (maybe we should modify)
+//
+// return: int -> -1 if there was an error 0 if successfull
 int	Director::run_servers()
 {
 	int ret;
@@ -181,6 +213,13 @@ int	Director::run_servers()
 	return 0;
 }
 
+// purpose: having the server socket file descriptor we create the client connection
+// 			add this connection to the list of ClientInfos. Log the connection in
+// 			the accept log. and set the new socket connection to non-blocking.
+//
+// argument: listener -> the servers socket that got the client message 
+//
+// return: int -> -1 if it failed and 0 for success
 int	Director::create_client_connection(int listener)
 {
 	struct sockaddr_storage remoteaddr;
@@ -230,6 +269,16 @@ int	Director::create_client_connection(int listener)
 	return 0;
 }
 
+// purpose: we check if the client closed the connection. if he did we log it,
+// 			free the ClientInfo and erase the client_fd from the select set and 
+// 			the iterator list. Else we parse (TODO danil) the request message and fill
+// 			the ClienInfo with information. After parsing we put the socket in 
+// 			the set of writing sockets of the select, so we can answer the request. 
+//
+// argument: clientfd -> the file descriptor
+//
+// return: int -> -1 if it failed and 0 for success
+
 int	Director::read_from_client(int client_fd)
 {
 	char	msg[MSG_SIZE];
@@ -264,6 +313,12 @@ int	Director::read_from_client(int client_fd)
 	return 0;
 }
 
+
+// purpose: (TODO) after getting the request message, this function sends back
+// 			the answer, which in a simple case is the requested file or in case of a
+// 			cgi the generated file. 
+//
+// return: int -> -1 if it failed and 0 for success
 int	Director::write_to_client(int fd)
 {
 	(void)fd;

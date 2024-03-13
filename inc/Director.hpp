@@ -5,6 +5,9 @@
 
 #define MSG_SIZE 50000
 
+// purpose:	class that handles all connections wit select(ing) the 
+// 			the sockets that are ready to be readed or written.
+
 class Director 
 {
 	public:
