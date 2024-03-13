@@ -2,6 +2,7 @@
 #include <iostream>
 #include "ServerInfo.hpp"
 #include "Director.hpp"
+#include "Config.hpp"
 
 int main(int argc, char **argv)
 {

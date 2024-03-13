@@ -1,7 +1,13 @@
 #ifndef UTILS_HPP
 #define UTILS_HPP
 
-#include "Headers.hpp"
+#include <vector>
+#include <iostream>
+#include <string>
+#include <sstream>
+#include <ostream>
+#include <fstream>
+#include <algorithm>
 
 namespace Utils 
 {
@@ -15,5 +21,7 @@ namespace Utils
 	std::vector <std::string>						split_keep_quoted_words(const std::string& str, const std::string& delimiters);
 	std::vector <std::pair <std::string, int> > 	split_keep_delimiters(const std::string& str, const std::string& delimiters);
 };
+
+#define UNCLOSED_QUOTE "unclosed quote sequence"
 
 #endif

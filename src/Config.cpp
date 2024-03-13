@@ -3,7 +3,7 @@
 	handles loading, parsing, and accessing config settings from .conf file
 */
 
-#include "../inc/Headers.hpp"
+#include "Config.hpp"
 
 // default constructor: loads config from path
 // 

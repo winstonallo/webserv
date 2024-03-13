@@ -1,7 +1,12 @@
 #ifndef CONFIG_HPP
 #define CONFIG_HPP
 
-#include "Headers.hpp"
+#include "Utils.hpp"
+#include <map>
+#include <cstdlib>
+#include <cerrno>
+#include <cstring>
+#include <stack>
 
 class Config 
 {
@@ -42,6 +47,24 @@ class Config
 		Config(const Config& rhs);
 		Config&	operator=(const Config& rhs);
 };
+
+#define EXPECTED_EXT ".conf"
+#define UNINITIALIZED_SCOPE "uninitialized scope: expected identifier"             
+#define UNEXPECTED_NL "unexpected newline - terminate value lines with ';'"
+#define UNTERM_VALUE_SCOPE "unterminated value scope - terminate value lines with ';'"
+#define EMPTY "config file is empty"
+#define MISSING_CLOSING_BRACE "missing closing brace - terminate scope with '}'"
+#define EXTRA_CLOSING_BRACE "extraneous closing brace"
+#define MISSING_OPENING_BRACE "missing opening brace - use '{ }' for nesting"
+#define INVALID_EXT "invalid file extension (expected: '.conf')"
+#define INV_HEADER "invalid config file header (expected: 'webserv')"
+#define NOT_FOUND "could not open file"
+#define FALLBACK "falling back to default config: '\033[1mconfig/webserv.conf\033[0m'"
+#define RULES "refer to '\033[1mconfig/rules/config-formatting-rules.md\033[0m' for more details"
+
+#define BOLD "\033[1m"
+#define RESET "\033[0m"
+#define UNDERLINE "\033[4m"
 
 std::ostream& operator<<(std::ostream& os, const Config& config);
 
