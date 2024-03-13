@@ -18,7 +18,7 @@
 #include <sys/time.h>
 #include "ServerInfo.hpp"
 #include "ClientInfo.hpp"
-#include "Config.hpp"
+#include "ConfigParser.hpp"
 #include "Log.hpp"
 #include "LocationInfo.hpp"
 #include "Node.hpp"

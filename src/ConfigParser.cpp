@@ -3,14 +3,14 @@
 	handles loading, parsing, and accessing config settings from .conf file
 */
 
-#include "Config.hpp"
+#include "ConfigParser.hpp"
 
 // default constructor: loads config from path
 // 
 // @param path: path to the configuration file (default: 'webserv.conf')
 //
 // checks the file extension against expected value and passes the file path to the parser
-Config::Config(const std::string& path) : _config_file_path(path), _server_count(0)
+ConfigParser::ConfigParser(const std::string& path) : _config_file_path(path), _server_count(0)
 {
 	if (_config_file_path == "")
 	{
@@ -27,7 +27,7 @@ Config::Config(const std::string& path) : _config_file_path(path), _server_count
 // loops through the config and removes the comments from each line
 //
 // @param config:	unprocessed config file as a string
-std::string	Config::remove_comments(const std::string& config)
+std::string	ConfigParser::remove_comments(const std::string& config)
 {
 	std::string			cleaned_config;
 	std::string			line;
@@ -44,7 +44,7 @@ std::string	Config::remove_comments(const std::string& config)
 // reads into string for easier splitting
 //
 // @param path: path to the configuration file (default: 'webserv.conf')
-void 	Config::load_config_from_file(const std::string& path)
+void 	ConfigParser::load_config_from_file(const std::string& path)
 {
     std::ifstream 				config_file(path.c_str());
     std::stringstream 			buffer;
@@ -75,7 +75,7 @@ void 	Config::load_config_from_file(const std::string& path)
 // 3.	pops stack when leaving scope
 // 4.	stores values when reaching bottom level
 // 5.	validates correct number of braces
-void	Config::parse_config_from_vector(const std::vector <std::pair <std::string, int> >& config)
+void	ConfigParser::parse_config_from_vector(const std::vector <std::pair <std::string, int> >& config)
 {
 	validate_config_header(config);
 
@@ -106,7 +106,7 @@ void	Config::parse_config_from_vector(const std::vector <std::pair <std::string,
 //
 // adds the first word of the line to map key
 // adds subsequent words to the value vector 
-void	Config::store_key_value_pairs(const std::pair <std::string, int> line)
+void	ConfigParser::store_key_value_pairs(const std::pair <std::string, int> line)
 {
 	if (line.first.find("\n") != std::string::npos)
 	{
@@ -140,7 +140,7 @@ void	Config::store_key_value_pairs(const std::pair <std::string, int> line)
 // scope was not initialized with a name -> throw error
 // 
 // else, update the stack
-void	Config::handle_opening_brace(const std::pair <std::string, int>& prev_line)
+void	ConfigParser::handle_opening_brace(const std::pair <std::string, int>& prev_line)
 {
 	std::string name = prev_line.first;
 
@@ -165,7 +165,7 @@ void	Config::handle_opening_brace(const std::pair <std::string, int>& prev_line)
 // else if the previous line is neither a '}' nor a ';': previous scope not terminated: error
 //
 // else: pop top value from the stack and keep going
-void	Config::handle_closing_brace(const std::pair <std::string, int>& prev_line)
+void	ConfigParser::handle_closing_brace(const std::pair <std::string, int>& prev_line)
 {
 	if (_nesting_level.empty() == true)
 	{
@@ -183,7 +183,7 @@ void	Config::handle_closing_brace(const std::pair <std::string, int>& prev_line)
 // @param config: vector of strings with the split config
 //
 // checks whether the config has the right header and is opened by '{'
-void	Config::validate_config_header(const std::vector <std::pair <std::string, int> >& config)
+void	ConfigParser::validate_config_header(const std::vector <std::pair <std::string, int> >& config)
 {
 	if (config[0].first == UNCLOSED_QUOTE)
 	{
@@ -201,7 +201,7 @@ void	Config::validate_config_header(const std::vector <std::pair <std::string, i
 }
 
 // ensures that no nesting scope is left open
-void	Config::validate_nesting(int line_count)
+void	ConfigParser::validate_nesting(int line_count)
 {
 	if (_nesting_level.empty() == false)
 	{
@@ -209,7 +209,7 @@ void	Config::validate_nesting(int line_count)
 	}
 }
 
-void	Config::dispatch_values() 
+void	ConfigParser::dispatch_values() 
 {
 	for (std::map <std::string, std::vector <std::string> >::iterator it = _config.begin(); it != _config.end(); it++)
 	{
@@ -232,24 +232,24 @@ void	Config::dispatch_values()
 	}
 }
 
-std::map <int, std::map <std::string, std::vector <std::string> > >	Config::get_servers()
+std::map <int, std::map <std::string, std::vector <std::string> > >	ConfigParser::get_servers()
 {
 	return _servers;
 }
 
 // @return:	error pages map
-std::map <int, std::string>	Config::get_error_pages()
+std::map <int, std::string>	ConfigParser::get_error_pages()
 {
 	return _error_pages;
 }
 
 // @return: config map
-std::map <std::string, std::vector <std::string> >	Config::get_config() const
+std::map <std::string, std::vector <std::string> >	ConfigParser::get_config() const
 {
 	return _config;
 }
 
-std::string	Config::error(const std::string& message)
+std::string	ConfigParser::error(const std::string& message)
 {
 	std::string error = strerror(errno);
 
@@ -261,7 +261,7 @@ std::string	Config::error(const std::string& message)
 	return _config_file_path + ": " + message + ": " + error;
 }
 
-std::string	Config::error_on_line(const std::string& issue, int line_count)
+std::string	ConfigParser::error_on_line(const std::string& issue, int line_count)
 {
 	std::ostringstream oss;
 
@@ -272,7 +272,7 @@ std::string	Config::error_on_line(const std::string& issue, int line_count)
 }
 
 // output operator overload for debugging
-std::ostream& operator<<(std::ostream& os, const Config& config) 
+std::ostream& operator<<(std::ostream& os, const ConfigParser& config) 
 {
 	std::map <std::string, std::vector <std::string> > map = config.get_config();
 
@@ -288,11 +288,11 @@ std::ostream& operator<<(std::ostream& os, const Config& config)
 	return os;
 }
 
-Config::~Config() {}
+ConfigParser::~ConfigParser() {}
 
-Config::Config(const Config& rhs) {*this = rhs;}
+ConfigParser::ConfigParser(const ConfigParser& rhs) {*this = rhs;}
 
-Config&	Config::operator=(const Config& rhs)
+ConfigParser&	ConfigParser::operator=(const ConfigParser& rhs)
 {
 	if (this != &rhs)
 		_config = rhs._config;

@@ -9,12 +9,12 @@
 #include <cstring>
 #include <stack>
 
-class Config 
+class ConfigParser
 {
 	public:
 	
-		Config(const std::string& path="config/webserv.conf");
-		~Config();
+		ConfigParser(const std::string& path="config/webserv.conf");
+		~ConfigParser();
 
 
 
@@ -48,8 +48,8 @@ class Config
 		std::map <int, std::map <std::string, std::vector <std::string> > >		_servers;
 		std::map <int, std::string>												_error_pages;
 
-		Config(const Config& rhs);
-		Config&	operator=(const Config& rhs);
+		ConfigParser(const ConfigParser& rhs);
+		ConfigParser&	operator=(const ConfigParser& rhs);
 };
 
 #define EXPECTED_EXT ".conf"
@@ -70,6 +70,6 @@ class Config
 #define RESET "\033[0m"
 #define UNDERLINE "\033[4m"
 
-std::ostream& operator<<(std::ostream& os, const Config& config);
+std::ostream& operator<<(std::ostream& os, const ConfigParser& config);
 
 #endif

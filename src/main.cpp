@@ -2,7 +2,7 @@
 #include <iostream>
 #include "ServerInfo.hpp"
 #include "Director.hpp"
-#include "Config.hpp"
+#include "ConfigParser.hpp"
 
 int main(int argc, char **argv)
 {
@@ -10,7 +10,7 @@ int main(int argc, char **argv)
 	(void)argv;
 	try
 	{
-		Config config;
+		ConfigParser config;
 		std::map <int, std::map <std::string, std::vector <std::string> > > servers = config.get_servers();
 		for (std::map <int, std::map <std::string, std::vector <std::string> > >::iterator it = servers.begin(); it != servers.end(); it++)
 		{

@@ -17,7 +17,7 @@ SRCS   	= \
 		$(SRCS_DIR)/ServerInfo.cpp \
 		$(SRCS_DIR)/Log.cpp \
 		$(SRCS_DIR)/Director.cpp \
-        $(SRCS_DIR)/Config.cpp \
+        $(SRCS_DIR)/ConfigParser.cpp \
         $(SRCS_DIR)/Utils.cpp \
         $(SRCS_DIR)/main.cpp \
 
