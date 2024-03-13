@@ -9,7 +9,7 @@ ServerInfo::ServerInfo(int tfd, struct sockaddr_storage ss, size_t taddr_len):
 	Node(tfd, ss, taddr_len, SERVER_NODE)
 {}
 
-ServerInfo::ServerInfo(const ServerInfo& rhs) {*this = rhs;}
+ServerInfo::ServerInfo(const ServerInfo& rhs) : Node(rhs.fd, rhs.addr, rhs.addr_len, rhs.type) {}
 
 ServerInfo&	ServerInfo::operator=(const ServerInfo& rhs)
 {

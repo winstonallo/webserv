@@ -16,9 +16,9 @@ ClientInfo::ClientInfo(int tfd, const struct sockaddr_storage& address, size_t t
 	type = CLIENT_NODE;
 }
 
-ClientInfo::ClientInfo(const ClientInfo& rhs)
+ClientInfo::ClientInfo(const ClientInfo& rhs) : Node(rhs.fd, rhs.addr, rhs.addr_len, rhs.type)
 {
-	*this = rhs;
+
 }
 
 ClientInfo&	ClientInfo::operator=(const ClientInfo& rhs)
