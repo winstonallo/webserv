@@ -1,7 +1,15 @@
 #ifndef SERVERINFO_HPP
 #define SERVERINFO_HPP
 
-#include "Headers.hpp"
+#include <iostream>
+#include <string> 
+#include <vector>
+#include <sys/types.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <netdb.h>
+#include "Node.hpp"
+#include "LocationInfo.hpp"
 
 class LocationInfo;
 

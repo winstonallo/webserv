@@ -1,4 +1,4 @@
-#include "../inc/Headers.hpp"
+#include "LocationInfo.hpp"
 
 LocationInfo::LocationInfo()
 {

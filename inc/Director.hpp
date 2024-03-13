@@ -1,7 +1,27 @@
 #ifndef DIRECTOR_HPP
 #define DIRECTOR_HPP
 
-#include "Headers.hpp"
+#include <map>
+#include <vector>
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <netdb.h>
+#include <sys/time.h>
+#include <cerrno>
+#include <string>
+#include <fstream>
+#include <fcntl.h>
+#include <sys/select.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <unistd.h>
+#include <sys/time.h>
+#include "ServerInfo.hpp"
+#include "ClientInfo.hpp"
+#include "Config.hpp"
+#include "Log.hpp"
+#include "LocationInfo.hpp"
+#include "Node.hpp"
 
 #define MSG_SIZE 50000
 

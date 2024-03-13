@@ -26,8 +26,6 @@
 #include <cstring>
 #include <string>
 #include <iostream>
-#include <sys/socket.h>
-#include <arpa/inet.h>
 
 #include "Node.hpp"
 #include "ServerInfo.hpp"

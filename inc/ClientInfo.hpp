@@ -1,7 +1,10 @@
 #ifndef CLIENTINFO_HPP
 #define CLIENTINFO_HPP
 
-#include "Headers.hpp"
+#include "Node.hpp"
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <netdb.h>
 
 //purpose:	data filled from the request parsing for and used for 
 //			answering requests
