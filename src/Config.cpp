@@ -10,7 +10,7 @@
 // @param path: path to the configuration file (default: 'webserv.conf')
 //
 // checks the file extension against expected value and passes the file path to the parser
-Config::Config(const std::string& path) : _config_file_path(path)
+Config::Config(const std::string& path) : _config_file_path(path), _server_count(0)
 {
 	if (_config_file_path == "")
 	{
@@ -63,8 +63,6 @@ void 	Config::load_config_from_file(const std::string& path)
 
     config_file.close();
 
- 	// split the config into a string vector
-	// keep the delimiters for easier tracking of nesting level
 	parse_config_from_vector(Utils::split_keep_delimiters(remove_comments(buffer.str()), "{};"));
 }
 
@@ -100,6 +98,7 @@ void	Config::parse_config_from_vector(const std::vector <std::pair <std::string,
 	}
 	validate_nesting(config[config.size() - 1].second + 1);
 	dispatch_values();
+	std::cout << *this;
 }
 
 // stores the key value pairs into the correct map position
@@ -144,11 +143,18 @@ void	Config::store_key_value_pairs(const std::pair <std::string, int> line)
 // else, update the stack
 void	Config::handle_opening_brace(const std::pair <std::string, int>& prev_line)
 {
+	std::string name = prev_line.first;
+
+	if (name == "server")
+	{
+		name += Utils::itoa(_server_count);
+		_server_count++;
+	}
 	if (prev_line.first.find_first_of(";{}") != std::string::npos)
 	{
 		throw std::runtime_error(error_on_line(UNINITIALIZED_SCOPE, prev_line.second + 1));
 	}
-	_nesting_level.push(_nesting_level.top() + ":" + prev_line.first);
+	_nesting_level.push(_nesting_level.top() + ":" + name);
 }
 
 // updates the scope and performs some error handling

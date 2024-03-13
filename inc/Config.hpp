@@ -39,7 +39,8 @@ class Config
 	
 		std::string											_config_file_path;
 		std::stack <std::string> 							_nesting_level;		// keeps track of nesting level
-		
+		size_t												_server_count;
+
 		std::map <std::string, std::vector <std::string> >	_config;
 
 		std::map <int, std::string>							_error_pages;
