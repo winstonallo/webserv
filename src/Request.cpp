@@ -19,7 +19,7 @@ std::ostream& operator<<(std::ostream& os, const Request& req)
     {
         os << "\t" << it->first << ": " << it->second << std::endl;
     }
-    os << RED  << "Body: \n" << RESET << req.get_body();
+    os << RED  << "Body: \n\t" << RESET << req.get_body();
     return os;
 }
 
@@ -88,6 +88,29 @@ void Request::parse(std::string request){
     std::string line;
     std::istringstream iss(request);
     std::getline(iss, line);
+    //check that there are only 2 spaces in the line
+    if (std::count(line.begin(), line.end(), ' ') != 2)
+    {
+        std::cout << line << std::endl;
+        std::cout << std::count(line.begin(), line.end(), ' ') << std::endl;
+        throw std::runtime_error("Invalid request");
+    }
+    //check that there are now white spaces in the line except for the 2 spaces
+    for (size_t i = 0; i < line.size() - 2; i++)
+    {
+        if (std::isspace(line[i]) != 0 && line[i] != ' ')
+        {
+            std::cout << i << std::endl;
+            std::cout << (int)line[i] << std::endl;
+            throw std::runtime_error("Invalid request");
+        }
+    }
+
+    //check that line ends with \r\n
+    if (line[line.size() - 1] != '\r')
+    {
+        throw std::runtime_error("Invalid request");
+    }
     std::istringstream iss_line(line);
     std::string word;
     iss_line >> word;
@@ -100,7 +123,7 @@ void Request::parse(std::string request){
     // get headers
     while (std::getline(iss, line))
     {
-        if (line == "")
+        if (line == "\r")
         {
             break;
         }
@@ -126,8 +149,7 @@ void Request::validate()
     {
         throw std::runtime_error("Invalid method");
     }
-    if (this->get_protocol() != "HTTP/1.1")
-    {
+    if (this->get_protocol() != "HTTP/1.1"){
         throw std::runtime_error("Invalid protocol");
     }
     // go through headers and validate for printable ascii characters
@@ -135,13 +157,15 @@ void Request::validate()
     {
         if (it->first.size() == 0)
         {
-            throw std::runtime_error("Invalid header");
+            throw std::runtime_error("Invalid header2");
         }
-        for (size_t i = 0; i < it->first.size(); i++)
+        for (size_t i = 0; i < it->first.size() - 1; i++)
         {
-            if (std::isprint(it->first[i]) == 0 || std::isspace(it->first[i]) != 0)
+            if ((std::isprint(it->first[i]) == 0) || std::isspace(it->first[i]) != 0 )
             {
-                throw std::runtime_error("Invalid header");
+                std::cout << it->first << std::endl;
+                std::cout << (int)it->first[i] << std::endl;
+                throw std::runtime_error("Invalid header1");
             }
         }
     }

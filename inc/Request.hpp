@@ -2,7 +2,6 @@
 #define REQUEST_HPP
 
 #include "Headers.hpp"
-#include "Message.hpp"
 
 class Request
 {
