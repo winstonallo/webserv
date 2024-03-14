@@ -7,11 +7,17 @@
 class Request
 {
 	public:
+        // constructors and destructors
 									Request(std::string request);
 									~Request();
 									Request(const Request& rhs);
 		Request&					operator=(const Request& rhs);
 
+        // init and parse request
+        void                        parse(std::string request);
+        void                        validate(void);
+
+        // setters and getters
         std::string 				get_protocol() const;
         void 						set_protocol(const std::string& val);
         std::string 				get_method() const;
@@ -32,6 +38,7 @@ class Request
         std::string 					body;
 
 };
+std::ostream& operator<<(std::ostream& os, const Request& req);
 
 
 #endif

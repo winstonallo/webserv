@@ -7,6 +7,22 @@ Request::~Request()
 {
 }
 
+std::ostream& operator<<(std::ostream& os, const Request& req)
+{
+    // print request with name in red
+    os << RED <<"Method: " << RESET << req.get_method() << std::endl;
+    os << RED << "URI: " << RESET << req.get_uri() << std::endl;
+    os << RED << "Protocol: " << RESET  << req.get_protocol() << std::endl;
+    os << RED << "Headers: " << RESET << std::endl;
+    std::map <std::string, std::string> headers = req.get_headers();
+    for (std::map <std::string, std::string>::iterator it = headers.begin(); it != headers.end(); it++)
+    {
+        os << "\t" << it->first << ": " << it->second << std::endl;
+    }
+    os << RED  << "Body: \n" << RESET << req.get_body();
+    return os;
+}
+
 void Request::set_protocol(const std::string& val)
 {
     this->protocol = val;
@@ -57,9 +73,18 @@ void Request::set_body(const std::string& val)
     this->body = val;
 }
 
-
-Request::Request(std::string request)
+std::string Request::get_header(const std::string& key) const
 {
+    if (this->headers.find(key) != this->headers.end())
+    {
+        return this->headers.at(key);
+    }
+    return NULL;
+}
+// parse request
+//
+// @param request: request string
+void Request::parse(std::string request){
     std::string line;
     std::istringstream iss(request);
     std::getline(iss, line);
@@ -84,22 +109,49 @@ Request::Request(std::string request)
         std::string value;
         std::getline(iss_line, key, ':');
         std::getline(iss_line, value);
-        this->headers[key] = value;
+        this->headers[key] = Utils::trim(value, " \t\n\r");
     }
     // get body
     while (std::getline(iss, line))
     {
         this->body += line + "\n";
     }
-    // print request with name in red
-    std::cout << RED <<"Method: " << RESET << this->get_method() << std::endl;
-    std::cout << RED << "URI: " << RESET << this->get_uri() << std::endl;
-    std::cout << RED << "Protocol: " << RESET  << this->get_protocol() << std::endl;
-    std::cout << RED << "Headers: " << RESET << std::endl;
-    for (std::map<std::string, std::string>::iterator it = this->headers.begin(); it != this->headers.end(); it++)
+
+}
+// validate request
+
+void Request::validate()
+{
+    if (this->get_method() != "GET" && this->get_method() != "POST" && this->get_method() != "DELETE")
     {
-        std::cout << it->first << ": " << it->second << std::endl;
+        throw std::runtime_error("Invalid method");
     }
-    std::cout << RED  << "Body: \n" << RESET << this->get_body();
+    if (this->get_protocol() != "HTTP/1.1")
+    {
+        throw std::runtime_error("Invalid protocol");
+    }
+    // go through headers and validate for printable ascii characters
+    for (std::map <std::string, std::string>::iterator it = this->headers.begin(); it != this->headers.end(); it++)
+    {
+        if (it->first.size() == 0)
+        {
+            throw std::runtime_error("Invalid header");
+        }
+        for (size_t i = 0; i < it->first.size(); i++)
+        {
+            if (std::isprint(it->first[i]) == 0 || std::isspace(it->first[i]) != 0)
+            {
+                throw std::runtime_error("Invalid header");
+            }
+        }
+    }
+
+}
+// constructor
+Request::Request(std::string request)
+{
+    parse(request);
+    validate();
+    
 
 }
