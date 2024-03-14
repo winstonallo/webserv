@@ -12,6 +12,7 @@ CXXFLAGS	= -Wall -Wextra -Werror -MP -MD -std=c++98 -g -Iinc
 
 SRCS   	= \
 		$(SRCS_DIR)/Node.cpp \
+		$(SRCS_DIR)/Request.cpp \
 		$(SRCS_DIR)/ClientInfo.cpp \
 		$(SRCS_DIR)/LocationInfo.cpp \
 		$(SRCS_DIR)/ServerInfo.cpp \
