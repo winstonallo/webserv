@@ -48,6 +48,7 @@ class ServerInfo : public Node
 	private:
 
 		int									port;
+		int									_client_max_body_size;
 		std::string							server_name;
 //		struct sockaddr_in					address;
 		bool								autoindex;

@@ -1,4 +1,4 @@
-#include "../inc/Headers.hpp"
+#include "Utils.hpp"
 
 namespace Utils
 {
@@ -189,5 +189,12 @@ namespace Utils
 
 		oss << num;
 		return oss.str();
+	}
+
+	int	extract_numeric_value(const std::string& str)
+	{
+		std::string numeric_value = str.substr(str.find_first_of("0123456789"), str.find_last_of("0123456789"));
+
+		return std::atoi(numeric_value.c_str());
 	}
 }

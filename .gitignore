@@ -3,3 +3,4 @@ obj
 *.o
 *.d
 *.log
+compile_flags.txt

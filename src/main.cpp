@@ -1,33 +1,29 @@
 
 #include <iostream>
+#include <vector>
 #include "ServerInfo.hpp"
 #include "Director.hpp"
+#include "ConfigParser.hpp"
+#include "ConfigDispatcher.hpp"
 
 int main(int argc, char **argv)
 {
 	(void)argc;
 	(void)argv;
-	// if (argc != 2)
-	// {
-	// 	std::cerr << "Error. Invalid number of arguments." << std::endl;
-	// 	std::cerr << "Usage: " << argv[0] << " [config file <.conf>]" << std::endl;
-	// 	return 1;
-	// }
-	ServerInfo server_info;
-	server_info.set_port(8080);
-	server_info.set_type(SERVER_NODE);
-
-	Director director;
-	director.add_server_info(server_info);
-	if(director.init_servers() < 0)
+	try
 	{
-		std::cerr << "Error initializing servers." << std::endl;
-		return (1);
+		ConfigDispatcher config(ConfigParser().get_config());
+		// std::cout << BOLD << "-----------------------------error-pages-----------------------------" << RESET << std::endl;
+		// config.print_error_pages();
+		// std::cout << BOLD << "-----------------------------s-e-rve-r-s-----------------------------" << RESET << std::endl;
+		// config.print_servers();
+		// std::cout << BOLD << "-----------------------------r-o-u-t-e-s-----------------------------" << RESET << std::endl;
+		// config.print_routes();
 	}
-	if (director.run_servers() < 0)
+	catch (const std::exception &e)
 	{
-		std::cerr << "Error." << std::endl;
-		return (1);
+		std::cerr << "error: " << e.what() << std::endl;
+		return EXIT_FAILURE;
 	}
 	return 0;
 }
