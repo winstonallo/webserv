@@ -1,7 +1,6 @@
-/* 
-	config class implementation
-	handles loading, parsing, and accessing config settings from .conf file
-*/
+ // config class implementation
+// handles loading, parsing, and accessing config settings from .conf file
+
 
 #include "ConfigParser.hpp"
 

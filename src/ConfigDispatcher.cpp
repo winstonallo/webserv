@@ -6,6 +6,9 @@
 #include "Log.hpp"
 #include "Utils.hpp"
 
+// default constructor, checks if config map is empty, then dipatches it
+//
+// @param raw_config:	config map from the parser
 ConfigDispatcher::ConfigDispatcher(const std::map <std::string, std::vector <std::string> >& raw_config)
 {
     if (raw_config.empty() == true)
@@ -17,6 +20,9 @@ ConfigDispatcher::ConfigDispatcher(const std::map <std::string, std::vector <std
     dispatch_values();
 }
 
+// wrapper function for the dispatching of the values
+//
+// loops through the config and assignes the values to their corresponding maps
 void	ConfigDispatcher::dispatch_values() 
 {
 	for (std::map <std::string, std::vector <std::string> >::iterator it = _raw_config.begin(); it != _raw_config.end(); it++)
@@ -27,6 +33,15 @@ void	ConfigDispatcher::dispatch_values()
 	}
 }
 
+// handles route config values
+//
+// @param key:	current config key
+//
+// if routes prefix ("webserv:routes") in key:
+//		1. removes the prefix
+// 		2. separates the top key (ex: "/admin", "/cgi-bin") from the rest of the substring
+//		3. gets the final value key (full route - top key)
+//		4. stores corresponding _raw_config values into the _routes map
 void 	ConfigDispatcher::handle_route(const std::string& key)
 {
 	size_t routes_prefix_size = std::string(ROUTES_PREFIX).size();
@@ -42,6 +57,16 @@ void 	ConfigDispatcher::handle_route(const std::string& key)
 	}
 }
 
+// handles server config values
+//
+// @param key:	current config key
+//
+// the server key syntax is: "server_[0-9]", (since there can be multiple
+// in one config, they get a number assigned during parsing)
+//
+// if server prefix ("webserv:server") in key:
+//		1. extract the server id to use as a key in _server map
+//		2. store corresponding value into _server map
 void	ConfigDispatcher::handle_server(const std::string& key)
 {
 	size_t server_prefix_size = std::string(SERVER_PREFIX).size();
@@ -54,6 +79,16 @@ void	ConfigDispatcher::handle_server(const std::string& key)
 	}
 }
 
+// handles error page config values
+//
+// @param key_value:	current map key_value pair
+//
+// if error page prefix ("webserv:error_pages") in key_value.first:
+//		1. extract status code from the key
+//		2. 	if corresponding html file exists:
+//				store into _error_pages map using status code as a key
+//			else:
+//				log error and fall back to default value (fallback to be implemented)
 void    ConfigDispatcher::handle_error_page(const std::pair <std::string, std::vector <std::string> >& key_value)
 {
     if (key_value.first.substr(0, key_value.first.find_last_of(":")) == ERROR_PAGE_PREFIX)

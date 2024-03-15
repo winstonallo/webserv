@@ -1,5 +1,6 @@
 // class responsible for the validation & loading of parsed values into their corresponding object
 // eg: ServerInfo, LocationInfo, etc
+
 #ifndef CONFIGDISPATCHER_HPP
 #define CONFIGDISPATCHER_HPP
 
