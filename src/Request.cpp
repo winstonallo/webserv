@@ -147,8 +147,6 @@ void Request::parse(std::string request){
         }
         if (this->headers.find(key) != this->headers.end())
         {
-            std::cout << "key: " << key << std::endl;
-            std::cout << "value: " << value << std::endl;
             value = this->headers[key] + "," + Utils::trim(value, " \t\n\r");
             this->headers[key] = value;
         }
@@ -163,6 +161,26 @@ void Request::parse(std::string request){
     }
 
 }
+// go through headers and validate for printable ascii characters
+    //token          = 1*tchar
+    /* tchar          = "!" / "#" / "$" / "%" / "&" / "'" / "*"
+                / "+" / "-" / "." / "^" / "_" / "`" / "|" / "~"
+                / DIGIT / ALPHA
+                ; any VCHAR, except delimiters */
+static bool valid_token(std::string str)
+{
+    for (size_t i = 0; i < str.size(); i++)
+    {
+        int c = str[i];
+        if (!(std::isalnum(c) || c == '!' || c == '#' || c == '$' || c == '%' ||
+              c == '&' || c == '\'' || c == '*' || c == '+' || c == '-' ||
+              c == '.' || c == '^' || c == '_' || c == '`' || c == '|' ||
+              c == '~')) {
+            return false;
+        }
+    }
+    return true;
+    }
 // validate request
 
 void Request::validate()
@@ -174,20 +192,30 @@ void Request::validate()
     if (this->get_protocol() != "HTTP/1.1"){
         throw std::runtime_error("Invalid protocol");
     }
-    // go through headers and validate for printable ascii characters
+    // validate headers - field-names
     for (std::map <std::string, std::string>::iterator it = this->headers.begin(); it != this->headers.end(); it++)
     {
         if (it->first.size() == 0)
         {
-            throw std::runtime_error("Invalid header2");
+            throw std::runtime_error("Invalid header");
         }
-        for (size_t i = 0; i < it->first.size() - 1; i++)
+        if (!valid_token(it->first))
         {
-            if ((std::isprint(it->first[i]) == 0) || std::isspace(it->first[i]) != 0 )
+            throw std::runtime_error("Invalid header");
+        }
+    }
+    // validate headers - field-values - printable ascii characters
+    for (std::map <std::string, std::string>::iterator it = this->headers.begin(); it != this->headers.end(); it++)
+    {
+        if (it->second.size() == 0)
+        {
+            throw std::runtime_error("Invalid header");
+        }
+        for (size_t i = 0; i < it->second.size(); i++)
+        {
+            if (!std::isprint(it->second[i]))
             {
-                std::cout << it->first << std::endl;
-                std::cout << (int)it->first[i] << std::endl;
-                throw std::runtime_error("Invalid header1");
+                throw std::runtime_error("Invalid header");
             }
         }
     }
