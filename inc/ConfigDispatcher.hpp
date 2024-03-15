@@ -16,6 +16,10 @@ class ConfigDispatcher
         void                                                                dispatch_values();
         void                                                                handle_error_page(const std::pair <std::string, std::vector <std::string> >& key_value);
 
+		// debugging funcs
+		void	print_error_pages();
+		void	print_servers();
+
         ConfigDispatcher(const std::map <std::string, std::vector <std::string> >& raw_config=std::map<std::string, std::vector<std::string> >());
         ~ConfigDispatcher();
 

@@ -1,5 +1,6 @@
 
 #include <iostream>
+#include <vector>
 #include "ServerInfo.hpp"
 #include "Director.hpp"
 #include "ConfigParser.hpp"
@@ -11,7 +12,9 @@ int main(int argc, char **argv)
 	(void)argv;
 	try
 	{
-		ConfigDispatcher ConfigDispatcher(ConfigParser().get_config());
+		ConfigDispatcher config(ConfigParser().get_config());
+		// config.print_error_pages();
+		// config.print_servers();
 	}
 	catch (const std::exception &e)
 	{

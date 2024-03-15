@@ -1,12 +1,17 @@
 #include "ConfigDispatcher.hpp"
+#include <cstddef>
+#include <ostream>
+#include <utility>
+#include "Log.hpp"
 
 ConfigDispatcher::ConfigDispatcher(const std::map <std::string, std::vector <std::string> >& raw_config)
 {
-    if (_raw_config.empty() == true)
+    if (raw_config.empty() == true)
     {
         throw std::runtime_error("cannot instantiate ConfigDispatcher with empty config");
     }
     _raw_config = raw_config;
+
     dispatch_values();
 }
 
@@ -18,6 +23,7 @@ void	ConfigDispatcher::dispatch_values()
 		{
 			_servers[Utils::extract_numeric_value(it->first)][it->first.substr(it->first.find_last_of("0123456789") + 2)] = _raw_config[it->first];
 		}
+		handle_error_page(std::make_pair(it->first, it->second));
 	}
 }
 
@@ -32,9 +38,33 @@ void    ConfigDispatcher::handle_error_page(const std::pair <std::string, std::v
         }
         else
         {
-            // TODO: insert fallback logic here
+            Log::log("error: " + key_value.second[0] + ": file not found, falling back to default", ERROR_FILE);
         }
     }
+}
+
+void	ConfigDispatcher::print_error_pages()
+{
+	for (std::map <int, std::string>::iterator it = _error_pages.begin(); it != _error_pages.end(); it++)
+	{
+		std::cout << it->first << ": " << std::endl << "\t" << it->second << std::endl;
+	}
+}
+
+void	ConfigDispatcher::print_servers()
+{
+	for (std::map <int, std::map <std::string, std::vector <std::string> > >::iterator it = _servers.begin(); it != _servers.end(); it++)
+	{
+		std::cout << it->first << ": " << std::endl;
+		for (std::map <std::string, std::vector <std::string> >::iterator itt = it->second.begin(); itt != it->second.end(); itt++)
+		{
+			std::cout << "\t" << itt->first << ":" << std::endl;
+			for (size_t i = 0; i < itt->second.size(); i++)
+			{
+				std::cout << "\t\t" << itt->second[i] << std::endl;
+			}
+		}
+	}
 }
 
 ConfigDispatcher::~ConfigDispatcher() {}
