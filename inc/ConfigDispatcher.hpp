@@ -9,6 +9,7 @@
 #include <vector>
 #include <cstdlib>
 #include "Utils.hpp"
+#include "ServerInfo.hpp"
 
 class ConfigDispatcher
 {
