@@ -145,7 +145,7 @@ void	ConfigParser::handle_opening_brace(const std::pair <std::string, int>& prev
 
 	if (name == "server")
 	{
-		name += Utils::itoa(_server_count);
+		name += "_" + Utils::itoa(_server_count);
 		_server_count++;
 	}
 	if (prev_line.first.find_first_of(";{}") != std::string::npos)

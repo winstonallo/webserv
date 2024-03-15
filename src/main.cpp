@@ -13,8 +13,12 @@ int main(int argc, char **argv)
 	try
 	{
 		ConfigDispatcher config(ConfigParser().get_config());
+		// std::cout << BOLD << "-----------------------------error-pages-----------------------------" << RESET << std::endl;
 		// config.print_error_pages();
+		// std::cout << BOLD << "-----------------------------s-e-rve-r-s-----------------------------" << RESET << std::endl;
 		// config.print_servers();
+		// std::cout << BOLD << "-----------------------------r-o-u-t-e-s-----------------------------" << RESET << std::endl;
+		// config.print_routes();
 	}
 	catch (const std::exception &e)
 	{
