@@ -1,7 +1,12 @@
 #ifndef LOG_HPP 
 #define LOG_HPP
 
-#include "Headers.hpp"
+#include <iostream>
+#include <fstream> 
+#include <string>
+#include <sstream>
+#include <sys/time.h>
+#include <map>
 
 enum LogDest
 {
@@ -10,6 +15,8 @@ enum LogDest
 	ERROR_FILE = 4,
 	ACCEPT_FILE = 8
 };
+// purpose: basic Logging class that handles several output at one time
+//			see comments on function log for use.
 
 class Log
 {

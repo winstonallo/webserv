@@ -1,4 +1,4 @@
-#include "../inc/Headers.hpp"
+#include "ClientInfo.hpp"
 
 ClientInfo::ClientInfo()
 {
@@ -16,9 +16,9 @@ ClientInfo::ClientInfo(int tfd, const struct sockaddr_storage& address, size_t t
 	type = CLIENT_NODE;
 }
 
-ClientInfo::ClientInfo(const ClientInfo& rhs)
+ClientInfo::ClientInfo(const ClientInfo& rhs) : Node()
 {
-	*this = rhs;
+	(void)rhs;
 }
 
 ClientInfo&	ClientInfo::operator=(const ClientInfo& rhs)

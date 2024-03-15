@@ -1,9 +1,20 @@
 #ifndef SERVERINFO_HPP
 #define SERVERINFO_HPP
 
-#include "Headers.hpp"
+#include <iostream>
+#include <string> 
+#include <vector>
+#include <sys/types.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <netdb.h>
+#include "Node.hpp"
+#include "LocationInfo.hpp"
 
 class LocationInfo;
+
+//purpose:	Data class for the parsed values (from the config file)
+//			It is used for the initialization and the running of the servers.
 
 class ServerInfo : public Node
 {
@@ -37,6 +48,7 @@ class ServerInfo : public Node
 	private:
 
 		int									port;
+		int									_client_max_body_size;
 		std::string							server_name;
 //		struct sockaddr_in					address;
 		bool								autoindex;
