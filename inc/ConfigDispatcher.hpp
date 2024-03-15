@@ -21,6 +21,8 @@ class ConfigDispatcher
 		void																			handle_server(const std::string& key);
 		void																			handle_route(const std::string& key);
 
+		std::map <int, std::map <std::string, std::vector <std::string> > >				get_servers();
+
 		// debugging funcs
 		void	print_error_pages();
 		void	print_servers();

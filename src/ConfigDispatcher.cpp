@@ -79,6 +79,11 @@ void	ConfigDispatcher::handle_server(const std::string& key)
 	}
 }
 
+std::map <int, std::map <std::string, std::vector <std::string> > >		ConfigDispatcher::get_servers()
+{
+	return _servers;
+}
+
 // handles error page config values
 //
 // @param key_value:	current map key_value pair

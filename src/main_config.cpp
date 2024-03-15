@@ -15,6 +15,8 @@ int main(int argc, char **argv)
 		Config conf;
 		Director director;
 		ConfigDispatcher config(ConfigParser().get_config());
+		std::map<int, std::map<std::string, std::vector<std::string> > > server_map = config.get_servers();
+		conf.set_servers(server_map);
 	}
 	catch (const std::exception &e)
 	{

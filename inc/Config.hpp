@@ -4,9 +4,9 @@
 #include "LocationInfo.hpp"
 #include "Utils.hpp"
 #include "ServerInfo.hpp"
-#include <map>
 #include "Log.hpp"
 #include "Director.hpp"
+#include <map>
 
 class Config
 {
