@@ -22,7 +22,7 @@ SRCS   	= \
         $(SRCS_DIR)/ConfigParser.cpp \
         $(SRCS_DIR)/ConfigDispatcher.cpp \
         $(SRCS_DIR)/Utils.cpp \
-        $(SRCS_DIR)/main3.cpp \
+        $(SRCS_DIR)/main_config.cpp \
 
 OBJS	= $(SRCS:${SRCS_DIR}/%.cpp=${OBJS_DIR}/%.o)
 
