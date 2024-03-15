@@ -21,10 +21,12 @@ hui pizda\npidor suka\ngovvnooooooooooooooooooooooooo\n";
 
 	char *buf = new char[1000];
 
-	read(fd, buf, 1000);
+	int bufer_size = read(fd, buf, 1000);
+	buf[bufer_size] = '\0';
 
 	std::string str(buf);
 
+	delete[] buf;
 	Request req(str);
 	std::cout << req;
 }
