@@ -19,7 +19,12 @@ std::ostream& operator<<(std::ostream& os, const Request& req)
     {
         os << "\t" << it->first << ": " << it->second << std::endl;
     }
-    os << RED  << "Body: \n\t" << RESET << req.get_body();
+    os << RED  << "Body: \n" << RESET;
+    std::stringstream ss(req.get_body());
+    std::string line;
+    while (std::getline(ss, line)) {
+        std::cout << "\t" << line << std::endl;
+    }
     return os;
 }
 
@@ -132,6 +137,18 @@ void Request::parse(std::string request){
         std::string value;
         std::getline(iss_line, key, ':');
         std::getline(iss_line, value);
+        //key to upper
+        for (size_t i = 0; i < key.size(); i++)
+        {
+            key[i] = std::toupper(key[i]);
+        }
+        if (this->headers.find(key) != this->headers.end())
+        {
+            std::cout << "key: " << key << std::endl;
+            std::cout << "value: " << value << std::endl;
+            value = this->headers[key] + "," + Utils::trim(value, " \t\n\r");
+            this->headers[key] = value;
+        }
         this->headers[key] = Utils::trim(value, " \t\n\r");
     }
     // get body
