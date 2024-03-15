@@ -31,8 +31,8 @@ class ServerInfo : public Node
 		void								set_port(int prt);
 		int									get_sock_fd() const;
 		void								set_sock_fd(int sfd);
-		std::string							get_server_name() const;
-		void								set_server_name(const std::string& tserver_name);
+		std::vector <std::string>			get_server_name() const;
+		void								set_server_name(const std::vector <std::string>& tserver_name);
 		bool								get_auto_index() const;
 		void								set_auto_index(bool b);
 		std::string							get_root() const;
@@ -41,6 +41,10 @@ class ServerInfo : public Node
 		void								set_error_log(const std::string& rt);
 		std::string							get_access_log() const;
 		void								set_access_log(const std::string& rt);
+		std::string							get_host() const;
+		void								set_host(const std::string& host);
+		int									get_client_max_body_size() const;
+		void								set_client_max_body_size(const int client_max_body_size);
 		LocationInfo&						get_location(int);
 		void								add_location(LocationInfo lc);
 		bool								is_fd_in_clients(int fd) const;
@@ -49,7 +53,8 @@ class ServerInfo : public Node
 
 		int									port;
 		int									_client_max_body_size;
-		std::string							server_name;
+		std::string							_host;
+		std::vector <std::string>			server_name;
 //		struct sockaddr_in					address;
 		bool								autoindex;
 		std::string							root;

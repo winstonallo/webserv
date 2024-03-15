@@ -2,6 +2,11 @@
 
 namespace Utils
 {
+	bool	write_access(const std::string& path)
+	{
+	    return access(path.c_str(), W_OK) == 0;
+	}
+
 	// checks existence of file
 	//
 	// @param path:		path to file to check

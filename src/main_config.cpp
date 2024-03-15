@@ -12,6 +12,7 @@ int main(int argc, char **argv)
 	(void)argv;
 	try
 	{
+		Director director;
 		ConfigDispatcher config(ConfigParser().get_config());
 		// std::cout << BOLD << "-----------------------------error-pages-----------------------------" << RESET << std::endl;
 		// config.print_error_pages();
