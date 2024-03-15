@@ -13,18 +13,35 @@ void	Config::set_servers(std::map <int, std::map <std::string, std::vector <std:
 
 		new_server->set_server_name(it->second["server_name"]);
 		new_server->set_port(std::atoi(it->second["port"][0].c_str()));
-		if (Utils::write_access(it->second["access_log"][0]) == true)
+		new_server->set_access_log(handle_access_log(it->second["access_log"][0]));
+		new_server->set_host(it->second["host"][0]);
+		if (Utils::parse_client_max_body_size(it->second["client_max_body_size"][0]) != -1)
 		{
-			new_server->set_access_log(it->second["access_log"][0]);
+			new_server->set_client_max_body_size(Utils::parse_client_max_body_size(it->second["client_max_body_size"][0]));
 		}
 		else
 		{
-			Log::log("error: access log '" + it->second["access_log"][0] + "' could not be opened", STD_ERR);
+			Log::log("error: client max body size '" + it->second["client_max_body_size"][0] + "' is not valid, falling back to default (1M)\n", STD_ERR);
+			new_server->set_client_max_body_size(CLIENT_MAX_BODY_SIZE_DEFAULT);
 		}
-		// new_server->se
+		_servers.push_back(new_server);
 	}
 }
 
+// validates 
+std::string		Config::handle_access_log(const std::string& access_log)
+{
+	if (Utils::file_exists(access_log) == false or Utils::write_access(access_log) == true)
+	{
+		return access_log;
+	}
+	else
+	{
+		Log::log("error: access log '" + access_log + "' could not be opened, falling back to 'access.log'", STD_ERR);
+		
+		return ("access.log");
+	}
+}
 
 std::vector <ServerInfo *>	Config::get_servers()
 {

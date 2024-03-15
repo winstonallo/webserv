@@ -2,6 +2,20 @@
 
 namespace Utils
 {
+	int		parse_client_max_body_size(const std::string& client_max_body_size)
+	{
+		size_t non_digit_char_pos = client_max_body_size.find_first_not_of("0123456789");
+
+		if (client_max_body_size[non_digit_char_pos] != 'M' || non_digit_char_pos != client_max_body_size.size() - 1)
+		{
+			return -1;
+		}
+		else
+		{
+			return std::atoi(client_max_body_size.substr(0, non_digit_char_pos).c_str()) * 1000000;
+		}
+	}
+
 	bool	write_access(const std::string& path)
 	{
 	    return access(path.c_str(), W_OK) == 0;

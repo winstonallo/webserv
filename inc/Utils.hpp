@@ -22,6 +22,7 @@ namespace Utils
 	std::vector <std::string>						split_keep_quoted_words(const std::string& str, const std::string& delimiters);
 	std::vector <std::pair <std::string, int> > 	split_keep_delimiters(const std::string& str, const std::string& delimiters);
 	int												extract_numeric_value(const std::string& str);
+	int												parse_client_max_body_size(const std::string& client_max_body_size);
 };
 
 #define UNCLOSED_QUOTE "unclosed quote sequence"
