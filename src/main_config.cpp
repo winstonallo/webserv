@@ -1,8 +1,8 @@
 
 #include <iostream>
 #include <vector>
-#include "ServerInfo.hpp"
 #include "Director.hpp"
+#include "Config.hpp"
 #include "ConfigParser.hpp"
 #include "ConfigDispatcher.hpp"
 
@@ -12,14 +12,9 @@ int main(int argc, char **argv)
 	(void)argv;
 	try
 	{
+		Config conf;
 		Director director;
 		ConfigDispatcher config(ConfigParser().get_config());
-		// std::cout << BOLD << "-----------------------------error-pages-----------------------------" << RESET << std::endl;
-		// config.print_error_pages();
-		// std::cout << BOLD << "-----------------------------s-e-rve-r-s-----------------------------" << RESET << std::endl;
-		// config.print_servers();
-		// std::cout << BOLD << "-----------------------------r-o-u-t-e-s-----------------------------" << RESET << std::endl;
-		// config.print_routes();
 	}
 	catch (const std::exception &e)
 	{

@@ -60,7 +60,7 @@ class ServerInfo : public Node
 		std::string							root;
 		std::string							error_log;
 		std::string							access_log;
-		std::vector<LocationInfo>			locations;
+		std::vector <LocationInfo>			locations;
 };
 
 #endif
