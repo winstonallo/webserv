@@ -1,7 +1,11 @@
 #ifndef REQUEST_HPP
 #define REQUEST_HPP
 
-#include "Headers.hpp"
+#include <iostream>
+#include <map>
+#include <sstream>
+#include <algorithm>
+#include "Utils.hpp"
 
 class Request
 {
@@ -39,5 +43,9 @@ class Request
 };
 std::ostream& operator<<(std::ostream& os, const Request& req);
 
+#define BOLD "\033[1m"
+#define RESET "\033[0m"
+#define UNDERLINE "\033[4m"
+#define RED "\033[31m"
 
 #endif

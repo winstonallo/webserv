@@ -1,6 +1,5 @@
 
-#include "../inc/Headers.hpp"
-#include "../inc/Request.hpp"
+#include "Request.hpp"
 
 
 Request::~Request()
