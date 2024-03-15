@@ -40,7 +40,7 @@ void*	Director::get_in_addr(struct sockaddr *sa)
 }
 
 // purpose: Initializes the Server that is passed in with ServerInfo*.
-// 			We loop through the addreses of the Server and create for each one
+// 			We loop through the addreses of the Server and create for the first one 
 //			a listener socket, which we set to be port-reusable and bind it to a port.
 // 			we also save information to the ServerInfo (file descriptor, address)
 //
