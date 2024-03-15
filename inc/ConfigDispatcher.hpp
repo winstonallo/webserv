@@ -1,0 +1,48 @@
+// class responsible for the validation & loading of parsed values into their corresponding object
+// eg: ServerInfo, LocationInfo, etc
+
+#ifndef CONFIGDISPATCHER_HPP
+#define CONFIGDISPATCHER_HPP
+
+#include <map>
+#include <iostream>
+#include <vector>
+#include <cstdlib>
+#include "Utils.hpp"
+#include "ServerInfo.hpp"
+
+class ConfigDispatcher
+{
+    public:
+
+        void                                                                			dispatch_values();
+
+        void                                                                			handle_error_page(const std::pair <std::string, std::vector <std::string> >& key_value);
+		void																			handle_server(const std::string& key);
+		void																			handle_route(const std::string& key);
+
+		// debugging funcs
+		void	print_error_pages();
+		void	print_servers();
+		void	print_routes();
+
+        ConfigDispatcher(const std::map <std::string, std::vector <std::string> >& raw_config=std::map<std::string, std::vector<std::string> >());
+        ~ConfigDispatcher();
+
+    private:
+
+        std::map <std::string, std::vector <std::string> >                  			_raw_config;
+
+        std::map <int, std::map <std::string, std::vector <std::string> > > 			_servers;
+        std::map <int, std::string>                                         			_error_pages;
+		std::map <std::string, std::map <std::string, std::vector <std::string> > > 	_routes;
+
+        ConfigDispatcher(const ConfigDispatcher& rhs);
+        ConfigDispatcher& operator=(const ConfigDispatcher& rhs);
+};
+
+#define SERVER_PREFIX "webserv:server"
+#define ERROR_PAGE_PREFIX "webserv:error_pages"
+#define ROUTES_PREFIX "webserv:routes"
+
+#endif

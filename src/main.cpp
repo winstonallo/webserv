@@ -1,8 +1,10 @@
 
 #include <iostream>
+#include <vector>
 #include "ServerInfo.hpp"
 #include "Director.hpp"
-#include "Config.hpp"
+#include "ConfigParser.hpp"
+#include "ConfigDispatcher.hpp"
 
 int main(int argc, char **argv)
 {
@@ -10,20 +12,13 @@ int main(int argc, char **argv)
 	(void)argv;
 	try
 	{
-		Config config;
-		std::map <int, std::map <std::string, std::vector <std::string> > > servers = config.get_servers();
-		for (std::map <int, std::map <std::string, std::vector <std::string> > >::iterator it = servers.begin(); it != servers.end(); it++)
-		{
-			std::cout << it->first << ": " << std::endl;
-			for (std::map <std::string, std::vector <std::string> >::iterator itt = it->second.begin(); itt != it->second.end(); itt++)
-			{
-				std::cout << "\t" << itt->first << ": " << std::endl;
-				for (size_t i = 0; i < itt->second.size(); i++)
-				{
-					std::cout << "\t\t" << itt->second[i] << std::endl;
-				}
-			}
-		}
+		ConfigDispatcher config(ConfigParser().get_config());
+		// std::cout << BOLD << "-----------------------------error-pages-----------------------------" << RESET << std::endl;
+		// config.print_error_pages();
+		// std::cout << BOLD << "-----------------------------s-e-rve-r-s-----------------------------" << RESET << std::endl;
+		// config.print_servers();
+		// std::cout << BOLD << "-----------------------------r-o-u-t-e-s-----------------------------" << RESET << std::endl;
+		// config.print_routes();
 	}
 	catch (const std::exception &e)
 	{
