@@ -137,6 +137,10 @@ void Request::parse(std::string request){
         std::string value;
         std::getline(iss_line, key, ':');
         std::getline(iss_line, value);
+        if (value.end()[-1] != '\r')
+        {
+            throw std::runtime_error("Invalid request");
+        }
         //key to upper
         for (size_t i = 0; i < key.size(); i++)
         {
@@ -149,7 +153,9 @@ void Request::parse(std::string request){
             value = this->headers[key] + "," + Utils::trim(value, " \t\n\r");
             this->headers[key] = value;
         }
-        this->headers[key] = Utils::trim(value, " \t\n\r");
+        else{
+            this->headers[key] = Utils::trim(value, " \t\n\r");}
+        
     }
     // get body
     while (std::getline(iss, line))
