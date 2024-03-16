@@ -1,6 +1,6 @@
 
 #include "Request.hpp"
-
+#include <iostream>
 
 Request::~Request()
 {
@@ -18,18 +18,14 @@ std::ostream& operator<<(std::ostream& os, const Request& req)
     {
         os << "\t" << it->first << ": " << it->second << std::endl;
     }
-    os << RED  << "Body: \n" << RESET;
+    os << RED  << "Body:\n" << RESET;
     std::stringstream ss(req.get_body());
     std::string line;
     while (std::getline(ss, line)) {
-        std::cout << "\t" << line << std::endl;
+        os << "\t" << line << std::endl;
     }
+    os << GREEN << "BODY SIZE: "<< RESET << req.get_body().size() << std::endl;
     return os;
-}
-
-void Request::set_protocol(const std::string& val)
-{
-    this->protocol = val;
 }
 
 std::string Request::get_protocol() const
@@ -42,19 +38,9 @@ std::string Request::get_method() const
     return this->method;
 }
 
-void Request::set_method(const std::string& val)
-{
-    this->method = val;
-}
-
 std::string Request::get_uri() const
 {
     return this->uri;
-}
-
-void Request::set_uri(const std::string& val)
-{
-    this->uri = val;
 }
 
 std::map <std::string, std::string> Request::get_headers() const
@@ -62,19 +48,9 @@ std::map <std::string, std::string> Request::get_headers() const
     return this->headers;
 }
 
-void Request::set_headers(const std::map <std::string, std::string>& val)
-{
-    this->headers = val;
-}
-
 std::string Request::get_body() const
 {
     return this->body;
-}
-
-void Request::set_body(const std::string& val)
-{
-    this->body = val;
 }
 
 std::string Request::get_header(const std::string& key) const
@@ -85,6 +61,39 @@ std::string Request::get_header(const std::string& key) const
     }
     return NULL;
 }
+std::string Request::get_userinfo() const
+{
+    return this->userinfo;
+}
+
+std::string Request::get_host() const
+{
+    return this->host;
+}
+
+std::string Request::get_port() const
+{
+    return this->port;
+}
+
+std::string Request::get_path() const
+{
+    return this->path;
+}
+
+std::string Request::get_query() const
+{
+    return this->query;
+}
+
+std::string Request::get_fragment() const
+{
+    return this->fragment;
+}
+
+// init and parse request
+
+
 // parse request
 //
 // @param request: request string
@@ -127,9 +136,9 @@ void Request::parse(std::string request){
     {
         throw std::runtime_error("Invalid request: method, uri or protocol is empty");
     }
-    this->set_uri(method);
-    this->set_method(uri);
-    this->set_protocol(protocol);
+    this->method = method;
+    this->uri = uri;
+    this->protocol = protocol;
 
     // get headers
     while (std::getline(iss, line))
@@ -168,39 +177,145 @@ void Request::parse(std::string request){
     }
 
 }
-// go through headers and validate for printable ascii characters
-    //token          = 1*tchar
-    /* tchar          = "!" / "#" / "$" / "%" / "&" / "'" / "*"
-                / "+" / "-" / "." / "^" / "_" / "`" / "|" / "~"
-                / DIGIT / ALPHA
-                ; any VCHAR, except delimiters */
+
+// goes through the string and checks if all characters are in valid_chars
 //
+// @param valid_chars: string of valid characters
 // @param str: string to validate
 // @return: true if valid, false otherwise
-static bool valid_token(std::string str)
+static bool valid_token(std::string str, std::string valid_chars)
 {
     for (size_t i = 0; i < str.size(); i++)
     {
         int c = str[i];
-        if (!(std::isalnum(c) || c == '!' || c == '#' || c == '$' || c == '%' ||
-              c == '&' || c == '\'' || c == '*' || c == '+' || c == '-' ||
-              c == '.' || c == '^' || c == '_' || c == '`' || c == '|' ||
-              c == '~')) {
+        if (valid_chars.find(c) == std::string::npos) {
             return false;
         }
     }
     return true;
     }
+
+std::string  Request::validate_uri(void)
+{
+    std::string uri = this->get_uri();
+
+    // get schema
+    size_t pos = uri.find(":");
+    if (pos != std::string::npos && pos < uri.find("/"))
+    {
+        std::string schema = uri.substr(0, pos);
+        if (schema != "http")
+        {
+            return "Invalid schema: " + schema;
+        }
+        uri = uri.substr(pos + 3);
+    }
+
+    // get fragment going from the back of uri
+    pos = uri.find("#");
+    if (pos != std::string::npos)
+    {
+        std::string fragment = uri.substr(pos + 1);
+        if (!valid_token(fragment, FRAGMENT))
+        {
+            return "Invalid fragment: " + fragment;
+        }
+        this->fragment = fragment;
+        uri = uri.substr(0, pos);
+    }
+
+    // get query going from the back of uri
+    pos = uri.find("?");
+    if (pos != std::string::npos)
+    {
+        std::string query = uri.substr(pos + 1);
+        if (!valid_token(query, QUERY))
+        {
+            return "Invalid query: " + query;
+        }
+        this->query = query;
+        uri = uri.substr(0, pos);
+    }
+
+    // if starts with // then get userinfo, host and port
+    if (uri.substr(0, 2) == "//")
+    {
+        pos = uri.find("@");
+        if (pos != std::string::npos)
+        {
+            std::string userinfo = uri.substr(2, pos - 2);
+            if (!valid_token(userinfo, USERINFO))
+            {
+                return "Invalid userinfo: " + userinfo;
+            }
+            this->userinfo = userinfo;
+            uri = uri.substr(pos + 1);
+        }
+
+        pos = uri.find("/");
+        if (pos != std::string::npos)
+        {
+            std::string path = uri.substr(pos);
+            if (!valid_token(path, PATH))
+            {
+                return "Invalid path: " + path;
+            }
+            this->path = path;
+            uri = uri.substr(0, pos);
+        }
+
+        pos = uri.find(":");
+        if (pos != std::string::npos)
+        {
+            std::string port = uri.substr(pos + 1);
+            if (!valid_token(port, DIGIT))
+            {
+                return "Invalid port: " + port;
+            }
+            this->port = port;
+            uri = uri.substr(0, pos);
+        }
+
+        std::string host = uri;
+        if (!valid_token(host, TCHAR))
+        {
+            return "Invalid host: " + host;
+        }
+        this->host = host;
+    }
+    else {
+        std::string path = uri;
+        if (!valid_token(path, PATH))
+        {
+            return "Invalid path: " + path;
+        }
+        this->path = path;
+    }
+
+    std::cout << "userinfo: " <<    this->userinfo << std::endl;
+    std::cout << "host: " <<        this->host << std::endl;
+    std::cout << "port: " <<        this->port << std::endl;
+    std::cout << "path: " <<        this->path << std::endl;
+    std::cout << "query: " <<       this->query << std::endl;
+    std::cout << "fragment: " <<    this->fragment << std::endl;
+    return "";
+}
 // validate request
 
 void Request::validate()
 {
     if (this->get_method() != "GET" && this->get_method() != "POST" && this->get_method() != "DELETE")
     {
-        throw std::runtime_error("Invalid method");
+        throw std::runtime_error("Invalid method: " + this->get_method());
     }
     if (this->get_protocol() != "HTTP/1.1"){
-        throw std::runtime_error("Invalid protocol");
+        throw std::runtime_error("Invalid protocol: " + this->get_protocol());
+    }
+    //validate uri
+    std::string uri_val = validate_uri();
+    if (uri_val != "")
+    {
+        throw std::runtime_error("Invalid uri: " + uri_val);
     }
     // validate headers - field-names
     for (std::map <std::string, std::string>::iterator it = this->headers.begin(); it != this->headers.end(); it++)
@@ -209,7 +324,7 @@ void Request::validate()
         {
             throw std::runtime_error("Invalid header: empty field-name");
         }
-        if (!valid_token(it->first))
+        if (!valid_token(it->first, TCHAR))
         {
             throw std::runtime_error("Invalid header: invalid field-name");
         }
