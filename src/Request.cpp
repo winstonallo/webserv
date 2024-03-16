@@ -2,9 +2,20 @@
 #include "Request.hpp"
 #include <iostream>
 
-Request::~Request()
-{
-}
+Request::~Request(){}
+
+
+std::string Request::get_protocol() const{ return this->protocol;}
+std::string Request::get_method() const{ return this->method;}
+std::string Request::get_uri() const{ return this->uri;}
+std::map <std::string, std::string> Request::get_headers() const{ return this->headers;}
+std::string Request::get_body() const{ return this->body;}
+std::string Request::get_userinfo() const{ return this->userinfo;}
+std::string Request::get_host() const{ return this->host;}
+std::string Request::get_port() const{ return this->port;}
+std::string Request::get_path() const{ return this->path;}
+std::string Request::get_query() const{ return this->query;}
+std::string Request::get_fragment() const{ return this->fragment;}
 
 std::ostream& operator<<(std::ostream& os, const Request& req)
 {
@@ -27,68 +38,13 @@ std::ostream& operator<<(std::ostream& os, const Request& req)
     os << GREEN << "BODY SIZE: "<< RESET << req.get_body().size() << std::endl;
     return os;
 }
-
-std::string Request::get_protocol() const
-{
-    return this->protocol;
-}
-
-std::string Request::get_method() const
-{
-    return this->method;
-}
-
-std::string Request::get_uri() const
-{
-    return this->uri;
-}
-
-std::map <std::string, std::string> Request::get_headers() const
-{
-    return this->headers;
-}
-
-std::string Request::get_body() const
-{
-    return this->body;
-}
-
 std::string Request::get_header(const std::string& key) const
 {
     if (this->headers.find(key) != this->headers.end())
     {
-        return this->headers.at(key);
+    return this->headers.at(key);
     }
     return NULL;
-}
-std::string Request::get_userinfo() const
-{
-    return this->userinfo;
-}
-
-std::string Request::get_host() const
-{
-    return this->host;
-}
-
-std::string Request::get_port() const
-{
-    return this->port;
-}
-
-std::string Request::get_path() const
-{
-    return this->path;
-}
-
-std::string Request::get_query() const
-{
-    return this->query;
-}
-
-std::string Request::get_fragment() const
-{
-    return this->fragment;
 }
 
 // init and parse request
@@ -348,6 +304,4 @@ Request::Request(std::string request)
 {
     parse(request);
     validate();
-    
-
 }
