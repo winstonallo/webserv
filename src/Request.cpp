@@ -97,7 +97,7 @@ void Request::parse(std::string request){
     {
         std::cout << line << std::endl;
         std::cout << std::count(line.begin(), line.end(), ' ') << std::endl;
-        throw std::runtime_error("Invalid request");
+        throw std::runtime_error("Invalid request: line does not contain 2 spaces between method, uri and protocol");
     }
     //check that there are now white spaces in the line except for the 2 spaces
     for (size_t i = 0; i < line.size() - 2; i++)
@@ -106,23 +106,30 @@ void Request::parse(std::string request){
         {
             std::cout << i << std::endl;
             std::cout << (int)line[i] << std::endl;
-            throw std::runtime_error("Invalid request");
+            throw std::runtime_error("Invalid request: line contains white spaces except for the 2 spaces between method, uri and protocol");
         }
     }
 
     //check that line ends with \r\n
     if (line[line.size() - 1] != '\r')
     {
-        throw std::runtime_error("Invalid request");
+        throw std::runtime_error("Invalid request: line does not end with \\r");
     }
     std::istringstream iss_line(line);
-    std::string word;
-    iss_line >> word;
-    this->set_method(word);
-    iss_line >> word;
-    this->set_uri(word);
-    iss_line >> word;
-    this->set_protocol(word);
+    std::string method;
+    std::string uri;
+    std::string protocol;
+    // get method, uri, protocol and check that they are not empty
+    iss_line >> method;
+    iss_line >> uri;
+    iss_line >> protocol;
+    if (method.size() == 0 || uri.size() == 0 || protocol.size() == 0)
+    {
+        throw std::runtime_error("Invalid request: method, uri or protocol is empty");
+    }
+    this->set_uri(method);
+    this->set_method(uri);
+    this->set_protocol(protocol);
 
     // get headers
     while (std::getline(iss, line))
@@ -138,7 +145,7 @@ void Request::parse(std::string request){
         std::getline(iss_line, value);
         if (value.end()[-1] != '\r')
         {
-            throw std::runtime_error("Invalid request");
+            throw std::runtime_error("Invalid request: header does not end with \\r");
         }
         //key to upper
         for (size_t i = 0; i < key.size(); i++)
@@ -167,6 +174,9 @@ void Request::parse(std::string request){
                 / "+" / "-" / "." / "^" / "_" / "`" / "|" / "~"
                 / DIGIT / ALPHA
                 ; any VCHAR, except delimiters */
+//
+// @param str: string to validate
+// @return: true if valid, false otherwise
 static bool valid_token(std::string str)
 {
     for (size_t i = 0; i < str.size(); i++)
@@ -197,28 +207,25 @@ void Request::validate()
     {
         if (it->first.size() == 0)
         {
-            throw std::runtime_error("Invalid header");
+            throw std::runtime_error("Invalid header: empty field-name");
         }
         if (!valid_token(it->first))
         {
-            throw std::runtime_error("Invalid header");
+            throw std::runtime_error("Invalid header: invalid field-name");
         }
     }
     // validate headers - field-values - printable ascii characters
     for (std::map <std::string, std::string>::iterator it = this->headers.begin(); it != this->headers.end(); it++)
     {
-        if (it->second.size() == 0)
-        {
-            throw std::runtime_error("Invalid header");
-        }
         for (size_t i = 0; i < it->second.size(); i++)
         {
             if (!std::isprint(it->second[i]))
             {
-                throw std::runtime_error("Invalid header");
+                throw std::runtime_error("Invalid header: invalid field-value");
             }
         }
     }
+    // validate uri
 
 }
 // constructor
