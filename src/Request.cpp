@@ -61,8 +61,6 @@ void Request::parse(std::string request){
     //check that there are only 2 spaces in the line
     if (std::count(line.begin(), line.end(), ' ') != 2)
     {
-        std::cout << line << std::endl;
-        std::cout << std::count(line.begin(), line.end(), ' ') << std::endl;
         throw std::runtime_error("Invalid request: line does not contain 2 spaces between method, uri and protocol");
     }
     //check that there are now white spaces in the line except for the 2 spaces
@@ -70,8 +68,6 @@ void Request::parse(std::string request){
     {
         if (std::isspace(line[i]) != 0 && line[i] != ' ')
         {
-            std::cout << i << std::endl;
-            std::cout << (int)line[i] << std::endl;
             throw std::runtime_error("Invalid request: line contains white spaces except for the 2 spaces between method, uri and protocol");
         }
     }
@@ -184,13 +180,13 @@ void Request::pct_decode()
         throw std::runtime_error("Invalid pct encoding");
     }
     //print results
-    std::cout << BOLD << "~AFTER pct-decoding~ " << std::endl;
+    /* std::cout << BOLD << "~AFTER pct-decoding~ " << std::endl;
     std::cout << BOLD << "userinfo: " <<    this->userinfo << std::endl;
     std::cout << BOLD << "host: " <<        this->host << std::endl;
     std::cout << BOLD << "path: " <<        this->path << std::endl;
     std::cout << BOLD << "query: " <<       this->query << std::endl;
     std::cout << BOLD << "fragment: " <<    this->fragment << std::endl;
-    std::cout << BOLD << "port: " <<        this->port << std::endl << std::endl;
+    std::cout << BOLD << "port: " <<        this->port << std::endl << std::endl; */
 } 
 
 
@@ -246,7 +242,6 @@ void Request::validate_uri(void)
     {
         uri = uri.substr(2);
         // get userinfo
-        std::cout << uri << std::endl;
         pos = uri.find("@");
         if (pos != std::string::npos)
         {
@@ -298,13 +293,13 @@ void Request::validate_uri(void)
         }
         this->path = path;
     }
-    std::cout << "~Reading uri~ " << std::endl;
+    /* std::cout << "~Reading uri~ " << std::endl;
     std::cout << "userinfo: " <<    this->userinfo << std::endl;
     std::cout << "host: " <<        this->host << std::endl;
     std::cout << "path: " <<        this->path << std::endl;
     std::cout << "query: " <<       this->query << std::endl;
     std::cout << "fragment: " <<    this->fragment << std::endl;
-    std::cout << "port: " <<        this->port << std::endl << std::endl;
+    std::cout << "port: " <<        this->port << std::endl << std::endl; */
 }
 // validate request
 

@@ -54,5 +54,39 @@ TEST(RequestTest, WrongMethodTest) {
 
 }
 
+TEST(RequestTest, WrongHostTest) {
+  std::string request = create_string(
+  DEFAULT_method,// method
+  DEFAULT_scheme, // scheme
+  DEFAULT_userinfo, // userinfo
+  "229\r29", // host
+  DEFAULT_port, // port
+  DEFAULT_path, // path
+  DEFAULT_query, // query
+  DEFAULT_fragment, // fragment
+  DEFAULT_headers, // headers
+  DEFAULT_body); // body
 
+  EXPECT_THROW(Request parser(request),std::runtime_error);
+
+
+}
+
+TEST(RequestTest, WrongPortTest) {
+  std::string request = create_string(
+  DEFAULT_method,// method
+  DEFAULT_scheme, // scheme
+  DEFAULT_userinfo, // userinfo
+  DEFAULT_host, // host
+  "100000a1", // port
+  DEFAULT_path, // path
+  DEFAULT_query, // query
+  DEFAULT_fragment, // fragment
+  DEFAULT_headers, // headers
+  DEFAULT_body); // body
+
+  EXPECT_THROW(Request parser(request),std::runtime_error);
+
+
+}
 

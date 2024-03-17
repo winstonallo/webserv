@@ -1,4 +1,0 @@
-/nfs/homes/dgutak/webserv/googletest/CMakeFiles/gtest.dir
-/nfs/homes/dgutak/webserv/googletest/CMakeFiles/gtest_main.dir
-/nfs/homes/dgutak/webserv/googletest/CMakeFiles/edit_cache.dir
-/nfs/homes/dgutak/webserv/googletest/CMakeFiles/rebuild_cache.dir

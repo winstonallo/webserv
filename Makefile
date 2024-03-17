@@ -9,7 +9,7 @@ SRCS_DIR	= src
 OBJS_DIR	= obj
 
 LDFLAGS     = -pthread
-GTEST_DIR   = googletest
+GTEST_DIR   = test/googletest
 
 CXXFLAGS	= -Wall -Wextra -Werror -MP -MD -std=c++98 -g -Iinc -I$(GTEST_DIR)/include
 
