@@ -20,6 +20,7 @@ std::string Request::get_fragment() const{ return this->fragment;}
 std::ostream& operator<<(std::ostream& os, const Request& req)
 {
     // print request with name in red
+    os << RED << "~FULL REQUEST~ " << std::endl;
     os << RED <<"Method: " << RESET << req.get_method() << std::endl;
     os << RED << "URI: " << RESET << req.get_uri() << std::endl;
     os << RED << "Protocol: " << RESET  << req.get_protocol() << std::endl;
@@ -150,8 +151,50 @@ static bool valid_token(std::string str, std::string valid_chars)
     }
     return true;
     }
+static bool convert_pct(std::string &str)
+{
+    for (size_t i = 0; i < str.size(); i++)
+    {
+        if (str[i] == '%')
+        {
+            if (i + 2 >= str.size() || !std::isxdigit(str[i + 1]) || !std::isxdigit(str[i + 2]))
+            {
+                return false;
+            }
+            std::string hex = str.substr(i + 1, 2);
+            int c;
+            std::stringstream ss;
+            ss <<   std::hex << hex;
+            ss >>   c;
+            str[i] = static_cast<char>(c);
+            str.erase(i + 1, 2);
+        }
+    }
+    return true;
+}
+void Request::pct_decode()
+{
+    if ( convert_pct(this->userinfo)== false ||
+    convert_pct(this->host)== false ||
+    convert_pct(this->port)== false ||
+    convert_pct(this->path)== false ||
+    convert_pct(this->query)== false ||
+    convert_pct(this->fragment)== false)
+    {
+        throw std::runtime_error("Invalid pct encoding");
+    }
+    //print results
+    std::cout << BOLD << "~AFTER pct-decoding~ " << std::endl;
+    std::cout << BOLD << "userinfo: " <<    this->userinfo << std::endl;
+    std::cout << BOLD << "host: " <<        this->host << std::endl;
+    std::cout << BOLD << "path: " <<        this->path << std::endl;
+    std::cout << BOLD << "query: " <<       this->query << std::endl;
+    std::cout << BOLD << "fragment: " <<    this->fragment << std::endl;
+    std::cout << BOLD << "port: " <<        this->port << std::endl << std::endl;
+} 
 
-std::string  Request::validate_uri(void)
+
+void Request::validate_uri(void)
 {
     std::string uri = this->get_uri();
 
@@ -160,11 +203,16 @@ std::string  Request::validate_uri(void)
     if (pos != std::string::npos && pos < uri.find("/"))
     {
         std::string schema = uri.substr(0, pos);
+        // schema to lower
+        for (size_t i = 0; i < schema.size(); i++)
+        {
+            schema[i] = std::tolower(schema[i]);
+        }
         if (schema != "http")
         {
-            return "Invalid schema: " + schema;
+            throw std::runtime_error("Invalid schema: " + schema);
         }
-        uri = uri.substr(pos + 3);
+        uri = uri.substr(pos + 1);
     }
 
     // get fragment going from the back of uri
@@ -174,7 +222,7 @@ std::string  Request::validate_uri(void)
         std::string fragment = uri.substr(pos + 1);
         if (!valid_token(fragment, FRAGMENT))
         {
-            return "Invalid fragment: " + fragment;
+            throw std::runtime_error("Invalid fragment: " + fragment);
         }
         this->fragment = fragment;
         uri = uri.substr(0, pos);
@@ -187,7 +235,7 @@ std::string  Request::validate_uri(void)
         std::string query = uri.substr(pos + 1);
         if (!valid_token(query, QUERY))
         {
-            return "Invalid query: " + query;
+            throw std::runtime_error("Invalid query: " + query);
         }
         this->query = query;
         uri = uri.substr(0, pos);
@@ -196,25 +244,28 @@ std::string  Request::validate_uri(void)
     // if starts with // then get userinfo, host and port
     if (uri.substr(0, 2) == "//")
     {
+        uri = uri.substr(2);
+        // get userinfo
+        std::cout << uri << std::endl;
         pos = uri.find("@");
         if (pos != std::string::npos)
         {
-            std::string userinfo = uri.substr(2, pos - 2);
+            std::string userinfo = uri.substr(0, pos);
             if (!valid_token(userinfo, USERINFO))
             {
-                return "Invalid userinfo: " + userinfo;
+                throw std::runtime_error("Invalid userinfo: " + userinfo);
             }
             this->userinfo = userinfo;
             uri = uri.substr(pos + 1);
         }
-
+        //get path from the back
         pos = uri.find("/");
         if (pos != std::string::npos)
         {
             std::string path = uri.substr(pos);
             if (!valid_token(path, PATH))
             {
-                return "Invalid path: " + path;
+                throw std::runtime_error("Invalid path: " + path);
             }
             this->path = path;
             uri = uri.substr(0, pos);
@@ -226,16 +277,16 @@ std::string  Request::validate_uri(void)
             std::string port = uri.substr(pos + 1);
             if (!valid_token(port, DIGIT))
             {
-                return "Invalid port: " + port;
+                throw std::runtime_error("Invalid port: " + port);
             }
             this->port = port;
             uri = uri.substr(0, pos);
         }
 
         std::string host = uri;
-        if (!valid_token(host, TCHAR))
+        if (!valid_token(host, HOST))
         {
-            return "Invalid host: " + host;
+            throw std::runtime_error("Invalid host: " + host);
         }
         this->host = host;
     }
@@ -243,22 +294,21 @@ std::string  Request::validate_uri(void)
         std::string path = uri;
         if (!valid_token(path, PATH))
         {
-            return "Invalid path: " + path;
+            throw std::runtime_error("Invalid path: " + path);
         }
         this->path = path;
     }
-
+    std::cout << "~Reading uri~ " << std::endl;
     std::cout << "userinfo: " <<    this->userinfo << std::endl;
     std::cout << "host: " <<        this->host << std::endl;
-    std::cout << "port: " <<        this->port << std::endl;
     std::cout << "path: " <<        this->path << std::endl;
     std::cout << "query: " <<       this->query << std::endl;
     std::cout << "fragment: " <<    this->fragment << std::endl;
-    return "";
+    std::cout << "port: " <<        this->port << std::endl << std::endl;
 }
 // validate request
 
-void Request::validate()
+void Request::validate_request()
 {
     if (this->get_method() != "GET" && this->get_method() != "POST" && this->get_method() != "DELETE")
     {
@@ -266,12 +316,6 @@ void Request::validate()
     }
     if (this->get_protocol() != "HTTP/1.1"){
         throw std::runtime_error("Invalid protocol: " + this->get_protocol());
-    }
-    //validate uri
-    std::string uri_val = validate_uri();
-    if (uri_val != "")
-    {
-        throw std::runtime_error("Invalid uri: " + uri_val);
     }
     // validate headers - field-names
     for (std::map <std::string, std::string>::iterator it = this->headers.begin(); it != this->headers.end(); it++)
@@ -303,5 +347,7 @@ void Request::validate()
 Request::Request(std::string request)
 {
     parse(request);
-    validate();
+    validate_request();
+    validate_uri();
+    pct_decode();
 }

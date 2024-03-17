@@ -19,8 +19,9 @@ class Request
 
         // init and parse request
         void                        parse(std::string request);
-        void                        validate(void);
-        std::string                 validate_uri(void);
+        void                        validate_request(void);
+        void                        validate_uri(void);
+        void                        pct_decode(void);
 
         // setters and getters
         std::string 				        			get_protocol() const;
@@ -63,12 +64,13 @@ std::ostream& operator<<(std::ostream& os, const Request& req);
 #define HEXDIG "0123456789ABCDEFabcdef"
 #define UNRESERVED ALPHA DIGIT "-._~"
 #define SUBDELIMS "!$&'()*+,;="
-#define PCHAR UNRESERVED SUBDELIMS ":@"
+#define PCHAR UNRESERVED SUBDELIMS ":@%"
 #define TCHAR UNRESERVED SUBDELIMS "/?#"
-#define USERINFO UNRESERVED SUBDELIMS ":"
-#define FRAGMENT PCHAR "/?"
-#define QUERY PCHAR "/?" 
-#define PATH PCHAR "/"
+#define USERINFO UNRESERVED SUBDELIMS ":%"
+#define FRAGMENT PCHAR "/?%"
+#define QUERY PCHAR "/?%" 
+#define PATH PCHAR "/%"
+#define HOST UNRESERVED SUBDELIMS "%:"
 
 
 
