@@ -216,4 +216,55 @@ namespace Utils
 
 		return std::atoi(numeric_value.c_str());
 	}
+
+	std::map <int, std::string>	get_error_status_codes()
+	{	
+		std::map <int, std::string>	error_status_codes;
+
+		error_status_codes[400] = "bad request";
+		error_status_codes[401] = "unauthorized";
+		error_status_codes[402] = "payment required";
+		error_status_codes[403] = "forbidden";
+		error_status_codes[404] = "not found";
+		error_status_codes[405] = "method not allowed";
+		error_status_codes[406] = "not acceptable";
+		error_status_codes[407] = "proxy authentication required";
+		error_status_codes[408] = "request timeout";
+		error_status_codes[409] = "conflict";
+		error_status_codes[410] = "gone";
+		error_status_codes[411] = "length required";
+		error_status_codes[412] = "precondition failed";
+		error_status_codes[413] = "payload too large";
+		error_status_codes[414] = "uri too long";
+		error_status_codes[415] = "unsupported media type";
+		error_status_codes[416] = "range not satisfiable";
+		error_status_codes[417] = "expectation failed";
+		error_status_codes[418] = "i'm a teapot";
+		error_status_codes[421] = "misdirected request";
+		error_status_codes[422] = "unprocessable entity";
+		error_status_codes[423] = "locked";
+		error_status_codes[424] = "failed dependency";
+		error_status_codes[425] = "too early";
+		error_status_codes[426] = "upgrade required";
+		error_status_codes[428] = "precondition required";
+		error_status_codes[429] = "too many requests";
+		error_status_codes[431] = "request header fields too large";
+		error_status_codes[444] = "no response";
+		error_status_codes[449] = "retry with";
+		error_status_codes[451] = "unavailable for legal reasons";
+		error_status_codes[499] = "client closed request";
+		error_status_codes[500] = "internal server error";
+		error_status_codes[501] = "not implemented";
+		error_status_codes[502] = "bad gateway";
+		error_status_codes[503] = "service unavailable";
+		error_status_codes[504] = "gateway timeout";
+		error_status_codes[505] = "http version not supported";
+		error_status_codes[506] = "variant also negotiates";
+		error_status_codes[507] = "insufficient storage";
+		error_status_codes[508] = "loop detected";
+		error_status_codes[510] = "not extended";
+		error_status_codes[511] = "network authentication required";
+
+		return error_status_codes;
+	}
 }

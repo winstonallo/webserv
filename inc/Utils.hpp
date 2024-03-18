@@ -9,6 +9,7 @@
 #include <fstream>
 #include <algorithm>
 #include <unistd.h>
+#include <map>
 
 namespace Utils 
 {
@@ -23,6 +24,7 @@ namespace Utils
 	std::vector <std::pair <std::string, int> > 	split_keep_delimiters(const std::string& str, const std::string& delimiters);
 	int												extract_numeric_value(const std::string& str);
 	int												parse_client_max_body_size(const std::string& client_max_body_size);
+	std::map <int, std::string>						get_error_status_codes();
 };
 
 #define UNCLOSED_QUOTE "unclosed quote sequence"

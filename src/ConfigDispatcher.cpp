@@ -1,15 +1,27 @@
 #include "ConfigDispatcher.hpp"
+#include <cerrno>
 #include <algorithm>
+#include <cstdlib>
 #include <cstddef>
+#include <fstream>
 #include <ostream>
+#include <sstream>
+#include <string>
 #include <utility>
+#include "Utils.hpp"
+#include "ServerInfo.hpp"
+#include <map>
+#include <cstdlib>
+#include <cerrno>
+#include <cstring>
+#include <stack>
 #include "Log.hpp"
 #include "Utils.hpp"
 
 // default constructor, checks if config map is empty, then dipatches it
 //
 // @param raw_config:	config map from the parser
-ConfigDispatcher::ConfigDispatcher(const std::map <std::string, std::vector <std::string> >& raw_config)
+ConfigDispatcher::ConfigDispatcher(const std::map <std::string, std::vector <std::string> >& raw_config) : _status_codes(Utils::get_error_status_codes())
 {
     if (raw_config.empty() == true)
     {
@@ -18,6 +30,7 @@ ConfigDispatcher::ConfigDispatcher(const std::map <std::string, std::vector <std
     _raw_config = raw_config;
 
     dispatch_values();
+	generate_default_error_page(408);
 }
 
 // wrapper function for the dispatching of the values
@@ -79,11 +92,6 @@ void	ConfigDispatcher::handle_server(const std::string& key)
 	}
 }
 
-std::map <int, std::map <std::string, std::vector <std::string> > >		ConfigDispatcher::get_servers()
-{
-	return _servers;
-}
-
 // handles error page config values
 //
 // @param key_value:	current map key_value pair
@@ -92,6 +100,7 @@ std::map <int, std::map <std::string, std::vector <std::string> > >		ConfigDispa
 //		1. extract status code from the key
 //		2. 	if corresponding html file exists:
 //				store into _error_pages map using status code as a key
+//				erase corresponding status code from default status codes
 //			else:
 //				log error and fall back to default value (fallback to be implemented)
 void    ConfigDispatcher::handle_error_page(const std::pair <std::string, std::vector <std::string> >& key_value)
@@ -102,12 +111,49 @@ void    ConfigDispatcher::handle_error_page(const std::pair <std::string, std::v
         if (Utils::file_exists(key_value.second[0]) == true)
         {
             _error_pages[status_code] = key_value.second[0];
+			_status_codes.erase(status_code);
         }
         else
         {
             Log::log("error: " + key_value.second[0] + ": file not found, falling back to default\n", ERROR_FILE);
         }
     }
+}
+
+void	ConfigDispatcher::generate_default_error_page(const int status_code)
+{
+	std::string 			old_error_code = "400", old_error_message = "bad request";
+	std::ifstream			default_html(DEFAULT_ERROR_PAGE);
+
+	if (default_html.is_open() == false)
+	{
+		throw std::runtime_error("error: could not open " + std::string(DEFAULT_ERROR_PAGE) + ": " +  strerror(errno));
+	}
+
+    std::stringstream buffer;
+	buffer << default_html.rdbuf();
+	std::string html = buffer.str();
+
+	size_t pos = html.find(old_error_code);
+	while (pos != std::string::npos)
+	{
+		std::string new_error_code = Utils::itoa(status_code);
+		html.replace(pos, old_error_code.size(), new_error_code);
+		pos = html.find(old_error_code, pos + new_error_code.size());
+	}
+	pos = html.find(old_error_message);
+	while (pos != std::string::npos)
+	{
+		std::string new_error_message = _status_codes[status_code];
+		html.replace(pos, old_error_message.size(), new_error_message);
+		pos = html.find(old_error_message, pos + new_error_message.size());
+	}
+	std::cout << html << std::endl;
+}
+
+std::map <int, std::map <std::string, std::vector <std::string> > >		ConfigDispatcher::get_servers()
+{
+	return _servers;
 }
 
 void	ConfigDispatcher::print_error_pages()
