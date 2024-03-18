@@ -29,6 +29,7 @@ TEST(RequestTest, RequestDefaultTest) {
   EXPECT_EQ(parser.get_userinfo(), "danilgutak");
   EXPECT_EQ(parser.get_host(), "example.com");
   EXPECT_EQ(parser.get_port(), "80");
+  
   EXPECT_EQ(parser.get_path(), "/path1/path2/");
   EXPECT_EQ(parser.get_query(), "q=find&p=2");
   EXPECT_EQ(parser.get_fragment(), "header1");
