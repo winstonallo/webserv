@@ -6,10 +6,8 @@
 #include "ConfigParser.hpp"
 #include "ConfigDispatcher.hpp"
 
-int main(int argc, char **argv)
+int main()
 {
-	(void)argc;
-	(void)argv;
 	try
 	{
 		Director director;
