@@ -24,6 +24,7 @@ namespace Utils
 	std::vector <std::pair <std::string, int> > 	split_keep_delimiters(const std::string& str, const std::string& delimiters);
 	int												extract_numeric_value(const std::string& str);
 	int												parse_client_max_body_size(const std::string& client_max_body_size);
+	std::string										file_to_string(const std::string& path);
 	std::map <int, std::string>						get_error_status_codes();
 };
 

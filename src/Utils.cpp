@@ -1,4 +1,7 @@
 #include "Utils.hpp"
+#include <fstream>
+#include <cstring>
+#include <sstream>
 
 namespace Utils
 {
@@ -215,6 +218,22 @@ namespace Utils
 		std::string numeric_value = str.substr(str.find_first_of("0123456789"), str.find_last_of("0123456789"));
 
 		return std::atoi(numeric_value.c_str());
+	}
+
+	std::string	file_to_string(const std::string& path)
+	{
+		std::ifstream	input_file(path.c_str());
+
+		if (input_file.is_open() == false)
+		{
+			throw std::runtime_error("error: could not open " + path + ": " +  strerror(errno));
+		}
+
+		std::stringstream buffer;
+		
+		buffer << input_file.rdbuf();
+
+		return buffer.str();
 	}
 
 	std::map <int, std::string>	get_error_status_codes()

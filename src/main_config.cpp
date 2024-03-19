@@ -12,9 +12,9 @@ int main(int argc, char **argv)
 	(void)argv;
 	try
 	{
-		Config conf;
 		Director director;
 		ConfigDispatcher config(ConfigParser().get_config());
+		Config conf(config.get_error_pages());
 		std::map<int, std::map<std::string, std::vector<std::string> > > server_map = config.get_servers();
 		conf.set_servers(server_map);
 	}

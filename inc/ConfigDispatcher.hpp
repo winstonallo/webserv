@@ -5,6 +5,7 @@
 #define CONFIGDISPATCHER_HPP
 
 #include <map>
+#include <string>
 #include <vector>
 #include <iostream>
 #include <cstdlib>
@@ -21,9 +22,10 @@ class ConfigDispatcher
 		void																			handle_server(const std::string& key);
 		void																			handle_route(const std::string& key);
 
-        void	                                                                        generate_default_error_page(const int status_code);
+
 
 		std::map <int, std::map <std::string, std::vector <std::string> > >				get_servers();
+		std::map <int, std::string>                                      				get_error_pages();
 
 		// debugging funcs
 		void	print_error_pages();
@@ -41,8 +43,6 @@ class ConfigDispatcher
         std::map <int, std::string>                                         			_error_pages;
 		std::map <std::string, std::map <std::string, std::vector <std::string> > > 	_routes;
 
-        std::map <int, std::string>                                                     _status_codes;
-
         ConfigDispatcher(const ConfigDispatcher& rhs);
         ConfigDispatcher& operator=(const ConfigDispatcher& rhs);
 };
@@ -50,7 +50,5 @@ class ConfigDispatcher
 #define SERVER_PREFIX "webserv:server"
 #define ERROR_PAGE_PREFIX "webserv:error_pages"
 #define ROUTES_PREFIX "webserv:routes"
-
-#define DEFAULT_ERROR_PAGE "files/error_pages/400.html"
 
 #endif

@@ -1,4 +1,6 @@
 #include "Config.hpp"
+#include "Utils.hpp"
+#include <string>
 
 void	Config::set_servers(std::map <int, std::map <std::string, std::vector <std::string> > >& raw_servers)
 {
@@ -59,10 +61,44 @@ std::vector <ServerInfo *>	Config::get_servers()
 
 std::string	Config::get_error_page(const int key)
 {
-	return _error_pages[key];
+	if (_error_pages.find(key) != _error_pages.end())
+	{
+		return _error_pages[key];
+	}
+	else 
+	{
+		return generate_default_error_page(key);
+	}
 }
 
-Config::Config() {}
+std::string	Config::generate_default_error_page(const int status_code)
+{
+	std::string default_error_code = "400", default_error_message = "bad request", default_html = Utils::file_to_string(DEFAULT_ERROR_PAGE);
+	std::string	new_error_code = Utils::itoa(status_code), new_error_message = _status_codes[status_code];
+
+	size_t pos_code = default_html.find(default_error_code), pos_message = default_html.find(default_error_message);
+
+	while (pos_code != std::string::npos || pos_message != std::string::npos)
+	{
+		if (pos_code != std::string::npos)
+		{
+			default_html.replace(pos_code, default_error_code.size(), new_error_code);
+			pos_code = default_html.find(default_error_code, pos_code + new_error_code.size());
+		}
+		if (pos_message != std::string::npos)
+		{
+			default_html.replace(pos_message, default_error_message.size(), new_error_message);
+			pos_message = default_html.find(default_error_message, pos_message + new_error_message.size());
+		}
+	}
+	std::string new_html_path = "/tmp/" + Utils::itoa(status_code) + ".html";
+
+	std::ofstream	oss(new_html_path.c_str());
+	oss << default_html;
+	return new_html_path;
+}
+
+Config::Config(const std::map <int, std::string> error_pages) : _error_pages(error_pages), _status_codes(Utils::get_error_status_codes()) {}
 
 Config::~Config() 
 {
