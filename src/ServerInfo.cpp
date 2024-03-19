@@ -1,4 +1,6 @@
 #include "ServerInfo.hpp"
+#include <netinet/in.h>
+#include <string>
 
 ServerInfo::ServerInfo() {}
 
@@ -38,12 +40,12 @@ void	ServerInfo::set_port(int prt)
 	port = prt;
 }
 
-std::string	ServerInfo::get_server_name() const
+std::vector <std::string>	ServerInfo::get_server_name() const
 {
 	return (server_name);
 }
 
-void	ServerInfo::set_server_name(const std::string& tserver_name)
+void	ServerInfo::set_server_name(const std::vector <std::string>& tserver_name)
 {
 	server_name = tserver_name;
 }
@@ -76,4 +78,24 @@ std::string	ServerInfo::get_access_log() const
 void	ServerInfo::set_access_log(const std::string& log)
 {
 	access_log = log;
+}
+
+struct in_addr		ServerInfo::get_host_address() const
+{
+	return _host_address;
+}
+
+void	ServerInfo::set_host_address(struct in_addr& host)
+{
+	_host_address = host;
+}
+
+int	ServerInfo::get_client_max_body_size() const
+{
+	return _client_max_body_size;
+}
+
+void	ServerInfo::set_client_max_body_size(const int client_max_body_size)
+{
+	_client_max_body_size= client_max_body_size;
 }
