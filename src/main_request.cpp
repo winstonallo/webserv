@@ -11,10 +11,9 @@ int main(int argc, char **argv)
 	std::ofstream outFile;
     
     outFile.open("request.txt");
-	outFile << "GET / HTTP/1.1\r\n\
+	outFile << "GET http://danil%20gutak@website%20super.com:8080/pat%20h2/?q=fi%20nd&p=2#hea%20der1 HTTP/1.1\r\n\
 Host:www.google.com\r\nUser-Agent: Mozilla/5.0\r\n\
-Accept: text/html\r\nHost: ochko\r\nAccept-Language: en\r\nAccept-Encoding: gzip, deflate\r\nConnection: keep-alive\r\n\r\n\
-hui pizda\npidor suka\ngovvnooooooooooooooooooooooooo\n";
+Accept: text/html\r\nHost: ochko\r\nAccept-Language: en\r\nAccept-Encoding: gzip, deflate\r\nConnection: keep-alive\r\n\r\nhuuuuuu";
 
 	outFile.close();
 	fd = open("request.txt", O_RDONLY);
@@ -30,43 +29,3 @@ hui pizda\npidor suka\ngovvnooooooooooooooooooooooooo\n";
 	Request req(str);
 	std::cout << req;
 }
-/*
-	try
-	{
-		if (argc == 2)
-			Config config(argv[1]);
-		else
-			Config config;
-	}
-	catch (const std::exception &e)
-	{
-		std::cerr << "error: " << e.what() << std::endl;
-		return EXIT_FAILURE;
-	}
-		(void)argc;
-	(void)argv;
-	// if (argc != 2)
-	// {
-	// 	std::cerr << "Error. Invalid number of arguments." << std::endl;
-	// 	std::cerr << "Usage: " << argv[0] << " [config file <.conf>]" << std::endl;
-	// 	return 1;
-	// }
-	ServerInfo server_info;
-	server_info.set_port(8080);
-	server_info.set_type(SERVER_NODE);
-
-	Director director;
-	director.add_server_info(server_info);
-	if(director.init_servers() < 0)
-	{
-		std::cerr << "Error initializing servers." << std::endl;
-		return (1);
-	}
-	if (director.run_servers() < 0)
-	{
-		std::cerr << "Error." << std::endl;
-		return (1);
-	}
-	return 0;
-}
-*/
