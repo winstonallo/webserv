@@ -1,7 +1,7 @@
 #ifndef CONFIGTESTS
 #define CONFIGTESTS
 
-#include "ConfigParser.hpp"
+#include <string>
 #include <vector>
 
 typedef enum test_outcome
@@ -16,10 +16,15 @@ class ParsingTest
         ParsingTest();
         ~ParsingTest();
 
-        void    test_invalid_files();
+        void    test_invalid_file_structure();
+
+        void    test_invalid_file_value();
+        
+        void    fill_invalid_file_vector(const std::string& directory, std::vector <std::string>& dest);
     
     private:
-        std::vector <std::string> _test_files;
+        std::vector <std::string> _invalid_structure;
+        std::vector <std::string> _invalid_value;
 };
 
 #define BOLD "\033[1m"

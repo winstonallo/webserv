@@ -26,6 +26,7 @@ void	Config::set_servers(std::map <int, std::map <std::string, std::vector <std:
 			handle_port(std::atoi(it->second["port"][0].c_str()), new_server);
 			new_server->set_access_log(handle_access_log(it->second["access_log"][0]));
 			handle_host(it->second["host"][0], new_server);
+			new_server->set_client_max_body_size(handle_client_max_body_size(it->second["client_max_body_size"][0]));
 
 			_servers.push_back(new_server);
 		}
@@ -104,18 +105,23 @@ std::string		Config::handle_access_log(const std::string& access_log)
 	}
 }
 
-int		handle_client_max_body_size(const std::string& client_max_body_size)
+int		Config::handle_client_max_body_size(const std::string& client_max_body_size)
 {
 	int	size = Utils::parse_client_max_body_size(client_max_body_size);
 
-	if (size != -1)
+	if (size > 10000000)
 	{
-		return size;
+		Log::log("error: " + client_max_body_size + "client max body size too high, capping to 10M", STD_ERR | ERROR_FILE);
+		return 10000000;
 	}
-	else
+	else if (size == -1)
 	{
 		Log::log("error: client max body size '" + client_max_body_size + "' is not valid, falling back to default (1M)\n", STD_ERR | ERROR_FILE);
 		return CLIENT_MAX_BODY_SIZE_DEFAULT;
+	}
+	else
+	{
+		return size;
 	}
 }
 
