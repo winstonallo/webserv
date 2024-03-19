@@ -1,16 +1,27 @@
 #include "Config.hpp"
 #include "Utils.hpp"
+#include <algorithm>
 #include <string>
 #include "Log.hpp"
 #include <cstdlib>
+#include <vector>
 
 void	Config::set_servers(std::map <int, std::map <std::string, std::vector <std::string> > >& raw_servers)
 {
+	std::vector <int>	ports;
+
 	for (std::map <int, std::map <std::string, std::vector <std::string> > >::iterator it = raw_servers.begin(); it != raw_servers.end(); it++)
 	{
 		ServerInfo* new_server = new ServerInfo();
 
 		new_server->set_server_name(it->second["server_name"]);
+		int	port = std::atoi(it->second["port"][0].c_str());
+		if (std::find(ports.begin(), ports.end(), port) != ports.end())
+		{
+			Log::log("error: on server '" + new_server->get_server_name()[0] + "': port " + Utils::itoa(port) + " already taken: '" + new_server->get_server_name()[0] + "' will not be initialized\n", STD_ERR);
+			delete new_server;
+			continue ;
+		}
 		new_server->set_port(std::atoi(it->second["port"][0].c_str()));
 		new_server->set_access_log(handle_access_log(it->second["access_log"][0]));
 		new_server->set_host(it->second["host"][0]);
