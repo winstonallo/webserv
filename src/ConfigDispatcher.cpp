@@ -90,7 +90,12 @@ void	ConfigDispatcher::handle_server(const std::string& key)
 //
 // if error page prefix ("webserv:error_pages") in key_value.first:
 //		1. extract status code from the key
-//		2. 	if corresponding html file exists:
+//		2. 	
+//			if name == .html:
+//				hidden file -> log error & fall back to default
+//			else if filename too short or not ending in .html:
+//				invalid extension -> log error & fall back to default
+//			else if corresponding html file exists:
 //				store into _error_pages map using status code as a key
 //				erase corresponding status code from default status codes
 //			else:
@@ -104,9 +109,13 @@ void ConfigDispatcher::handle_error_page(const std::pair<std::string, std::vecto
     {
 		int status_code = std::atoi(key_value.first.substr(key_value.first.size() - 3).c_str());
 
-		if (error_page.size() < 5 || error_page.substr(error_page.size() - 5) != ".html")
+		if (error_page == ".html")
 		{
-			Log::log("error: " + file_path + ": invalid file - expecting .html");
+			Log::log("error: " + file_path + ": invalid file - hidden files not accepted, falling back to default\n", ERROR_FILE | STD_ERR);
+		}
+		else if (error_page.size() < 6 || error_page.substr(error_page.size() - 5) != ".html")
+		{
+			Log::log("error: " + file_path + ": invalid file - expecting .html, falling back to default\n", ERROR_FILE | STD_ERR);
 		}
 		else if (Utils::file_exists(error_page))
 		{
@@ -114,7 +123,7 @@ void ConfigDispatcher::handle_error_page(const std::pair<std::string, std::vecto
 		}
 		else
 		{
-			Log::log("error: " + file_path + ": file not found, falling back to default\n", ERROR_FILE);
+			Log::log("error: " + error_page + ": file not found, falling back to default\n", ERROR_FILE | STD_ERR);
 		}
     }
 }

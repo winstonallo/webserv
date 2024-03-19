@@ -1,6 +1,9 @@
 #include "Config.hpp"
+#include "ServerInfo.hpp"
 #include "Utils.hpp"
 #include <algorithm>
+#include <exception>
+#include <stdexcept>
 #include <string>
 #include "Log.hpp"
 #include <cstdlib>
@@ -8,26 +11,51 @@
 
 void	Config::set_servers(std::map <int, std::map <std::string, std::vector <std::string> > >& raw_servers)
 {
-	std::vector <int>	ports;
+	ServerInfo* new_server;
 
 	for (std::map <int, std::map <std::string, std::vector <std::string> > >::iterator it = raw_servers.begin(); it != raw_servers.end(); it++)
 	{
-		ServerInfo* new_server = new ServerInfo();
+		try
+		{	
+			new_server = new ServerInfo();
 
-		new_server->set_server_name(it->second["server_name"]);
-		int	port = std::atoi(it->second["port"][0].c_str());
-		if (std::find(ports.begin(), ports.end(), port) != ports.end())
+			handle_server_names(it->second["server_name"], new_server);
+			handle_port(std::atoi(it->second["port"][0].c_str()), new_server);
+			new_server->set_access_log(handle_access_log(it->second["access_log"][0]));
+			new_server->set_host(it->second["host"][0]);
+
+			_servers.push_back(new_server);
+		}
+		catch (const std::exception& e)
 		{
-			Log::log("error: on server '" + new_server->get_server_name()[0] + "': port " + Utils::itoa(port) + " already taken: '" + new_server->get_server_name()[0] + "' will not be initialized\n", STD_ERR);
 			delete new_server;
+			Log::log(e.what(), STD_ERR | ERROR_FILE);
 			continue ;
 		}
-		new_server->set_port(std::atoi(it->second["port"][0].c_str()));
-		new_server->set_access_log(handle_access_log(it->second["access_log"][0]));
-		new_server->set_host(it->second["host"][0]);
-
-		_servers.push_back(new_server);
 	}
+}
+
+void	Config::handle_server_names(const std::vector <std::string>& new_server_names, ServerInfo* new_server)
+{
+	for (std::vector <std::string>::const_iterator it = new_server_names.begin(); it != new_server_names.end(); it++)
+	{
+		if (std::find(_server_names.begin(), _server_names.end(), *it) != _server_names.end())
+		{
+			throw std::runtime_error("error: on server: '" + *it + "': name already taken, server will not be initialized\n");
+		}
+	}
+	new_server->set_server_name(new_server_names);
+	_server_names.insert(_server_names.end(), new_server_names.begin(), new_server_names.end());
+}
+
+void	Config::handle_port(const int port, ServerInfo* new_server)
+{
+	if (std::find(_ports.begin(), _ports.end(), port) != _ports.end())
+	{
+		throw std::runtime_error("error: on server '" + new_server->get_server_name()[0] + "': port " + Utils::itoa(port) + " already taken: '" + new_server->get_server_name()[0] + "' will not be initialized\n");
+	}
+	new_server->set_port(port);
+	_ports.push_back(port);
 }
 
 // validates access log from config
@@ -46,7 +74,7 @@ std::string		Config::handle_access_log(const std::string& access_log)
 	}
 	else
 	{
-		Log::log("error: access log '" + access_log + "' could not be opened, falling back to 'access.log'", STD_ERR);
+		Log::log("error: access log '" + access_log + "' could not be opened, falling back to 'access.log'", STD_ERR | ERROR_FILE);
 
 		return ACCESS_LOG_DEFAULT;
 	}
@@ -62,7 +90,7 @@ int		handle_client_max_body_size(const std::string& client_max_body_size)
 	}
 	else
 	{
-		Log::log("error: client max body size '" + client_max_body_size + "' is not valid, falling back to default (1M)\n", STD_ERR);
+		Log::log("error: client max body size '" + client_max_body_size + "' is not valid, falling back to default (1M)\n", STD_ERR | ERROR_FILE);
 		return CLIENT_MAX_BODY_SIZE_DEFAULT;
 	}
 }

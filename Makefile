@@ -8,13 +8,7 @@ SRCS_DIR	= src
 
 OBJS_DIR	= obj
 
-LDFLAGS     = -pthread
-GTEST_DIR   = test/googletest
-
-CXXFLAGS	= -Wall -Wextra -Werror -MP -MD -std=c++98 -g -Iinc -I$(GTEST_DIR)/include
-
-
-TESTFLAGS	= -Wall -Wextra -Werror -MP -MD -g -Iinc -I$(GTEST_DIR)/include
+CXXFLAGS	= -Wall -Wextra -Werror -MP -MD -std=c++98 -g -Iinc
 
 SRCS   	= \
 		$(SRCS_DIR)/Node.cpp \
@@ -28,15 +22,13 @@ SRCS   	= \
         $(SRCS_DIR)/ConfigParser.cpp \
         $(SRCS_DIR)/ConfigDispatcher.cpp \
         $(SRCS_DIR)/Utils.cpp \
+        $(SRCS_DIR)/main_config.cpp \
+		# tests/ConfigTests.cpp \
+		tests/run_tests.cpp \
 
 OBJS	= $(SRCS:${SRCS_DIR}/%.cpp=${OBJS_DIR}/%.o)
 
 DEPS	= $(OBJS:%.o=%.d)
-
-TESTS_DIR = test
-TEST_SRCS	= $(wildcard $(TESTS_DIR)/*.cpp)
-TEST_OBJS	= $(TEST_SRCS:%.cpp=%.o)
-TEST_EXEC	= testik
 
 $(NAME): $(OBJS)
 	$(CXX) $(CXXFLAGS) -o $(NAME) $(OBJS)
@@ -45,16 +37,11 @@ $(OBJS_DIR)/%.o: $(SRCS_DIR)/%.cpp
 	mkdir -p $(OBJS_DIR)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-$(TEST_EXEC): $(TEST_OBJS) $(OBJS)
-	$(CXX) $(TESTFLAGS) $(LDFLAGS) -o $(TEST_EXEC) $(TEST_OBJS) $(OBJS) -L$(GTEST_DIR)/lib -lgtest -lgtest_main
-
-$(TESTS_DIR)/%.o: $(TESTS_DIR)/%.cpp
-	$(CXX) $(TESTFLAGS) -c $< -o $@
 
 all		: $(NAME)
 
-run_tests: $(TEST_EXEC)
-	./$(TEST_EXEC)
+run		: re
+
 
 fclean	: clean
 		$(RM) $(NAME)

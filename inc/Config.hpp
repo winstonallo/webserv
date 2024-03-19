@@ -3,6 +3,7 @@
 
 #include "ServerInfo.hpp"
 #include <map>
+#include <string>
 
 class Config
 {
@@ -17,6 +18,10 @@ class Config
 		void									set_error_pages(std::map <int, std::string>& error_pages);
 		void									set_routes(std::map <std::string, std::map <std::string, std::vector <std::string> > >& raw_routes);
 
+
+		void									handle_port(const int port, ServerInfo* new_server);
+		void									handle_server_names(const std::vector <std::string>& server_names, ServerInfo* new_server);
+		void									handle_host(const std::string& host, ServerInfo* new_server);
 		std::string								handle_access_log(const std::string& access_log);
 		int										handle_client_max_body_size(const std::string& client_max_body_size);
 
@@ -31,6 +36,9 @@ class Config
 		std::map <int, std::string>				_error_pages;
 
 		std::map <int, std::string>             _status_codes;
+
+		std::vector <int>						_ports;
+		std::vector <std::string>				_server_names;
 
 		Config(const Config& rhs);
 		Config &operator=(const Config& rhs);
