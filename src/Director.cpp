@@ -151,7 +151,7 @@ int	Director::run_servers()
 						std::stringstream ss;
 						ss << "Error creating a client connection: " << std::endl;
 						Log::log(ss.str(), ERROR_FILE | STD_ERR);
-						exit(2);
+						exit(2); // TODO: Need to deallocate something?
 					}
 				
 			}
