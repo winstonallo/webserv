@@ -1,7 +1,6 @@
 #ifndef SERVERINFO_HPP
 #define SERVERINFO_HPP
 
-#include <iostream>
 #include <string> 
 #include <vector>
 #include <sys/types.h>
