@@ -1,11 +1,7 @@
 #ifndef CONFIG_HPP
 #define CONFIG_HPP
 
-#include "LocationInfo.hpp"
-#include "Utils.hpp"
 #include "ServerInfo.hpp"
-#include "Log.hpp"
-#include "Director.hpp"
 #include <map>
 
 class Config

@@ -1,11 +1,10 @@
 #ifndef CONFIGPARSER_HPP
 #define CONFIGPARSER_HPP
 
-#include "Utils.hpp"
-#include "ServerInfo.hpp"
+#include <iostream>
+#include <vector>
 #include <map>
 #include <cstdlib>
-#include <cerrno>
 #include <cstring>
 #include <stack>
 

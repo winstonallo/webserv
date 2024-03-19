@@ -2,6 +2,8 @@
 #include <fstream>
 #include <cstring>
 #include <sstream>
+#include <cstdlib>
+#include <algorithm>
 
 namespace Utils
 {

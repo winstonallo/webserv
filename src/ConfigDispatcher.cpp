@@ -1,20 +1,13 @@
 #include "ConfigDispatcher.hpp"
-#include <cerrno>
-#include <algorithm>
 #include <cstdlib>
 #include <cstddef>
-#include <fstream>
 #include <ostream>
-#include <sstream>
 #include <string>
 #include <utility>
 #include "Utils.hpp"
-#include "ServerInfo.hpp"
 #include <map>
 #include <cstdlib>
-#include <cerrno>
 #include <cstring>
-#include <stack>
 #include "Log.hpp"
 #include "Utils.hpp"
 
@@ -102,19 +95,27 @@ void	ConfigDispatcher::handle_server(const std::string& key)
 //				erase corresponding status code from default status codes
 //			else:
 //				log error and fall back to default value (fallback to be implemented)
-void    ConfigDispatcher::handle_error_page(const std::pair <std::string, std::vector <std::string> >& key_value)
+void ConfigDispatcher::handle_error_page(const std::pair<std::string, std::vector<std::string> >& key_value)
 {
-    if (key_value.first.substr(0, key_value.first.find_last_of(":")) == ERROR_PAGE_PREFIX)
+    std::string file_path = key_value.first.substr(0, key_value.first.find_last_of(":"));
+    std::string error_page = key_value.second[0];
+
+    if (file_path == ERROR_PAGE_PREFIX)
     {
-        int status_code = std::atoi(key_value.first.substr(key_value.first.size() - 3).c_str());
-        if (Utils::file_exists(key_value.second[0]) == true)
-        {
-            _error_pages[status_code] = key_value.second[0];
-        }
-        else
-        {
-            Log::log("error: " + key_value.second[0] + ": file not found, falling back to default\n", ERROR_FILE);
-        }
+		int status_code = std::atoi(key_value.first.substr(key_value.first.size() - 3).c_str());
+
+		if (error_page.size() < 5 || error_page.substr(error_page.size() - 5) != ".html")
+		{
+			Log::log("error: " + file_path + ": invalid file - expecting .html");
+		}
+		else if (Utils::file_exists(error_page))
+		{
+			_error_pages[status_code] = error_page;
+		}
+		else
+		{
+			Log::log("error: " + file_path + ": file not found, falling back to default\n", ERROR_FILE);
+		}
     }
 }
 

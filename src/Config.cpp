@@ -1,6 +1,8 @@
 #include "Config.hpp"
 #include "Utils.hpp"
 #include <string>
+#include "Log.hpp"
+#include <cstdlib>
 
 void	Config::set_servers(std::map <int, std::map <std::string, std::vector <std::string> > >& raw_servers)
 {
