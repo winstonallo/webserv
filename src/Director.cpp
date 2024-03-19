@@ -250,15 +250,15 @@ int	Director::read_from_client(int client_fd)
 		nodes.erase(client_fd);
 		close(client_fd);
 	}
+	else if (num == -1)
+	{
+		std::stringstream ss;
+		ss << "Error reading from socket: " << client_fd << std::endl;
+		Log::log(ss.str(), ERROR_FILE | STD_ERR);
+		return -1;	
+	}
 	else
 	{
-		if (num == -1)
-		{
-			std::stringstream ss;
-			ss << "Error reading from socket: " << client_fd << std::endl;
-			Log::log(ss.str(), ERROR_FILE | STD_ERR);
-			return -1;	
-		}
 		std::cout << msg;
 	}
 	return 0;
