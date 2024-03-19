@@ -3,11 +3,14 @@
 #include "Utils.hpp"
 #include <algorithm>
 #include <exception>
+#include <netinet/in.h>
 #include <stdexcept>
 #include <string>
 #include "Log.hpp"
 #include <cstdlib>
+#include <sys/socket.h>
 #include <vector>
+#include <arpa/inet.h>
 
 void	Config::set_servers(std::map <int, std::map <std::string, std::vector <std::string> > >& raw_servers)
 {
@@ -22,7 +25,7 @@ void	Config::set_servers(std::map <int, std::map <std::string, std::vector <std:
 			handle_server_names(it->second["server_name"], new_server);
 			handle_port(std::atoi(it->second["port"][0].c_str()), new_server);
 			new_server->set_access_log(handle_access_log(it->second["access_log"][0]));
-			new_server->set_host(it->second["host"][0]);
+			handle_host(it->second["host"][0], new_server);
 
 			_servers.push_back(new_server);
 		}
@@ -33,6 +36,27 @@ void	Config::set_servers(std::map <int, std::map <std::string, std::vector <std:
 			continue ;
 		}
 	}
+}
+
+void	Config::handle_host(std::string& hostname, ServerInfo* new_server)
+{
+	struct in_addr	ip_address;
+
+	if (hostname == "localhost")
+	{
+		hostname = "127.0.0.1";
+	}
+	if (std::find(_hosts.begin(), _hosts.end(), hostname) != _hosts.end())
+	{
+		throw std::runtime_error("error: '" + hostname + "': host address already taken, server will not be initialized\n");
+	}
+	else if (inet_pton(AF_INET, hostname.c_str(), &ip_address) != 1)
+	{
+		throw std::runtime_error("error: '" + hostname + "' is not a valid IPv4 address, server will not be initialized\n");
+	}
+	_hosts.push_back(hostname);
+
+	new_server->set_host_address(ip_address);
 }
 
 void	Config::handle_server_names(const std::vector <std::string>& new_server_names, ServerInfo* new_server)

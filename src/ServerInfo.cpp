@@ -1,4 +1,5 @@
 #include "ServerInfo.hpp"
+#include <netinet/in.h>
 #include <string>
 
 ServerInfo::ServerInfo() {}
@@ -79,14 +80,14 @@ void	ServerInfo::set_access_log(const std::string& log)
 	access_log = log;
 }
 
-std::string		ServerInfo::get_host() const
+struct in_addr		ServerInfo::get_host_address() const
 {
-	return _host;
+	return _host_address;
 }
 
-void	ServerInfo::set_host(const std::string& host)
+void	ServerInfo::set_host_address(struct in_addr& host)
 {
-	_host = host;
+	_host_address = host;
 }
 
 int	ServerInfo::get_client_max_body_size() const

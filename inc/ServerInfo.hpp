@@ -41,8 +41,8 @@ class ServerInfo : public Node
 		void								set_error_log(const std::string& rt);
 		std::string							get_access_log() const;
 		void								set_access_log(const std::string& rt);
-		std::string							get_host() const;
-		void								set_host(const std::string& host);
+		struct in_addr						get_host_address() const;
+		void								set_host_address(struct in_addr& host);
 		int									get_client_max_body_size() const;
 		void								set_client_max_body_size(const int client_max_body_size);
 		LocationInfo&						get_location(int);
@@ -53,8 +53,8 @@ class ServerInfo : public Node
 
 		int									port;
 		int									_client_max_body_size;
-		std::string							_host;
 		std::vector <std::string>			server_name;
+		struct in_addr						_host_address;
 //		struct sockaddr_in					address;
 		bool								autoindex;
 		std::string							root;

@@ -3,6 +3,7 @@
 
 #include "ServerInfo.hpp"
 #include <map>
+#include <netinet/in.h>
 #include <string>
 
 class Config
@@ -21,7 +22,7 @@ class Config
 
 		void									handle_port(const int port, ServerInfo* new_server);
 		void									handle_server_names(const std::vector <std::string>& server_names, ServerInfo* new_server);
-		void									handle_host(const std::string& host, ServerInfo* new_server);
+		void									handle_host(std::string& hostname, ServerInfo* new_server);
 		std::string								handle_access_log(const std::string& access_log);
 		int										handle_client_max_body_size(const std::string& client_max_body_size);
 
@@ -39,6 +40,7 @@ class Config
 
 		std::vector <int>						_ports;
 		std::vector <std::string>				_server_names;
+		std::vector <std::string>				_hosts;
 
 		Config(const Config& rhs);
 		Config &operator=(const Config& rhs);
