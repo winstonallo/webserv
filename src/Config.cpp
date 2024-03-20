@@ -22,11 +22,11 @@ void	Config::set_servers(std::map <int, std::map <std::string, std::vector <std:
 		{	
 			new_server = new ServerInfo();
 
-			handle_server_names(it->second["server_name"], new_server);
-			handle_port(std::atoi(it->second["port"][0].c_str()), new_server);
-			new_server->set_access_log(handle_access_log(it->second));
-			handle_host(it->second);
-			new_server->set_client_max_body_size(handle_client_max_body_size(it->second["client_max_body_size"][0]));
+			handle_server_names(it->second, new_server);
+			handle_port(it->second, new_server);
+			handle_access_log(it->second, new_server);
+			handle_host(it->second, new_server);
+			handle_client_max_body_size(it->second, new_server);
 
 			_servers.push_back(new_server);
 		}
@@ -39,29 +39,43 @@ void	Config::set_servers(std::map <int, std::map <std::string, std::vector <std:
 	}
 }
 
-void	Config::handle_host(std::string& hostname, ServerInfo* new_server)
+void	Config::handle_host(server_map& server, ServerInfo* new_server)
 {
+	if (server.find("host") == server.end() or server["host"].empty() == true)
+	{
+		throw std::runtime_error("error: missing host in server '" + new_server->get_server_name()[0] + "', server will not be initialized\n");
+	}
+
+	std::string host = server["host"][0];
+
 	struct in_addr	ip_address;
 
-	if (hostname == "localhost")
+	if (host == "localhost")
 	{
-		hostname = "127.0.0.1";
+		host = "127.0.0.1";
 	}
-	if (std::find(_hosts.begin(), _hosts.end(), hostname) != _hosts.end())
+	if (std::find(_hosts.begin(), _hosts.end(), host) != _hosts.end())
 	{
-		throw std::runtime_error("error: '" + hostname + "': host address already taken, server will not be initialized\n");
+		throw std::runtime_error("error: '" + host + "': host address already taken, server will not be initialized\n");
 	}
-	else if (inet_pton(AF_INET, hostname.c_str(), &ip_address) != 1)
+	else if (inet_pton(AF_INET, host.c_str(), &ip_address) != 1)
 	{
-		throw std::runtime_error("error: '" + hostname + "' is not a valid IPv4 address, server will not be initialized\n");
+		throw std::runtime_error("error: '" + host + "' is not a valid IPv4 address, server will not be initialized\n");
 	}
-	_hosts.push_back(hostname);
+	_hosts.push_back(host);
 
 	new_server->set_host_address(ip_address);
 }
 
-void	Config::handle_server_names(const std::vector <std::string>& new_server_names, ServerInfo* new_server)
+void	Config::handle_server_names(server_map& server, ServerInfo* new_server)
 {
+	if (server.find("server_name") == server.end() or server["server_name"].empty() == true)
+	{
+		throw std::runtime_error("error: missing server_name, server will not be initialized\n");
+	}
+
+	std::vector <std::string> new_server_names = server["server_name"];
+
 	for (std::vector <std::string>::const_iterator it = new_server_names.begin(); it != new_server_names.end(); it++)
 	{
 		if (std::find(_server_names.begin(), _server_names.end(), *it) != _server_names.end())
@@ -69,13 +83,21 @@ void	Config::handle_server_names(const std::vector <std::string>& new_server_nam
 			throw std::runtime_error("error: on server: '" + *it + "': name already taken, server will not be initialized\n");
 		}
 	}
+
 	new_server->set_server_name(new_server_names);
 
 	_server_names.insert(_server_names.end(), new_server_names.begin(), new_server_names.end());
 }
 
-void	Config::handle_port(const int port, ServerInfo* new_server)
+void	Config::handle_port(server_map& server, ServerInfo* new_server)
 {
+	if (server.find("port") == server.end() or server["port"].empty() == true)
+	{
+		throw std::runtime_error("error: missing port in server '" + new_server->get_server_name()[0] + "', server will not be initialized\n");
+	}
+
+	int port = std::atoi(server["port"][0].c_str());
+
 	if (std::find(_ports.begin(), _ports.end(), port) != _ports.end())
 	{
 		throw std::runtime_error("error: on server '" + new_server->get_server_name()[0] + "': port " + Utils::itoa(port) + " already taken: '" + new_server->get_server_name()[0] + "' will not be initialized\n");
@@ -92,7 +114,7 @@ void	Config::handle_port(const int port, ServerInfo* new_server)
 //
 // else:
 //		->	path invalid, log error & return default 
-std::string		Config::handle_access_log(std::map <std::string, std::vector <std::string> >& server)
+void	Config::handle_access_log(server_map& server, ServerInfo* new_server)
 {
 	std::string access_log;
 
@@ -102,32 +124,38 @@ std::string		Config::handle_access_log(std::map <std::string, std::vector <std::
 
 		if (Utils::file_exists(access_log) == false or Utils::write_access(access_log) == true)
 		{
-			return access_log;
+			new_server->set_access_log(access_log);
+			return ;
 		}
 	}
 	Log::log("error: access log '" + access_log + "' could not be opened, falling back to 'access.log'\n", STD_ERR | ERROR_FILE);
 
-	return ACCESS_LOG_DEFAULT;
+	new_server->set_access_log(ACCESS_LOG_DEFAULT);
 }
 
-int		Config::handle_client_max_body_size(const std::string& client_max_body_size)
+void	Config::handle_client_max_body_size(server_map& server, ServerInfo* new_server)
 {
+	if (server.find("client_max_body_size") == server.end() or server["client_max_body_size"].empty() == true)
+	{
+		Log::log("error: client max body size missing in server '" + new_server->get_server_name()[0] + "' is missing, falling back to default (1M)\n", STD_ERR | ERROR_FILE);
+		new_server->set_client_max_body_size(CLIENT_MAX_BODY_SIZE_DEFAULT);
+		return ;
+	}
+
+	std::string client_max_body_size = server["client_max_body_size"][0];
 	int	size = Utils::parse_client_max_body_size(client_max_body_size);
 
-	if (size > 10000000)
+	if (size > CLIENT_MAX_BODY_SIZE_MAX)
 	{
 		Log::log("error: " + client_max_body_size + "client max body size too high, capping to 10M\n", STD_ERR | ERROR_FILE);
-		return 10000000;
+		size = CLIENT_MAX_BODY_SIZE_MAX;
 	}
 	else if (size == -1)
 	{
 		Log::log("error: client max body size '" + client_max_body_size + "' is not valid, falling back to default (1M)\n", STD_ERR | ERROR_FILE);
-		return CLIENT_MAX_BODY_SIZE_DEFAULT;
+		size = CLIENT_MAX_BODY_SIZE_DEFAULT;
 	}
-	else
-	{
-		return size;
-	}
+	new_server->set_client_max_body_size(size);
 }
 
 std::vector <ServerInfo *>	Config::get_servers()
