@@ -17,7 +17,9 @@
 #include <unistd.h>
 #include <sys/time.h>
 #include "Node.hpp"
+#include "Request.hpp"
 #include "ServerInfo.hpp"
+#include "Server.hpp"
 #include "ClientInfo.hpp"
 #include "ConfigParser.hpp"
 #include "Log.hpp"

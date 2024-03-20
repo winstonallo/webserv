@@ -309,7 +309,8 @@ int	Director::create_client_connection(int listener)
 
 int	Director::read_from_client(int client_fd)
 {
-	char	msg[MSG_SIZE];
+	char			msg[MSG_SIZE];
+	
 	memset(&msg, 0, MSG_SIZE);
 	int		num = read(client_fd, msg, MSG_SIZE);
 	if (!num)
@@ -337,8 +338,11 @@ int	Director::read_from_client(int client_fd)
 	else
 	{
 		dynamic_cast<ClientInfo*>(nodes[client_fd])->set_time();
-		
 		std::cout << msg;
+		Request	req(msg);
+		Server server;
+
+		server.respond(req);
 	}
 	return 0;
 }

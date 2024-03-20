@@ -28,10 +28,13 @@ class ClientInfo : public Node
 		void						set_time();
 		ServerInfo*					get_server_info() const;
 		void						set_server_info(ServerInfo* si);
+		// void						set_request(Request rq);
+		// Request						get_request() const;
 
 	private:
 		ServerInfo*					server_info;
 		time_t						prev_time;
+		//Request						request;
 
 };
 

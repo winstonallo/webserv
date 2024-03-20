@@ -16,7 +16,7 @@ class Server
 											~Server();
 		Server&								operator=(const Server& rhs);
 											Server(const Server& rhs);
-		int									respond(Request rq);
+		std::string							respond(Request& rq);
 
 		ServerInfo							get_server_info() const;
 		Request								get_request() const;
@@ -24,14 +24,15 @@ class Server
 		void								set_error_code(int err);
 
 	private:
-		void								create_response();
+		std::string							create_response(Request&);
 		void								init_status_strings();
 		void								init_content_types();
+		std::string							get_body(Request& rq);
 
 		std::map<int, std::string>			status_string;
 		std::map<std::string, std::string>	content_type;
 
-		Request								request;
+		// Request								request;
 		ServerInfo							server_info;
 	//	std::map<int, ClientInfo>			clients;
 		std::string							response;

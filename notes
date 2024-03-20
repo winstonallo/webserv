@@ -15,4 +15,4 @@ code 414:
   ( # ! $ % & ' * + - | . backtick ^ _ ~ 0-9 a-z A-Z
 - Header values can be capitalized or not (so convert to lowercase parsing)
 - Are we handling a chunked body?
-- 
+- ClientInfo get_request and set_request TODO 

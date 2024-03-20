@@ -9,7 +9,7 @@ Server::Server()
 Server::~Server()
 {}
 
-Server&	operator=(const Server& rhs)
+Server&	Server::operator=(const Server& rhs)
 {
 	if (this != &rhs)
 	{
@@ -23,22 +23,30 @@ Server::Server(const Server& rhs)
 	*this = rhs;
 }
 
-Request	Server::get_request() const
-{
-	return request;
-}
+// Request	Server::get_request() const
+// {
+// 	return request;
+// }
 
 ServerInfo	Server::get_server_info() const
 {
 	return server_info;
 }
 
-void	Server::respond(Request rq)
+std::string Server::respond(Request& rq)
 {
-	if (rq.get_errcode())
+	if (rq.get_method() == "GET" || rq.get_method() == "HEAD")
 	{
-
+		std::ifstream file("index.html");
+		if (file.fail())
+		{
+			return "Error"; 
+		}
+		std::ostringstream ss;
+		ss << file.rdbuf();
+		return ss.str();
 	}
+	return "Error";
 }
 
 int		Server::get_error_code() const
@@ -127,11 +135,14 @@ void	Server::init_content_types()
     content_type[".mp3"] 	= 	"audio/mp3";
 }
 
-void	Server::create_response()
+std::string		Server::create_response(Request& rq)
 {
 	std::stringstream 	ss;
 	std::string 		ex;
 	char				buf[100];
+	std::string			body;
+
+	body = get_body(rq);
 
 	ss << "HTTP/1.1 " << errcode << " " << status_string[errcode]  << "\r\n";
 
@@ -142,17 +153,31 @@ void	Server::create_response()
 
 	ss << "Server: Awesome SAD Server/1.0" << "\r\n";
 
-	ss << "Content Length: " << get_content_length() << "\r\n";
+	ss << "Content Length: " << body.length() << "\r\n";
 
-	ex = get_file_extensions(response.get_path()); 
+	ex = Utils::get_file_extension(rq.get_path()); 
 	if (errcode != 200 || ex == "")
 		ex = "default";
 	ss << "Content-Type: " << content_type[ex] << "\r\n";
 
-	ss << "Connection: " << request.get_connection() << "\r\n";
+	ss << "Connection: " << rq.get_header("Connection") << "\r\n";
 	ss << "\r\n";
-	
+	ss << body;
+	return ss.str();
+}
 
-
-
+std::string		Server::get_body(Request& rq)
+{
+	if (rq.get_method() == "GET" || rq.get_method() == "HEAD")
+	{
+		std::ifstream file("index.html");
+		if (file.fail())
+		{
+			return "Nothing"; 
+		}
+		std::ostringstream ss;
+		ss << file.rdbuf();
+		return ss.str();
+	}
+	return "No get";
 }

@@ -56,3 +56,14 @@ ServerInfo*		ClientInfo::get_server_info() const
 {
 	return server_info;
 }
+
+
+// void	ClientInfo::set_request(Request rq)
+// {
+// 	request = rq;
+// }
+
+// Request	ClientInfo::get_request() const
+// {
+// 	return request;
+// }
