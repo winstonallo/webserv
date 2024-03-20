@@ -4,6 +4,7 @@
 #include <sstream>
 #include "Request.hpp"
 #include "ServerInfo.hpp"
+#include "ClientInfo.hpp"
 #include "Utils.hpp"
 
 class Request;
@@ -32,9 +33,9 @@ class Server
 
 		Request								request;
 		ServerInfo							server_info;
-		std::map<int, ClientInfo>			clients;
+	//	std::map<int, ClientInfo>			clients;
 		std::string							response;
 		int									errcode;
 };
 
-#endiF
+#endif

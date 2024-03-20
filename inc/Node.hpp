@@ -20,7 +20,7 @@ class Node
 {
 	public:
 									Node();
-									~Node();
+		virtual						~Node();
 									Node(int fd, 
 										const struct sockaddr_storage& addr,
 										size_t addr_len,
@@ -33,7 +33,7 @@ class Node
 		void						set_fd(int tfd);
 		node_types					get_type() const;
 		void						set_type(enum node_types t);
-		struct sockaddr_storage		get_addr() const;
+		struct sockaddr_storage&	get_addr();
 		void						set_addr(const struct sockaddr_storage& val);
 		size_t						get_addr_len() const;
 		void						set_addr_len(size_t len);

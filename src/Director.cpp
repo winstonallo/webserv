@@ -151,7 +151,8 @@ int	Director::init_servers()
 // purpose: In a loop we poll (with select) the statuses of the sockets.
 // 			if they are ready for reading they create a new client sockets (if 
 // 			its a server) and handle incoming or outgoing messages (if it's a client)
-// 			we have a timeout of 5sec (maybe we should modify)
+// 			we have a timeout of 1sec for the select(maybe we should modify)
+//			and a timeout for the clients, if they are idle more then TIMEOUT_TIME
 //
 // return: int -> -1 if there was an error 0 if successfull
 int	Director::run_servers()
@@ -159,12 +160,13 @@ int	Director::run_servers()
 	int ret;
 	fd_set readfds_backup;
 	fd_set writefds_backup;
+	char	remoteIP[INET6_ADDRSTRLEN];	
 	struct timeval timeout_time;
 	while (true)
 	{
 		readfds_backup = read_fds;
 		writefds_backup = write_fds;
-		timeout_time.tv_sec = 5;
+		timeout_time.tv_sec = 1;
 		timeout_time.tv_usec = 0;
 		if ((ret = select(fdmax + 1, &readfds_backup, &writefds_backup, NULL, &timeout_time)) < 0 )
 		{
@@ -207,6 +209,30 @@ int	Director::run_servers()
 						Log::log(ss.str(), ERROR_FILE | STD_ERR);
 					}
 				}
+				time_t curr_time = time(NULL);
+
+				//timeout for clients
+				if (curr_time - dynamic_cast<ClientInfo *>(nodes[i])->get_prev_time() > TIMEOUT_TIME)
+				{
+					std::stringstream ss2;
+
+					ss2 << "Closing connection from ";
+					ss2 << inet_ntop(nodes[i]->get_addr().ss_family,
+						get_in_addr((struct sockaddr *)&nodes[i]->get_addr()),
+						remoteIP, INET6_ADDRSTRLEN);
+					ss2 << " on socket " << i << std::endl;
+					Log::log(ss2.str(), ACCEPT_FILE | STD_OUT);
+
+					if (FD_ISSET(i, &write_fds))
+						FD_CLR(i, &write_fds);
+					if (FD_ISSET(i, &read_fds))
+						FD_CLR(i, &read_fds);
+					if (i == fdmax)
+						fdmax--;
+					delete nodes[i];
+					nodes.erase(i);
+					close(i);
+				}
 			}
 		}
 	}
@@ -240,7 +266,9 @@ int	Director::create_client_connection(int listener)
 			fdmax = newfd;
 		if (nodes.find(newfd) == nodes.end())
 		{
-			nodes[newfd] = new ClientInfo(newfd, remoteaddr, (size_t)addrlen);
+			ClientInfo *newcl = new ClientInfo(newfd, remoteaddr, (size_t)addrlen);
+			newcl->set_server_info(dynamic_cast<ServerInfo*>(nodes[listener]));
+			nodes[newfd] = newcl;
 		}
 		else
 		{
@@ -308,6 +336,7 @@ int	Director::read_from_client(int client_fd)
 	}
 	else
 	{
+		dynamic_cast<ClientInfo*>(nodes[client_fd])->set_time();
 		std::cout << msg;
 	}
 	return 0;

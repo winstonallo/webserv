@@ -11,23 +11,24 @@ OBJS_DIR	= obj
 LDFLAGS     = -pthread
 GTEST_DIR   = test/googletest
 
-CXXFLAGS	= -Wall -Wextra -Werror -MP -MD -std=c++98 -g -Iinc -I$(GTEST_DIR)/include
+CXXFLAGS	= -Wall -Wextra -Werror -MP -MD -std=c++98 -g -Iinc #-I$(GTEST_DIR)/include
 
 
 TESTFLAGS	= -Wall -Wextra -Werror -MP -MD -g -Iinc -I$(GTEST_DIR)/include
 
 SRCS   	= \
 		$(SRCS_DIR)/Node.cpp \
-		$(SRCS_DIR)/Request.cpp \
 		$(SRCS_DIR)/ClientInfo.cpp \
-		$(SRCS_DIR)/LocationInfo.cpp \
 		$(SRCS_DIR)/ServerInfo.cpp \
+		$(SRCS_DIR)/LocationInfo.cpp \
 		$(SRCS_DIR)/Log.cpp \
+		$(SRCS_DIR)/Request.cpp \
 		$(SRCS_DIR)/Director.cpp \
         $(SRCS_DIR)/Config.cpp \
         $(SRCS_DIR)/ConfigParser.cpp \
         $(SRCS_DIR)/ConfigDispatcher.cpp \
         $(SRCS_DIR)/Utils.cpp \
+        $(SRCS_DIR)/main_server.cpp
 
 OBJS	= $(SRCS:${SRCS_DIR}/%.cpp=${OBJS_DIR}/%.o)
 

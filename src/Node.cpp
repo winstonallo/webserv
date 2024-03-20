@@ -48,7 +48,7 @@ void	Node::set_type(enum node_types tp)
 	type = tp;
 }
 
-struct sockaddr_storage	Node::get_addr() const
+struct sockaddr_storage&	Node::get_addr() 
 {
 	return (addr);
 }
@@ -75,7 +75,7 @@ void	Node::set_addr_len(size_t sz)
 	addr_len = sz; 
 }
 
-std::ostream& operator<<(std::ostream& os, const Node& nd)
+std::ostream& operator<<(std::ostream& os, Node& nd)
 {
 	char remoteIP[INET6_ADDRSTRLEN];	
 	sockaddr_storage temp = nd.get_addr();

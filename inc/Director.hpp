@@ -16,17 +16,19 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <sys/time.h>
+#include "Node.hpp"
 #include "ServerInfo.hpp"
 #include "ClientInfo.hpp"
 #include "ConfigParser.hpp"
 #include "Log.hpp"
 #include "LocationInfo.hpp"
-#include "Node.hpp"
 
 #define MSG_SIZE 50000
+#define TIMEOUT_TIME 30
 
 // purpose:	class that handles all connections wit select(ing) the 
 // 			the sockets that are ready to be readed or written.
+
 
 class Director 
 {
