@@ -16,19 +16,21 @@ void	Config::set_servers(std::map <int, std::map <std::string, std::vector <std:
 {
 	ServerInfo* new_server;
 
-	for (std::map <int, std::map <std::string, std::vector <std::string> > >::iterator it = raw_servers.begin(); it != raw_servers.end(); it++)
+	for (std::map <int, server_map>::iterator it = raw_servers.begin(); it != raw_servers.end(); it++)
 	{
 		try
 		{	
 			new_server = new ServerInfo();
+			std::vector <std::string>	new_unique_values;
 
-			handle_server_names(it->second, new_server);
-			handle_port(it->second, new_server);
+			handle_server_names(it->second, new_server, new_unique_values);
+			handle_port(it->second, new_server, new_unique_values);
 			handle_access_log(it->second, new_server);
-			handle_host(it->second, new_server);
+			handle_host(it->second, new_server, new_unique_values);
 			handle_client_max_body_size(it->second, new_server);
 
 			_servers.push_back(new_server);
+			_unique_values.insert(_unique_values.end(), new_unique_values.begin(), new_unique_values.end());
 		}
 		catch (const std::exception& e)
 		{
@@ -39,7 +41,7 @@ void	Config::set_servers(std::map <int, std::map <std::string, std::vector <std:
 	}
 }
 
-void	Config::handle_host(server_map& server, ServerInfo* new_server)
+void	Config::handle_host(server_map& server, ServerInfo* new_server, std::vector <std::string>& new_unique_values)
 {
 	if (server.find("host") == server.end() or server["host"].empty() == true)
 	{
@@ -54,7 +56,7 @@ void	Config::handle_host(server_map& server, ServerInfo* new_server)
 	{
 		host = "127.0.0.1";
 	}
-	if (std::find(_hosts.begin(), _hosts.end(), host) != _hosts.end())
+	if (std::find(_unique_values.begin(), _unique_values.end(), host) != _unique_values.end())
 	{
 		throw std::runtime_error("error: '" + host + "': host address already taken, server will not be initialized\n");
 	}
@@ -62,12 +64,12 @@ void	Config::handle_host(server_map& server, ServerInfo* new_server)
 	{
 		throw std::runtime_error("error: '" + host + "' is not a valid IPv4 address, server will not be initialized\n");
 	}
-	_hosts.push_back(host);
+	new_unique_values.push_back(host);
 
 	new_server->set_host_address(ip_address);
 }
 
-void	Config::handle_server_names(server_map& server, ServerInfo* new_server)
+void	Config::handle_server_names(server_map& server, ServerInfo* new_server, std::vector <std::string>& new_unique_values)
 {
 	if (server.find("server_name") == server.end() or server["server_name"].empty() == true)
 	{
@@ -78,7 +80,7 @@ void	Config::handle_server_names(server_map& server, ServerInfo* new_server)
 
 	for (std::vector <std::string>::const_iterator it = new_server_names.begin(); it != new_server_names.end(); it++)
 	{
-		if (std::find(_server_names.begin(), _server_names.end(), *it) != _server_names.end())
+		if (std::find(_unique_values.begin(), _unique_values.end(), *it) != _unique_values.end())
 		{
 			throw std::runtime_error("error: on server: '" + *it + "': name already taken, server will not be initialized\n");
 		}
@@ -86,24 +88,25 @@ void	Config::handle_server_names(server_map& server, ServerInfo* new_server)
 
 	new_server->set_server_name(new_server_names);
 
-	_server_names.insert(_server_names.end(), new_server_names.begin(), new_server_names.end());
+	new_unique_values.insert(new_unique_values.end(), new_server_names.begin(), new_server_names.end());
 }
 
-void	Config::handle_port(server_map& server, ServerInfo* new_server)
+void	Config::handle_port(server_map& server, ServerInfo* new_server, std::vector <std::string>& new_unique_values)
 {
 	if (server.find("port") == server.end() or server["port"].empty() == true)
 	{
 		throw std::runtime_error("error: missing port in server '" + new_server->get_server_name()[0] + "', server will not be initialized\n");
 	}
 
-	int port = std::atoi(server["port"][0].c_str());
+	std::string port = server["port"][0];
 
-	if (std::find(_ports.begin(), _ports.end(), port) != _ports.end())
+	if (std::find(_unique_values.begin(), _unique_values.end(), port) != _unique_values.end())
 	{
-		throw std::runtime_error("error: on server '" + new_server->get_server_name()[0] + "': port " + Utils::itoa(port) + " already taken: '" + new_server->get_server_name()[0] + "' will not be initialized\n");
+		throw std::runtime_error("error: on server '" + new_server->get_server_name()[0] + "': port " + port + " already taken: '" + new_server->get_server_name()[0] + "' will not be initialized\n");
 	}
-	new_server->set_port(port);
-	_ports.push_back(port);
+	new_server->set_port(std::atoi(port.c_str()));
+
+	new_unique_values.push_back(port);
 }
 
 // validates access log from config

@@ -22,9 +22,9 @@ class Config
 		void									set_routes(std::map <std::string, std::map <std::string, std::vector <std::string> > >& raw_routes);
 
 
-		void									handle_port(server_map& server, ServerInfo* new_server);
-		void									handle_server_names(server_map& server, ServerInfo* new_server);
-		void									handle_host(server_map& server, ServerInfo* new_server);
+		void									handle_port(server_map& server, ServerInfo* new_server, std::vector <std::string>& new_unique_values);
+		void									handle_server_names(server_map& server, ServerInfo* new_server, std::vector <std::string>& new_unique_values);
+		void									handle_host(server_map& server, ServerInfo* new_server, std::vector <std::string>& new_unique_values);
 		void									handle_access_log(server_map& server, ServerInfo* new_server);
 		void									handle_client_max_body_size(server_map& server, ServerInfo* new_server);
 
@@ -40,6 +40,7 @@ class Config
 
 		std::map <int, std::string>             _status_codes;
 
+		std::vector <std::string>				_unique_values;
 		std::vector <int>						_ports;
 		std::vector <std::string>				_server_names;
 		std::vector <std::string>				_hosts;
