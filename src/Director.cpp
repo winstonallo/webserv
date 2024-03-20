@@ -337,6 +337,7 @@ int	Director::read_from_client(int client_fd)
 	else
 	{
 		dynamic_cast<ClientInfo*>(nodes[client_fd])->set_time();
+		
 		std::cout << msg;
 	}
 	return 0;
