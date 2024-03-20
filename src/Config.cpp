@@ -24,8 +24,8 @@ void	Config::set_servers(std::map <int, std::map <std::string, std::vector <std:
 
 			handle_server_names(it->second["server_name"], new_server);
 			handle_port(std::atoi(it->second["port"][0].c_str()), new_server);
-			new_server->set_access_log(handle_access_log(it->second["access_log"][0]));
-			handle_host(it->second["host"][0], new_server);
+			new_server->set_access_log(handle_access_log(it->second));
+			handle_host(it->second);
 			new_server->set_client_max_body_size(handle_client_max_body_size(it->second["client_max_body_size"][0]));
 
 			_servers.push_back(new_server);
@@ -70,6 +70,7 @@ void	Config::handle_server_names(const std::vector <std::string>& new_server_nam
 		}
 	}
 	new_server->set_server_name(new_server_names);
+
 	_server_names.insert(_server_names.end(), new_server_names.begin(), new_server_names.end());
 }
 
@@ -91,18 +92,22 @@ void	Config::handle_port(const int port, ServerInfo* new_server)
 //
 // else:
 //		->	path invalid, log error & return default 
-std::string		Config::handle_access_log(const std::string& access_log)
+std::string		Config::handle_access_log(std::map <std::string, std::vector <std::string> >& server)
 {
-	if (Utils::file_exists(access_log) == false or Utils::write_access(access_log) == true)
-	{
-		return access_log;
-	}
-	else
-	{
-		Log::log("error: access log '" + access_log + "' could not be opened, falling back to 'access.log'", STD_ERR | ERROR_FILE);
+	std::string access_log;
 
-		return ACCESS_LOG_DEFAULT;
+	if (server.find("access_log") != server.end() && server["access_log"].empty() == false)
+	{
+		access_log = server["access_log"][0];
+
+		if (Utils::file_exists(access_log) == false or Utils::write_access(access_log) == true)
+		{
+			return access_log;
+		}
 	}
+	Log::log("error: access log '" + access_log + "' could not be opened, falling back to 'access.log'\n", STD_ERR | ERROR_FILE);
+
+	return ACCESS_LOG_DEFAULT;
 }
 
 int		Config::handle_client_max_body_size(const std::string& client_max_body_size)
@@ -111,7 +116,7 @@ int		Config::handle_client_max_body_size(const std::string& client_max_body_size
 
 	if (size > 10000000)
 	{
-		Log::log("error: " + client_max_body_size + "client max body size too high, capping to 10M", STD_ERR | ERROR_FILE);
+		Log::log("error: " + client_max_body_size + "client max body size too high, capping to 10M\n", STD_ERR | ERROR_FILE);
 		return 10000000;
 	}
 	else if (size == -1)

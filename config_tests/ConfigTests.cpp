@@ -13,19 +13,17 @@
 
 e_result    print_result(const std::string& message, e_result result)
 {
-    const int width = 50;
+    const int width = 70;
 
     if (result == FAILURE)
     {
-        std::cout << RED;
-        std::cout << std::left << std::setw(width) << message << "[KO]" << std::endl;
+        std::cout << std::left << std::setw(width) << message << RED << "[KO]" << std::endl;
         std::cout << RESET;
         return FAILURE;
     }
     else
     {
-        std::cout << GREEN;
-        std::cout << std::left << std::setw(width) << message << "[OK]"<< std::endl;
+        std::cout << std::left << std::setw(width) << message << GREEN << "[OK]"<< std::endl;
         std::cout << RESET;
         return SUCCESS;
     }
@@ -38,11 +36,11 @@ void    ParsingTest::test_invalid_file_structure()
         try 
         {
             ConfigParser parser(*it);
-            print_result(*it, FAILURE);
+            print_result(*it + BOLD + ": failed to throw exception" + RESET, FAILURE);
         }
         catch (const std::exception& e) 
         {
-            print_result(*it, SUCCESS);
+            print_result(*it + BOLD + ": threw exception" + RESET, SUCCESS);
         }
     }
 }
@@ -59,7 +57,6 @@ void    ParsingTest::test_invalid_file_value()
 
             try
             {
-                // Your code here
                 ConfigParser        parser(*it);
                 ConfigDispatcher    dispatcher(parser.get_config());
                 Config              config(dispatcher.get_error_pages());
@@ -68,21 +65,20 @@ void    ParsingTest::test_invalid_file_value()
             }
             catch (const std::exception& e)
             {
-                print_result(*it, SUCCESS);
+                print_result(*it + BOLD + ": threw exception" + RESET, SUCCESS);
                 std::cerr.rdbuf(old_cerr);
-                throw;  // Re-throw the exception to be caught by the outer catch block
+                throw ;
             }
 
-            // Check if anything was written to the file
-            std::ifstream inFile("err.txt");
-            bool was_written_to = inFile.peek() != std::ifstream::traits_type::eof();
+            std::ifstream in_file("err.txt");
+            bool was_written_to = in_file.peek() != std::ifstream::traits_type::eof();
             if (was_written_to == true)
             {
-                print_result(*it, SUCCESS);
+                print_result(*it + BOLD + ": wrote to error file" + RESET, SUCCESS);
             }
             else
             {
-                print_result(*it, FAILURE);
+                print_result(*it + BOLD + ": no error log/exception" + RESET, FAILURE);
             }
         }
         catch (const std::exception& e)
@@ -116,8 +112,8 @@ void    ParsingTest::fill_invalid_file_vector(const std::string& directory, std:
 
 ParsingTest::ParsingTest()
 {
-    fill_invalid_file_vector("config_tests/invalid_config_structure", _invalid_value);
-    fill_invalid_file_vector("config_tests/invalid_config_value", _invalid_structure);
+    fill_invalid_file_vector("config_tests/invalid_config_structure", _invalid_structure);
+    fill_invalid_file_vector("config_tests/invalid_config_value", _invalid_value);
 }
 
 ParsingTest::~ParsingTest() {}

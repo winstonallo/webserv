@@ -23,7 +23,7 @@ class Config
 		void									handle_port(const int port, ServerInfo* new_server);
 		void									handle_server_names(const std::vector <std::string>& server_names, ServerInfo* new_server);
 		void									handle_host(std::string& hostname, ServerInfo* new_server);
-		std::string								handle_access_log(const std::string& access_log);
+		std::string								handle_access_log(std::map <std::string, std::vector <std::string> >& server);
 		int										handle_client_max_body_size(const std::string& client_max_body_size);
 
 		std::string                             generate_default_error_page(const int status_code);
