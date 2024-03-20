@@ -190,4 +190,15 @@ namespace Utils
 		oss << num;
 		return oss.str();
 	}
+
+	//finds the extension of a file in path
+	std::string get_file_extension(const std::string& file_path)
+	{
+		int pos = file_path.rfind(".");
+		if (pos != std::string::npos && pos < file_path.size() - 1)
+		{
+			return file_path.substr(pos);
+		}
+		return std::string("");
+	}
 }

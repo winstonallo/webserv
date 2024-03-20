@@ -4,6 +4,7 @@
 #include <sstream>
 #include "Request.hpp"
 #include "ServerInfo.hpp"
+#include "Utils.hpp"
 
 class Request;
 

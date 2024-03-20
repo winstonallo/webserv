@@ -14,6 +14,7 @@ namespace Utils
 	std::vector <std::string>						split(const std::string& str, const std::string& delimiters);
 	std::vector <std::string>						split_keep_quoted_words(const std::string& str, const std::string& delimiters);
 	std::vector <std::pair <std::string, int> > 	split_keep_delimiters(const std::string& str, const std::string& delimiters);
+	std::string 									get_file_extension(const std::string& file_path);
 };
 
 #endif

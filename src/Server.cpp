@@ -129,9 +129,30 @@ void	Server::init_content_types()
 
 void	Server::create_response()
 {
-	std::stringstream ss;
+	std::stringstream 	ss;
+	std::string 		ex;
+	char				buf[100];
 
 	ss << "HTTP/1.1 " << errcode << " " << status_string[errcode]  << "\r\n";
-	ss << "Content-Type: " << 
-	response
+
+	time_t	curr_time = time(NULL);
+	struct tm tim = *gmtime(&curr_time);
+	strftime(buf, sizeof(buf), "%a, %d, %b %Y %H:%M:%S %Z", &tim);
+	ss << "Date: " << buf << "\r\n";
+
+	ss << "Server: Awesome SAD Server/1.0" << "\r\n";
+
+	ss << "Content Length: " << get_content_length() << "\r\n";
+
+	ex = get_file_extensions(response.get_path()); 
+	if (errcode != 200 || ex == "")
+		ex = "default";
+	ss << "Content-Type: " << content_type[ex] << "\r\n";
+
+	ss << "Connection: " << request.get_connection() << "\r\n";
+	ss << "\r\n";
+	
+
+
+
 }
