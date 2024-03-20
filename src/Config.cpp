@@ -140,7 +140,7 @@ void	Config::handle_client_max_body_size(server_map& server, ServerInfo* new_ser
 {
 	if (server.find("client_max_body_size") == server.end() or server["client_max_body_size"].empty() == true)
 	{
-		Log::log("error: client max body size missing in server '" + new_server->get_server_name()[0] + "' is missing, falling back to default (1M)\n", STD_ERR | ERROR_FILE);
+		Log::log("no client max body size config in server '" + new_server->get_server_name()[0] + "', falling back to default (1M)\n", STD_ERR | ERROR_FILE);
 		new_server->set_client_max_body_size(CLIENT_MAX_BODY_SIZE_DEFAULT);
 		return ;
 	}
@@ -150,7 +150,7 @@ void	Config::handle_client_max_body_size(server_map& server, ServerInfo* new_ser
 
 	if (size > CLIENT_MAX_BODY_SIZE_MAX)
 	{
-		Log::log("error: " + client_max_body_size + "client max body size too high, capping to 10M\n", STD_ERR | ERROR_FILE);
+		Log::log("error: " + client_max_body_size + ": client max body size too high, capping to 10M\n", STD_ERR | ERROR_FILE);
 		size = CLIENT_MAX_BODY_SIZE_MAX;
 	}
 	else if (size == -1)
