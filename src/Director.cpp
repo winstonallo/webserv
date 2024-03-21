@@ -1,7 +1,9 @@
 #include "Director.hpp"
 
-Director::Director():fdmax(-1)
-{}
+Director::Director(const std::string& config_path):fdmax(-1), config(config_path)
+{
+
+}
 
 Director::~Director()
 {}
@@ -16,14 +18,6 @@ Director&	Director::operator=(const Director& rhs)
 	if (this != &rhs)
 	{}
 	return (*this);
-}
-
-// purpose:	adds si to the vector of server informations
-//
-// argument: is -> the ServerInfo to be added 
-void	Director::add_server_info(ServerInfo si)
-{
-	server_infos.push_back(si);
 }
 
 // purpose: gets the inner address of sockaddr sa for both cases that 
@@ -127,13 +121,13 @@ int	Director::init_servers()
 {
 	FD_ZERO(&read_fds);
 	FD_ZERO(&write_fds);
-	std::vector<ServerInfo>::iterator e = server_infos.end();
-	std::vector<ServerInfo>::iterator it ;
-	for (it = server_infos.begin() ; it != e; it++)
+	std::vector<ServerInfo*>::iterator e = config.get_servers().end();
+	std::vector<ServerInfo*>::iterator it ;
+	for (it = config.get_servers().begin() ; it != e; it++)
 	{
-		if (init_server(&(*it)) < 0)
+		if (init_server(*it) < 0)
 			return -1;
-		int listener = it->get_fd();
+		int listener = (*it)->get_fd();
 		if (fcntl(listener, F_SETFL, O_NONBLOCK) < 0)
 		{
 			std::stringstream ss;
@@ -150,7 +144,7 @@ int	Director::init_servers()
 		}
 		FD_SET(listener, &read_fds);
 		if (fdmax < listener) fdmax = listener;
-		nodes[listener] = &(*it);
+		nodes[listener] = *it;
 		nodes[listener]->set_type(SERVER_NODE);
 		nodes[listener]->set_fd(listener);
 	}

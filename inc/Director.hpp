@@ -21,6 +21,7 @@
 #include "ServerInfo.hpp"
 #include "Server.hpp"
 #include "ClientInfo.hpp"
+#include "Config.hpp"
 #include "ConfigParser.hpp"
 #include "Log.hpp"
 #include "LocationInfo.hpp"
@@ -35,9 +36,8 @@
 class Director 
 {
 	public:
-										Director();
+										Director(const std::string& path);
 										~Director();
-		void							add_server_info(ServerInfo si);
 		int								init_servers();
 		int								run_servers();
 
@@ -50,10 +50,10 @@ class Director
 		int								read_from_client(int fd);
 		int								write_to_client(int fd);
 
-		std::vector<ServerInfo>			server_infos;
+		int								fdmax;
+		Config							config;
 		std::map<int, Node*>			nodes;
 		fd_set							read_fds, write_fds;
-		int								fdmax;
 };
 
 #endif

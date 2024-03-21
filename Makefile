@@ -41,8 +41,8 @@ TEST_OBJS	= $(TESTS:${TEST_DIR}/%.cpp=${TEST_OBJS_DIR}/%.o)
 
 DEPS	= $(OBJS:%.o=%.d)
 
-$(NAME): $(OBJS) $(TEST_OBJS)
-	$(CXX) $(CXXFLAGS) -o $(NAME) $(OBJS) $(TEST_OBJS)
+$(NAME): $(OBJS) 
+	$(CXX) $(CXXFLAGS) -o $(NAME) $(OBJS) 
 
 $(TEST_OBJS_DIR)/%.o: $(TEST_DIR)/%.cpp
 	mkdir -p $(TEST_OBJS_DIR)
