@@ -9,13 +9,13 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include "Node.hpp"
+#include "Server.hpp"
 #include "LocationInfo.hpp"
 
 class LocationInfo;
 
 //purpose:	Data class for the parsed values (from the config file)
-//			It is used for the initialization and the running of the servers.
-
+//			It is used fjor the initialization and the running of the servers.
 class ServerInfo : public Node
 {
 	public:
@@ -44,6 +44,7 @@ class ServerInfo : public Node
 		LocationInfo&						get_location(int);
 		void								add_location(LocationInfo lc);
 		bool								is_fd_in_clients(int fd) const;
+		Server								server;
 
 	private:
 

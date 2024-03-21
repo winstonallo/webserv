@@ -90,6 +90,7 @@ int	Director::init_server(ServerInfo *si)
 		si->set_fd(listener);
 		si->set_addr(*((sockaddr_storage*)(p->ai_addr)));
 		si->set_addr_len((size_t)p->ai_addrlen);
+
 		break;
 	}
 
@@ -144,6 +145,15 @@ int	Director::init_servers()
 		nodes[listener] = &(*it);
 		nodes[listener]->set_type(SERVER_NODE);
 		nodes[listener]->set_fd(listener);
+
+		// std::stringstream ss2;
+		// char	remoteIP[INET6_ADDRSTRLEN];	
+		// ss2 << "Listening at address: ";
+		// ss2 << inet_ntop(nodes[listener]->get_addr().ss_family,
+		// 	get_in_addr((struct sockaddr *)&nodes[listener]->get_addr()),
+		// 	remoteIP, INET6_ADDRSTRLEN);
+		// ss2 << " on port " << ((ServerInfo*)&nodes[listener])->get_port() << std::endl;
+		// Log::log(ss2.str(), STD_OUT);
 	}
 	return 0;
 }
@@ -340,9 +350,16 @@ int	Director::read_from_client(int client_fd)
 		dynamic_cast<ClientInfo*>(nodes[client_fd])->set_time();
 		std::cout << msg;
 		Request	req(msg);
-		Server server;
-
-		server.respond(req);
+		std::cout << std::endl;
+		std::cout << req << std::endl;
+		std::cout << std::endl;
+		dynamic_cast<ClientInfo*>(nodes[client_fd])->get_server_info()->server.create_response(req);
+		FD_CLR(client_fd, &read_fds);
+		if (client_fd == fdmax)
+			fdmax--;
+		FD_SET(client_fd, &write_fds);
+		if (client_fd > fdmax)
+			fdmax = client_fd;
 	}
 	return 0;
 }
@@ -355,6 +372,52 @@ int	Director::read_from_client(int client_fd)
 // return: int -> -1 if it failed and 0 for success
 int	Director::write_to_client(int fd)
 {
-	(void)fd;
-	return 0;
+	int				num_bytes;
+	ClientInfo*		cl = dynamic_cast<ClientInfo*>(nodes[fd]);
+
+	std::string content = cl->get_server_info()->server.response;
+	int sz = content.size();
+
+	if (sz < MSG_SIZE)
+		num_bytes = write(fd, content.c_str(), sz);
+	else
+		num_bytes = write(fd, content.c_str(), MSG_SIZE);
+
+	if (num_bytes < 0)
+	{
+		std::stringstream ss;
+		ss << "Error sending a response: " << strerror(errno);
+		Log::log(ss.str(), STD_ERR | ERROR_FILE);
+		if (FD_ISSET(fd, &write_fds))
+		{
+			FD_CLR(fd, &write_fds);
+			if (fd == fdmax) { fdmax--; }  
+		}
+		if (FD_ISSET(fd, &read_fds))
+		{
+			FD_CLR(fd, &read_fds);
+			if (fd == fdmax) { fdmax--; }  
+		}
+		close(fd);
+		nodes.erase(fd);
+	}
+	if (num_bytes == (int)(content.size()) || num_bytes == 0)
+	{
+		std::stringstream ss;
+		ss << "Response send to socket " << fd;
+		Log::log(ss.str(), STD_OUT);
+		if (FD_ISSET(fd, &write_fds))
+		{
+			FD_CLR(fd, &write_fds);
+			if (fd == fdmax) { fdmax--; }  
+		}
+		FD_SET(fd, &read_fds);
+		if (fd == fdmax) { fdmax=fd; }  
+	}
+	else
+	{
+		cl->set_time();
+		cl->get_server_info()->server.response = cl->get_server_info()->server.response.substr(num_bytes);
+	}
+	return (0);
 }

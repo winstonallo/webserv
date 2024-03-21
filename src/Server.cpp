@@ -28,10 +28,10 @@ Server::Server(const Server& rhs)
 // 	return request;
 // }
 
-ServerInfo	Server::get_server_info() const
-{
-	return server_info;
-}
+// ServerInfo*	Server::get_server_info() const
+// {
+// 	return server_info;
+// }
 
 std::string Server::respond(Request& rq)
 {
@@ -160,17 +160,18 @@ std::string		Server::create_response(Request& rq)
 		ex = "default";
 	ss << "Content-Type: " << content_type[ex] << "\r\n";
 
-	ss << "Connection: " << rq.get_header("Connection") << "\r\n";
+	ss << "Connection: " << rq.get_header("CONNECTION") << "\r\n";
 	ss << "\r\n";
 	ss << body;
-	return ss.str();
+	response = ss.str();
+	return response;
 }
 
 std::string		Server::get_body(Request& rq)
 {
 	if (rq.get_method() == "GET" || rq.get_method() == "HEAD")
 	{
-		std::ifstream file("index.html");
+		std::ifstream file("files/index.html");
 		if (file.fail())
 		{
 			return "Nothing"; 
