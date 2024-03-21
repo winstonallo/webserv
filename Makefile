@@ -55,8 +55,11 @@ $(OBJS_DIR)/%.o: $(SRCS_DIR)/%.cpp
 
 all		: $(NAME)
 
-run		: re
+run		: 
+	./webserv config_files/simple.conf
 
+debug	:
+	gdb --arg ./webserv config_files/simple.conf
 
 fclean	: clean
 		$(RM) $(NAME)
