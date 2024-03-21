@@ -3,6 +3,9 @@
 
 
 #include "ConfigParser.hpp"
+#include "Utils.hpp"
+#include <sstream>
+#include <fstream>
 
 // default constructor: loads config from path
 // 
@@ -243,8 +246,7 @@ std::string	ConfigParser::error_on_line(const std::string& issue, int line_count
 	std::ostringstream oss;
 
 	oss << _config_file_path << " (line " << line_count << "): ";
-	oss << issue << "\n>\n> ";
-	oss << FALLBACK << "\n>\n> " << RULES;
+	oss << issue;
 	return oss.str();
 }
 

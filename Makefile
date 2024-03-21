@@ -6,7 +6,10 @@ RM			= rm -rf
 
 SRCS_DIR	= src
 
-OBJS_DIR	= obj
+TEST_DIR	= config_tests
+
+OBJS_DIR		= obj
+TEST_OBJS_DIR	= test_objs
 
 CXXFLAGS	= -Wall -Wextra -Werror -MP -MD -std=c++98 -g -Iinc
 
@@ -22,14 +25,23 @@ SRCS   	= \
         $(SRCS_DIR)/ConfigParser.cpp \
         $(SRCS_DIR)/ConfigDispatcher.cpp \
         $(SRCS_DIR)/Utils.cpp \
-        $(SRCS_DIR)/main3.cpp \
 
-OBJS	= $(SRCS:${SRCS_DIR}/%.cpp=${OBJS_DIR}/%.o)
+TESTS	= \
+        $(SRCS_DIR)/main_config.cpp \
+		# $(TEST_DIR)/ConfigTests.cpp \
+		# $(TEST_DIR)/main.cpp \
+
+OBJS		= $(SRCS:${SRCS_DIR}/%.cpp=${OBJS_DIR}/%.o)
+TEST_OBJS	= $(TESTS:${TEST_DIR}/%.cpp=${TEST_OBJS_DIR}/%.o)
 
 DEPS	= $(OBJS:%.o=%.d)
 
-$(NAME): $(OBJS)
-	$(CXX) $(CXXFLAGS) -o $(NAME) $(OBJS)
+$(NAME): $(OBJS) $(TEST_OBJS)
+	$(CXX) $(CXXFLAGS) -o $(NAME) $(OBJS) $(TEST_OBJS)
+
+$(TEST_OBJS_DIR)/%.o: $(TEST_DIR)/%.cpp
+	mkdir -p $(TEST_OBJS_DIR)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 $(OBJS_DIR)/%.o: $(SRCS_DIR)/%.cpp
 	mkdir -p $(OBJS_DIR)
@@ -43,6 +55,7 @@ run		: re
 
 fclean	: clean
 		$(RM) $(NAME)
+		$(RM) $(TEST_OBJS_DIR)
 		$(RM) $(OBJS_DIR)
 		$(RM) webserv.d
 

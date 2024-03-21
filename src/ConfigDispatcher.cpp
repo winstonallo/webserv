@@ -1,8 +1,13 @@
 #include "ConfigDispatcher.hpp"
-#include <algorithm>
+#include <cstdlib>
 #include <cstddef>
 #include <ostream>
+#include <string>
 #include <utility>
+#include "Utils.hpp"
+#include <map>
+#include <cstdlib>
+#include <cstring>
 #include "Log.hpp"
 #include "Utils.hpp"
 
@@ -85,24 +90,52 @@ void	ConfigDispatcher::handle_server(const std::string& key)
 //
 // if error page prefix ("webserv:error_pages") in key_value.first:
 //		1. extract status code from the key
-//		2. 	if corresponding html file exists:
+//		2. 	
+//			if name == .html:
+//				hidden file -> log error & fall back to default
+//			else if filename too short or not ending in .html:
+//				invalid extension -> log error & fall back to default
+//			else if corresponding html file exists:
 //				store into _error_pages map using status code as a key
+//				erase corresponding status code from default status codes
 //			else:
 //				log error and fall back to default value (fallback to be implemented)
-void    ConfigDispatcher::handle_error_page(const std::pair <std::string, std::vector <std::string> >& key_value)
+void ConfigDispatcher::handle_error_page(const std::pair<std::string, std::vector<std::string> >& key_value)
 {
-    if (key_value.first.substr(0, key_value.first.find_last_of(":")) == ERROR_PAGE_PREFIX)
+    std::string file_path = key_value.first.substr(0, key_value.first.find_last_of(":"));
+    std::string error_page = key_value.second[0];
+
+    if (file_path == ERROR_PAGE_PREFIX)
     {
-        int status_code = std::atoi(key_value.first.substr(key_value.first.size() - 3).c_str());
-        if (Utils::file_exists(key_value.second[0]) == true)
-        {
-            _error_pages[status_code] = key_value.second[0];
-        }
-        else
-        {
-            Log::log("error: " + key_value.second[0] + ": file not found, falling back to default\n", ERROR_FILE);
-        }
+		int status_code = std::atoi(key_value.first.substr(key_value.first.size() - 3).c_str());
+
+		if (error_page == ".html")
+		{
+			Log::log("error: " + file_path + ": invalid file - hidden files not accepted, falling back to default\n", ERROR_FILE | STD_ERR);
+		}
+		else if (error_page.size() < 6 || error_page.substr(error_page.size() - 5) != ".html")
+		{
+			Log::log("error: " + file_path + ": invalid file - expecting .html, falling back to default\n", ERROR_FILE | STD_ERR);
+		}
+		else if (Utils::file_exists(error_page))
+		{
+			_error_pages[status_code] = error_page;
+		}
+		else
+		{
+			Log::log("error: " + error_page + ": file not found, falling back to default\n", ERROR_FILE | STD_ERR);
+		}
     }
+}
+
+std::map <int, std::string>		ConfigDispatcher::get_error_pages()
+{
+	return _error_pages;
+}
+
+std::map <int, std::map <std::string, std::vector <std::string> > >		ConfigDispatcher::get_servers()
+{
+	return _servers;
 }
 
 void	ConfigDispatcher::print_error_pages()

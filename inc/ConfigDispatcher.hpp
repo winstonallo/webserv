@@ -5,11 +5,8 @@
 #define CONFIGDISPATCHER_HPP
 
 #include <map>
-#include <iostream>
+#include <string>
 #include <vector>
-#include <cstdlib>
-#include "Utils.hpp"
-#include "ServerInfo.hpp"
 
 class ConfigDispatcher
 {
@@ -21,12 +18,17 @@ class ConfigDispatcher
 		void																			handle_server(const std::string& key);
 		void																			handle_route(const std::string& key);
 
+
+
+		std::map <int, std::map <std::string, std::vector <std::string> > >				get_servers();
+		std::map <int, std::string>                                      				get_error_pages();
+
 		// debugging funcs
 		void	print_error_pages();
 		void	print_servers();
 		void	print_routes();
 
-        ConfigDispatcher(const std::map <std::string, std::vector <std::string> >& raw_config=std::map<std::string, std::vector<std::string> >());
+        ConfigDispatcher(const std::map <std::string, std::vector <std::string> >& raw_config);
         ~ConfigDispatcher();
 
     private:

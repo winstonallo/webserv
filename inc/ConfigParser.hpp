@@ -1,11 +1,10 @@
-#ifndef CONFIG_HPP
-#define CONFIG_HPP
+#ifndef CONFIGPARSER_HPP
+#define CONFIGPARSER_HPP
 
-#include "Utils.hpp"
-#include "ServerInfo.hpp"
+#include <iostream>
+#include <vector>
 #include <map>
 #include <cstdlib>
-#include <cerrno>
 #include <cstring>
 #include <stack>
 
@@ -13,7 +12,7 @@ class ConfigParser
 {
 	public:
 	
-		ConfigParser(const std::string& path="config/webserv.conf");
+		ConfigParser(const std::string& path="config_files/webserv.conf");
 		~ConfigParser();
 
 		std::map <std::string, std::vector <std::string> >						get_config() const;

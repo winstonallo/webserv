@@ -4,3 +4,4 @@ obj
 *.d
 *.log
 compile_flags.txt
+vgcore*
