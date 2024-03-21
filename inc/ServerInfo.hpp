@@ -56,6 +56,7 @@ class ServerInfo : public Node
 		std::string							root;
 		std::string							error_log;
 		std::string							access_log;
+		std::map<int, std::string>			error_pages;
 		std::vector<LocationInfo>			locations;
 };
 
