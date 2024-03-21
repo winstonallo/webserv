@@ -1,4 +1,6 @@
 #include "Config.hpp"
+#include "ConfigDispatcher.hpp"
+#include "ConfigParser.hpp"
 #include "ServerInfo.hpp"
 #include "Utils.hpp"
 #include <algorithm>
@@ -181,7 +183,7 @@ std::string	Config::get_error_page(const int key)
 std::string	Config::generate_default_error_page(const int status_code)
 {
 	std::string default_error_code = "400", default_error_message = "bad request", default_html = Utils::file_to_string(DEFAULT_ERROR_PAGE);
-	std::string	new_error_code = Utils::itoa(status_code), new_error_message = _status_codes[status_code];
+	std::string	new_error_code = Utils::itoa(status_code), new_error_message = _error_status_codes[status_code];
 
 	size_t pos_code = default_html.find(default_error_code), pos_message = default_html.find(default_error_message);
 
@@ -205,7 +207,16 @@ std::string	Config::generate_default_error_page(const int status_code)
 	return new_html_path;
 }
 
-Config::Config(const std::map <int, std::string> error_pages) : _error_pages(error_pages), _status_codes(Utils::get_error_status_codes()) {}
+Config::Config(const std::string& config_path)
+{
+	ConfigParser 		parser(config_path);
+	ConfigDispatcher 	dispatcher(parser.get_config());
+
+	_error_pages = dispatcher.get_error_pages();
+	std::map <int, server_map> servers = dispatcher.get_servers();
+	set_servers(servers);
+	_error_status_codes = Utils::get_error_status_codes();
+}
 
 Config::~Config() 
 {

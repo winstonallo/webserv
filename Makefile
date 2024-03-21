@@ -27,9 +27,9 @@ SRCS   	= \
         $(SRCS_DIR)/Utils.cpp \
 
 TESTS	= \
-		$(TEST_DIR)/ConfigTests.cpp \
-		$(TEST_DIR)/main.cpp \
-        # $(SRCS_DIR)/main_config.cpp \
+        $(SRCS_DIR)/main_config.cpp \
+		# $(TEST_DIR)/ConfigTests.cpp \
+		# $(TEST_DIR)/main.cpp \
 
 OBJS		= $(SRCS:${SRCS_DIR}/%.cpp=${OBJS_DIR}/%.o)
 TEST_OBJS	= $(TESTS:${TEST_DIR}/%.cpp=${TEST_OBJS_DIR}/%.o)

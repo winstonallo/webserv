@@ -30,7 +30,7 @@ class Config
 
 		std::string                             generate_default_error_page(const int status_code);
 
-		Config(const std::map <int, std::string> error_pages);
+		Config(const std::string& config_path="config_files/webserv.conf");
 		~Config();
 	
 	private:
@@ -38,7 +38,7 @@ class Config
 		std::vector <ServerInfo *>				_servers;
 		std::map <int, std::string>				_error_pages;
 
-		std::map <int, std::string>             _status_codes;
+		std::map <int, std::string>             _error_status_codes;
 
 		std::vector <std::string>				_unique_values;
 		std::vector <int>						_ports;

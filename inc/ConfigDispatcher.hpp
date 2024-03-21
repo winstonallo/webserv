@@ -28,7 +28,7 @@ class ConfigDispatcher
 		void	print_servers();
 		void	print_routes();
 
-        ConfigDispatcher(const std::map <std::string, std::vector <std::string> >& raw_config=std::map<std::string, std::vector<std::string> >());
+        ConfigDispatcher(const std::map <std::string, std::vector <std::string> >& raw_config);
         ~ConfigDispatcher();
 
     private:
