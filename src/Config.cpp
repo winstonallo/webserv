@@ -62,7 +62,6 @@ void	Config::handle_locations(server_map& server, ServerInfo* new_server)
 		{
 			size_t	colon = it->first.find(":", found);
 			std::string	path = it->first.substr(found + location_key_prefix.size(), colon - (found + location_key_prefix.size()));
-			std::cout << path << std::endl;
 			
 			if (new_location == NULL || new_location->get_name() != path)
 			{
@@ -72,21 +71,24 @@ void	Config::handle_locations(server_map& server, ServerInfo* new_server)
 
 			new_location->set_name(path);
 
-			if (it->first.find("root") && it->second.empty() == false)
+			if (it->first.find("root") != std::string::npos && it->second.empty() == false)
 			{
 				new_location->setPath(it->second[0]);
 			}
-			else if (it->first.find("directory_listing") && it->second[0] == "enabled")
+			else if (it->first.find("directory_listing") != std::string::npos)
 			{
-				new_location->set_directory_listing(true);
+				if (it->second[0] == "enabled")
+				{
+					new_location->set_directory_listing(true);
+				}
 			}
-			else if (it->first.find("allowed_methods"))
+			else if (it->first.find("allowed_methods") != std::string::npos)
 			{
 				new_location->set_allowed_methods(it->second);
 			}
 			else
 			{
-				Log::log("error: config value '' not recognized, will be ignored in server initialization\n");
+				Log::log("error: config value '" + it->second[0] + "' not recognized, will be ignored in server initialization\n");
 			}
 		}
 	}

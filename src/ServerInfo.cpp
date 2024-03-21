@@ -47,6 +47,11 @@ void	ServerInfo::set_server_name(const std::vector <std::string>& tserver_name)
 	server_name = tserver_name;
 }
 
+std::vector <std::string>	ServerInfo::get_server_name() const
+{
+	return server_name;
+}
+
 bool	ServerInfo::get_auto_index() const
 {
 	return (autoindex); 
