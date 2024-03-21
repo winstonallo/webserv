@@ -45,7 +45,7 @@ class ServerInfo : public Node
 		int									get_client_max_body_size() const;
 		void								set_client_max_body_size(const int client_max_body_size);
 		LocationInfo&						get_location(int);
-		void								add_location(LocationInfo lc);
+		void								add_locations(std::vector <LocationInfo *> locations);
 		bool								is_fd_in_clients(int fd) const;
 
 	private:
@@ -59,7 +59,7 @@ class ServerInfo : public Node
 		std::string							root;
 		std::string							error_log;
 		std::string							access_log;
-		std::vector <LocationInfo>			locations;
+		std::vector <LocationInfo*>			locations;
 };
 
 #endif

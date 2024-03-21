@@ -1,9 +1,11 @@
 #include "Config.hpp"
 #include "ConfigDispatcher.hpp"
 #include "ConfigParser.hpp"
+#include "LocationInfo.hpp"
 #include "ServerInfo.hpp"
 #include "Utils.hpp"
 #include <algorithm>
+#include <cstddef>
 #include <exception>
 #include <netinet/in.h>
 #include <stdexcept>
@@ -30,6 +32,7 @@ void	Config::set_servers(std::map <int, std::map <std::string, std::vector <std:
 			handle_access_log(it->second, new_server);
 			handle_host(it->second, new_server, new_unique_values);
 			handle_client_max_body_size(it->second, new_server);
+			handle_locations(it->second, new_server);
 
 			_servers.push_back(new_server);
 			_unique_values.insert(_unique_values.end(), new_unique_values.begin(), new_unique_values.end());
@@ -37,10 +40,57 @@ void	Config::set_servers(std::map <int, std::map <std::string, std::vector <std:
 		catch (const std::exception& e)
 		{
 			delete new_server;
+
 			Log::log(e.what(), STD_ERR | ERROR_FILE);
+
 			continue ;
 		}
 	}
+}
+
+void	Config::handle_locations(server_map& server, ServerInfo* new_server)
+{
+	std::vector <LocationInfo*> locations;
+	std::string					location_key_prefix = "location";
+	LocationInfo*				new_location = NULL;
+
+	for (server_map::iterator it = server.begin(); it != server.end(); it++)
+	{
+		size_t found = it->first.find(location_key_prefix);
+
+		if (found != std::string::npos)
+		{
+			size_t	colon = it->first.find(":", found);
+			std::string	path = it->first.substr(found + location_key_prefix.size(), colon - (found + location_key_prefix.size()));
+			std::cout << path << std::endl;
+			
+			if (new_location == NULL || new_location->get_name() != path)
+			{
+				locations.push_back(new_location);
+				new_location = new LocationInfo();
+			}
+
+			new_location->set_name(path);
+
+			if (it->first.find("root") && it->second.empty() == false)
+			{
+				new_location->setPath(it->second[0]);
+			}
+			else if (it->first.find("directory_listing") && it->second[0] == "enabled")
+			{
+				new_location->set_directory_listing(true);
+			}
+			else if (it->first.find("allowed_methods"))
+			{
+				new_location->set_allowed_methods(it->second);
+			}
+			else
+			{
+				Log::log("error: config value '' not recognized, will be ignored in server initialization\n");
+			}
+		}
+	}
+	new_server->add_locations(locations);
 }
 
 void	Config::handle_host(server_map& server, ServerInfo* new_server, std::vector <std::string>& new_unique_values)

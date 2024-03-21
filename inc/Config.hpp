@@ -27,6 +27,7 @@ class Config
 		void									handle_host(server_map& server, ServerInfo* new_server, std::vector <std::string>& new_unique_values);
 		void									handle_access_log(server_map& server, ServerInfo* new_server);
 		void									handle_client_max_body_size(server_map& server, ServerInfo* new_server);
+		void									handle_locations(server_map& server, ServerInfo* new_server);
 
 		std::string                             generate_default_error_page(const int status_code);
 
