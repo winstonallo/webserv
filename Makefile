@@ -6,12 +6,12 @@ RM			= rm -rf
 
 SRCS_DIR	= src
 
-OBJS_DIR	= obj
+TEST_DIR	= config_tests
 
-LDFLAGS     = -pthread
-GTEST_DIR   = test/googletest
+OBJS_DIR		= obj
+TEST_OBJS_DIR	= test_objs
 
-CXXFLAGS	= -Wall -Wextra -Werror -MP -MD -std=c++98 -g -Iinc #-I$(GTEST_DIR)/include
+CXXFLAGS	= -Wall -Wextra -Werror -MP -MD -std=c++98 -g -Iinc -I$(GTEST_DIR)/include
 
 
 TESTFLAGS	= -Wall -Wextra -Werror -MP -MD -g -Iinc -I$(GTEST_DIR)/include
@@ -31,35 +31,36 @@ SRCS   	= \
         $(SRCS_DIR)/Utils.cpp \
         $(SRCS_DIR)/main_server.cpp
 
-OBJS	= $(SRCS:${SRCS_DIR}/%.cpp=${OBJS_DIR}/%.o)
+TESTS	= \
+        $(SRCS_DIR)/main_config.cpp \
+		# $(TEST_DIR)/ConfigTests.cpp \
+		# $(TEST_DIR)/main.cpp \
+
+OBJS		= $(SRCS:${SRCS_DIR}/%.cpp=${OBJS_DIR}/%.o)
+TEST_OBJS	= $(TESTS:${TEST_DIR}/%.cpp=${TEST_OBJS_DIR}/%.o)
 
 DEPS	= $(OBJS:%.o=%.d)
 
-TESTS_DIR = test
-TEST_SRCS	= $(wildcard $(TESTS_DIR)/*.cpp)
-TEST_OBJS	= $(TEST_SRCS:%.cpp=%.o)
-TEST_EXEC	= testik
+$(NAME): $(OBJS) $(TEST_OBJS)
+	$(CXX) $(CXXFLAGS) -o $(NAME) $(OBJS) $(TEST_OBJS)
 
-$(NAME): $(OBJS)
-	$(CXX) $(CXXFLAGS) -o $(NAME) $(OBJS)
+$(TEST_OBJS_DIR)/%.o: $(TEST_DIR)/%.cpp
+	mkdir -p $(TEST_OBJS_DIR)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 $(OBJS_DIR)/%.o: $(SRCS_DIR)/%.cpp
 	mkdir -p $(OBJS_DIR)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-$(TEST_EXEC): $(TEST_OBJS) $(OBJS)
-	$(CXX) $(TESTFLAGS) $(LDFLAGS) -o $(TEST_EXEC) $(TEST_OBJS) $(OBJS) -L$(GTEST_DIR)/lib -lgtest -lgtest_main
-
-$(TESTS_DIR)/%.o: $(TESTS_DIR)/%.cpp
-	$(CXX) $(TESTFLAGS) -c $< -o $@
 
 all		: $(NAME)
 
-run_tests: $(TEST_EXEC)
-	./$(TEST_EXEC)
+run		: re
+
 
 fclean	: clean
 		$(RM) $(NAME)
+		$(RM) $(TEST_OBJS_DIR)
 		$(RM) $(OBJS_DIR)
 		$(RM) webserv.d
 
