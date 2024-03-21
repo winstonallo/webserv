@@ -4,8 +4,6 @@
 #include <string>
 #include <vector>
 
-// TODO
-
 class LocationInfo 
 {
 	public:

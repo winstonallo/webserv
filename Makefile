@@ -25,6 +25,7 @@ SRCS   	= \
         $(SRCS_DIR)/ConfigParser.cpp \
         $(SRCS_DIR)/ConfigDispatcher.cpp \
         $(SRCS_DIR)/Utils.cpp \
+        $(SRCS_DIR)/Route.cpp \
 
 TESTS	= \
         $(SRCS_DIR)/main_config.cpp \
