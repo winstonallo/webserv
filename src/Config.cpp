@@ -284,11 +284,6 @@ void	Config::set_routes(std::map <std::string, _map>& raw_routes)
 		_routes.push_back(new_route);
 	}
 }
-		// std::cout << it->first << std::endl;
-		// for (_map::iterator itt = it->second.begin(); itt != it->second.end(); itt++)
-		// {
-		// 	std::cout << "\t" << itt->first << std::endl << "\t\t" << itt->second[0] << std::endl;
-		// }
 
 std::vector <ServerInfo *>	Config::get_servers() const
 {
