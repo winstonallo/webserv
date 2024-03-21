@@ -351,7 +351,7 @@ int	Director::read_from_client(int client_fd)
 	else 
 	{
 		ci->set_time();
-		std::cout << msg << std::endl;
+		//std::cout << msg << std::endl;
 		try
 		{
 			Request	req(msg);
