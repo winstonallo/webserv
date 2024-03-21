@@ -34,7 +34,7 @@ class ClientInfo : public Node
 	private:
 		ServerInfo*					server_info;
 		time_t						prev_time;
-		//Request						request;
+		//Request					request;
 
 };
 

@@ -206,6 +206,7 @@ void Request::validate_uri(void)
         }
         if (schema != "http")
         {
+			error = 400;
             throw std::runtime_error("Invalid schema: " + schema);
         }
         uri = uri.substr(pos + 1);
@@ -218,6 +219,7 @@ void Request::validate_uri(void)
         std::string fragment = uri.substr(pos + 1);
         if (!valid_token(fragment, FRAGMENT))
         {
+			error = 400;
             throw std::runtime_error("Invalid fragment: " + fragment);
         }
         this->fragment = fragment;
@@ -231,6 +233,7 @@ void Request::validate_uri(void)
         std::string query = uri.substr(pos + 1);
         if (!valid_token(query, QUERY))
         {
+			error = 400;
             throw std::runtime_error("Invalid query: " + query);
         }
         this->query = query;
@@ -248,6 +251,7 @@ void Request::validate_uri(void)
             std::string userinfo = uri.substr(0, pos);
             if (!valid_token(userinfo, USERINFO))
             {
+				error = 400;
                 throw std::runtime_error("Invalid userinfo: " + userinfo);
             }
             this->userinfo = userinfo;
@@ -260,6 +264,7 @@ void Request::validate_uri(void)
             std::string path = uri.substr(pos);
             if (!valid_token(path, PATH))
             {
+				error = 400;
                 throw std::runtime_error("Invalid path: " + path);
             }
             this->path = path;
@@ -272,6 +277,7 @@ void Request::validate_uri(void)
             std::string port = uri.substr(pos + 1);
             if (!valid_token(port, DIGIT))
             {
+				error = 400;
                 throw std::runtime_error("Invalid port: " + port);
             }
             this->port = port;
@@ -281,6 +287,7 @@ void Request::validate_uri(void)
         std::string host = uri;
         if (!valid_token(host, HOST))
         {
+			error = 400;
             throw std::runtime_error("Invalid host: " + host);
         }
         this->host = host;
@@ -289,6 +296,7 @@ void Request::validate_uri(void)
         std::string path = uri;
         if (!valid_token(path, PATH))
         {
+			error = 400;
             throw std::runtime_error("Invalid path: " + path);
         }
         this->path = path;
@@ -307,9 +315,11 @@ void Request::validate_request()
 {
     if (this->get_method() != "GET" && this->get_method() != "POST" && this->get_method() != "DELETE")
     {
+		error = 501;
         throw std::runtime_error("Invalid method: " + this->get_method());
     }
     if (this->get_protocol() != "HTTP/1.1"){
+		error = 400;
         throw std::runtime_error("Invalid protocol: " + this->get_protocol());
     }
     // validate headers - field-names
@@ -317,10 +327,12 @@ void Request::validate_request()
     {
         if (it->first.size() == 0)
         {
+			error = 400;
             throw std::runtime_error("Invalid header: empty field-name");
         }
         if (!valid_token(it->first, TCHAR))
         {
+			error = 400;
             throw std::runtime_error("Invalid header: invalid field-name");
         }
     }
@@ -331,6 +343,7 @@ void Request::validate_request()
         {
             if (!std::isprint(it->second[i]))
             {
+				error = 400;
                 throw std::runtime_error("Invalid header: invalid field-value");
             }
         }
@@ -345,4 +358,9 @@ Request::Request(std::string request)
     validate_request();
     validate_uri();
     pct_decode();
+}
+
+int Request::get_error() const
+{
+	return (error);
 }

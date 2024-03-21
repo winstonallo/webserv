@@ -91,6 +91,15 @@ int	Director::init_server(ServerInfo *si)
 		si->set_addr(*((sockaddr_storage*)(p->ai_addr)));
 		si->set_addr_len((size_t)p->ai_addrlen);
 
+//	print address
+		std::string ipver;
+		if (p->ai_family == AF_INET)
+			ipver = "IPv4";
+		else
+			ipver = "IPv6";
+		char ipstr[INET6_ADDRSTRLEN];
+        inet_ntop(p->ai_family, p->ai_addr, ipstr, sizeof(ipstr));
+        std::cout << ipver << " address: " << ipstr << std::endl;
 		break;
 	}
 
@@ -140,20 +149,10 @@ int	Director::init_servers()
 			return -1;
 		}
 		FD_SET(listener, &read_fds);
-		if (fdmax < listener) 
-			fdmax = listener;
+		if (fdmax < listener) fdmax = listener;
 		nodes[listener] = &(*it);
 		nodes[listener]->set_type(SERVER_NODE);
 		nodes[listener]->set_fd(listener);
-
-		// std::stringstream ss2;
-		// char	remoteIP[INET6_ADDRSTRLEN];	
-		// ss2 << "Listening at address: ";
-		// ss2 << inet_ntop(nodes[listener]->get_addr().ss_family,
-		// 	get_in_addr((struct sockaddr *)&nodes[listener]->get_addr()),
-		// 	remoteIP, INET6_ADDRSTRLEN);
-		// ss2 << " on port " << ((ServerInfo*)&nodes[listener])->get_port() << std::endl;
-		// Log::log(ss2.str(), STD_OUT);
 	}
 	return 0;
 }
@@ -282,7 +281,9 @@ int	Director::create_client_connection(int listener)
 		}
 		else
 		{
-			std::cerr << "Tried to overwrite socket: " << newfd << std::endl;
+			std::stringstream ss;
+			ss << "Tried to overwrite socket: " << newfd << std::endl;
+			Log::log(ss.str(), STD_ERR | ERROR_FILE);
 			exit(2);
 		}
 		std::stringstream ss2;
@@ -320,13 +321,19 @@ int	Director::create_client_connection(int listener)
 int	Director::read_from_client(int client_fd)
 {
 	char			msg[MSG_SIZE];
-	
+	char			remoteIP[INET6_ADDRSTRLEN];	
+	int				num = 0;
+	ClientInfo		*ci;
+
+	ci = dynamic_cast<ClientInfo *>(nodes[client_fd]);
 	memset(&msg, 0, MSG_SIZE);
-	int		num = read(client_fd, msg, MSG_SIZE);
+	num = read(client_fd, msg, MSG_SIZE);
 	if (!num)
 	{
 		std::stringstream ss;
-		ss << "Connection closed by client " << client_fd << std::endl;
+		ss << "Connection closed by " << inet_ntop(AF_INET, get_in_addr((struct sockaddr *)&ci->get_addr()),
+						remoteIP, INET6_ADDRSTRLEN);
+		ss << " on socket " << client_fd << std::endl;
 		Log::log(ss.str(), ACCEPT_FILE | STD_OUT);
 		if (FD_ISSET(client_fd, &write_fds))
 			FD_CLR(client_fd, &write_fds);
@@ -345,22 +352,26 @@ int	Director::read_from_client(int client_fd)
 		Log::log(ss.str(), ERROR_FILE | STD_ERR);
 		return -1;	
 	}
-	else
+	else 
 	{
-		dynamic_cast<ClientInfo*>(nodes[client_fd])->set_time();
-		std::cout << msg;
-		Request	req(msg);
-		std::cout << std::endl;
-		std::cout << req << std::endl;
-		std::cout << std::endl;
-		dynamic_cast<ClientInfo*>(nodes[client_fd])->get_server_info()->server.create_response(req);
-		FD_CLR(client_fd, &read_fds);
-		if (client_fd == fdmax)
-			fdmax--;
-		FD_SET(client_fd, &write_fds);
-		if (client_fd > fdmax)
-			fdmax = client_fd;
+		ci->set_time();
+		std::cout << msg << std::endl;
+		try
+		{
+			Request	req(msg);
+			ci->get_server_info()->server.create_response(req); 
+			FD_CLR(client_fd, &read_fds);
+			if (client_fd == fdmax)	fdmax--;
+			FD_SET(client_fd, &write_fds);
+			if (client_fd > fdmax)	fdmax = client_fd;
+		}
+		catch(const std::exception& e)
+		{
+			std::cerr << e.what() << '\n';
+		}
+		//std::cout << req << std::endl;
 	}
+
 	return 0;
 }
 
@@ -404,7 +415,7 @@ int	Director::write_to_client(int fd)
 	if (num_bytes == (int)(content.size()) || num_bytes == 0)
 	{
 		std::stringstream ss;
-		ss << "Response send to socket " << fd;
+		ss << "Response send to socket:" << fd << std::endl;;
 		Log::log(ss.str(), STD_OUT);
 		if (FD_ISSET(fd, &write_fds))
 		{

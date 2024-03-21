@@ -142,6 +142,11 @@ std::string		Server::create_response(Request& rq)
 	char				buf[100];
 	std::string			body;
 
+	if (rq.get_error())
+	{
+
+	}
+
 	body = get_body(rq);
 
 	ss << "HTTP/1.1 " << errcode << " " << status_string[errcode]  << "\r\n";
@@ -174,7 +179,8 @@ std::string		Server::get_body(Request& rq)
 		std::ifstream file("files/index.html");
 		if (file.fail())
 		{
-			return "Nothing"; 
+			errcode = 400;
+			Log::log("Error reading request file", STD_ERR | ERROR_FILE); 
 		}
 		std::ostringstream ss;
 		ss << file.rdbuf();

@@ -3,9 +3,11 @@
 
 #include <sstream>
 #include "Request.hpp"
+//#include "Director.hpp"
 //#include "ServerInfo.hpp"
 //#include "ClientInfo.hpp"
 #include "Utils.hpp"
+#include "Log.hpp"
 
 class Request;
 
