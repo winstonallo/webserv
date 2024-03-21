@@ -2,32 +2,33 @@
 #define CONFIG_HPP
 
 #include "ServerInfo.hpp"
+#include "Route.hpp"
 #include <map>
 #include <netinet/in.h>
 #include <string>
 
-typedef std::map <std::string, std::vector <std::string> > server_map;
+typedef std::map <std::string, std::vector <std::string> > _map;
 
 class Config
 {
 	public:
 
-		std::vector <ServerInfo *>				get_servers();
+		std::vector <ServerInfo *>				get_servers() const;
+		std::vector <Route *>					get_routes() const;
 		std::string								get_error_page(const int key);
 	
 
 
 		void									set_servers(std::map <int, std::map <std::string, std::vector <std::string> > >& raw_servers);
 		void									set_error_pages(std::map <int, std::string>& error_pages);
-		void									set_routes(std::map <std::string, std::map <std::string, std::vector <std::string> > >& raw_routes);
+		void									set_routes(std::map <std::string, _map>& raw_routes);
 
-
-		void									handle_port(server_map& server, ServerInfo* new_server, std::vector <std::string>& new_unique_values);
-		void									handle_server_names(server_map& server, ServerInfo* new_server, std::vector <std::string>& new_unique_values);
-		void									handle_host(server_map& server, ServerInfo* new_server, std::vector <std::string>& new_unique_values);
-		void									handle_access_log(server_map& server, ServerInfo* new_server);
-		void									handle_client_max_body_size(server_map& server, ServerInfo* new_server);
-		void									handle_locations(server_map& server, ServerInfo* new_server);
+		void									handle_port(_map& server, ServerInfo* new_server, std::vector <std::string>& new_unique_values);
+		void									handle_server_names(_map& server, ServerInfo* new_server, std::vector <std::string>& new_unique_values);
+		void									handle_host(_map& server, ServerInfo* new_server, std::vector <std::string>& new_unique_values);
+		void									handle_access_log(_map& server, ServerInfo* new_server);
+		void									handle_client_max_body_size(_map& server, ServerInfo* new_server);
+		void									handle_locations(_map& server, ServerInfo* new_server);
 
 		std::string                             generate_default_error_page(const int status_code);
 
@@ -37,6 +38,7 @@ class Config
 	private:
 
 		std::vector <ServerInfo *>				_servers;
+		std::vector <Route *>					_routes;
 		std::map <int, std::string>				_error_pages;
 
 		std::map <int, std::string>             _error_status_codes;

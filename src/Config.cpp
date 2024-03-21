@@ -20,7 +20,7 @@ void	Config::set_servers(std::map <int, std::map <std::string, std::vector <std:
 {
 	ServerInfo* new_server;
 
-	for (std::map <int, server_map>::iterator it = raw_servers.begin(); it != raw_servers.end(); it++)
+	for (std::map <int, _map>::iterator it = raw_servers.begin(); it != raw_servers.end(); it++)
 	{
 		try
 		{	
@@ -48,13 +48,13 @@ void	Config::set_servers(std::map <int, std::map <std::string, std::vector <std:
 	}
 }
 
-void	Config::handle_locations(server_map& server, ServerInfo* new_server)
+void	Config::handle_locations(_map& server, ServerInfo* new_server)
 {
 	std::vector <LocationInfo*> locations;
 	std::string					location_key_prefix = "location";
 	LocationInfo*				new_location = NULL;
 
-	for (server_map::iterator it = server.begin(); it != server.end(); it++)
+	for (_map::iterator it = server.begin(); it != server.end(); it++)
 	{
 		size_t found = it->first.find(location_key_prefix);
 
@@ -65,7 +65,10 @@ void	Config::handle_locations(server_map& server, ServerInfo* new_server)
 			
 			if (new_location == NULL || new_location->get_name() != path)
 			{
-				locations.push_back(new_location);
+				if (new_location != NULL)
+				{
+					locations.push_back(new_location);
+				}
 				new_location = new LocationInfo();
 			}
 
@@ -75,7 +78,7 @@ void	Config::handle_locations(server_map& server, ServerInfo* new_server)
 			{
 				new_location->setPath(it->second[0]);
 			}
-			else if (it->first.find("directory_listing") != std::string::npos)
+			else if (it->first.find("directory_listing") != std::string::npos && it->second.empty() == false)
 			{
 				if (it->second[0] == "enabled")
 				{
@@ -88,14 +91,18 @@ void	Config::handle_locations(server_map& server, ServerInfo* new_server)
 			}
 			else
 			{
-				Log::log("error: config value '" + it->second[0] + "' not recognized, will be ignored in server initialization\n");
+				Log::log("error: config value  at path " + it->first + "'" + it->second[0] + "' not recognized, will be ignored in server initialization\n");
 			}
 		}
+	}
+	if (new_location != NULL)
+	{
+		locations.push_back(new_location);
 	}
 	new_server->add_locations(locations);
 }
 
-void	Config::handle_host(server_map& server, ServerInfo* new_server, std::vector <std::string>& new_unique_values)
+void	Config::handle_host(_map& server, ServerInfo* new_server, std::vector <std::string>& new_unique_values)
 {
 	if (server.find("host") == server.end() or server["host"].empty() == true)
 	{
@@ -123,7 +130,7 @@ void	Config::handle_host(server_map& server, ServerInfo* new_server, std::vector
 	new_server->set_host_address(ip_address);
 }
 
-void	Config::handle_server_names(server_map& server, ServerInfo* new_server, std::vector <std::string>& new_unique_values)
+void	Config::handle_server_names(_map& server, ServerInfo* new_server, std::vector <std::string>& new_unique_values)
 {
 	if (server.find("server_name") == server.end() or server["server_name"].empty() == true)
 	{
@@ -145,7 +152,7 @@ void	Config::handle_server_names(server_map& server, ServerInfo* new_server, std
 	new_unique_values.insert(new_unique_values.end(), new_server_names.begin(), new_server_names.end());
 }
 
-void	Config::handle_port(server_map& server, ServerInfo* new_server, std::vector <std::string>& new_unique_values)
+void	Config::handle_port(_map& server, ServerInfo* new_server, std::vector <std::string>& new_unique_values)
 {
 	if (server.find("port") == server.end() or server["port"].empty() == true)
 	{
@@ -171,7 +178,7 @@ void	Config::handle_port(server_map& server, ServerInfo* new_server, std::vector
 //
 // else:
 //		->	path invalid, log error & return default 
-void	Config::handle_access_log(server_map& server, ServerInfo* new_server)
+void	Config::handle_access_log(_map& server, ServerInfo* new_server)
 {
 	std::string access_log;
 
@@ -190,7 +197,7 @@ void	Config::handle_access_log(server_map& server, ServerInfo* new_server)
 	new_server->set_access_log(ACCESS_LOG_DEFAULT);
 }
 
-void	Config::handle_client_max_body_size(server_map& server, ServerInfo* new_server)
+void	Config::handle_client_max_body_size(_map& server, ServerInfo* new_server)
 {
 	if (server.find("client_max_body_size") == server.end() or server["client_max_body_size"].empty() == true)
 	{
@@ -215,9 +222,82 @@ void	Config::handle_client_max_body_size(server_map& server, ServerInfo* new_ser
 	new_server->set_client_max_body_size(size);
 }
 
-std::vector <ServerInfo *>	Config::get_servers()
+void	Config::set_routes(std::map <std::string, _map>& raw_routes)
+{
+	Route *new_route;
+	for (std::map <std::string, _map>::iterator it = raw_routes.begin(); it != raw_routes.end(); it++)
+	{
+		new_route = new Route();
+
+		std::string name = it->first;
+		if (name == "/cgi-bin")
+		{
+			// TODO: handle_cgi();
+		}
+		else 
+		{
+			for (_map::iterator current_route = it->second.begin(); current_route != it->second.end(); current_route++)
+			{
+				if (current_route->first == "allowed_methods")
+				{
+					new_route->set_allowed_methods(current_route->second);
+				}
+				else if (current_route->first == "default_file" && current_route->second.empty() == false) 
+				{
+					new_route->set_default_file(current_route->second[0]);
+				}
+				else if (current_route->first == "root" && current_route->second.empty() == false)
+				{
+					new_route->set_root(current_route->second[0]);
+				}
+				else if (current_route->first == "upload_directory" && current_route->second.empty() == false)
+				{
+					new_route->set_upload_directory(current_route->second[0]);
+				}
+				else if (current_route->first == "http_redirect" && current_route->second.empty() == false)
+				{
+					if (current_route->second[0] == "enabled")
+					{
+						new_route->set_http_redirect(true);
+					}
+				}
+				else if (current_route->first == "accept_file_upload" && current_route->second.empty() == false)
+				{
+					if (current_route->second[0] == "enabled")
+					{
+						new_route->set_accept_file_upload(true);
+					}
+				}
+				else if (current_route->first == "directory_listing" && current_route->second.empty() == false)
+				{
+					if (current_route->second[0] == "enabled")
+					{
+						new_route->set_directory_listing(true);
+					}
+				}
+				else
+				{
+					Log::log("error: config value '" + current_route->first + "' not recognized, will be ignored in route initialization\n", STD_ERR | ERROR_FILE);
+				}
+			}
+		}
+		_routes.push_back(new_route);
+	}
+}
+		// std::cout << it->first << std::endl;
+		// for (_map::iterator itt = it->second.begin(); itt != it->second.end(); itt++)
+		// {
+		// 	std::cout << "\t" << itt->first << std::endl << "\t\t" << itt->second[0] << std::endl;
+		// }
+
+std::vector <ServerInfo *>	Config::get_servers() const
 {
 	return _servers;
+}
+
+std::vector <Route *>	Config::get_routes() const
+{
+	return _routes;
 }
 
 std::string	Config::get_error_page(const int key)
@@ -264,15 +344,22 @@ Config::Config(const std::string& config_path)
 	ConfigParser 		parser(config_path);
 	ConfigDispatcher 	dispatcher(parser.get_config());
 
+	std::map <int, _map> servers = dispatcher.get_servers();
+	std::map <std::string, _map> routes = dispatcher.get_routes();
+
 	_error_pages = dispatcher.get_error_pages();
-	std::map <int, server_map> servers = dispatcher.get_servers();
-	set_servers(servers);
 	_error_status_codes = Utils::get_error_status_codes();
+	set_routes(routes);
+	set_servers(servers);
 }
 
 Config::~Config() 
 {
 	for (std::vector <ServerInfo *>::iterator it = _servers.begin(); it != _servers.end(); it++)
+	{
+		delete *it;
+	}
+	for (std::vector <Route *>::iterator it = _routes.begin(); it != _routes.end(); it++)
 	{
 		delete *it;
 	}

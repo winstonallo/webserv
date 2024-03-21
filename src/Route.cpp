@@ -1,6 +1,6 @@
 #include "Route.hpp"
 
-Route::Route() {}
+Route::Route() : _directory_listing_enabled(false) {}
 
 Route::~Route() {}
 
@@ -44,12 +44,12 @@ std::string Route::get_upload_directory() const
     return _upload_directory;
 }
 
-void Route::set_http_redirect(const std::string& http_redirect)
+void Route::set_http_redirect(bool http_redirect)
 {
     _http_redirect = http_redirect;
 }
 
-std::string Route::get_http_redirect() const
+bool Route::get_http_redirect() const
 {
     return _http_redirect;
 }
@@ -62,4 +62,24 @@ void Route::set_allowed_methods(const std::vector <std::string>& allowed_methods
 std::vector <std::string> Route::get_allowed_methods() const
 {
     return _allowed_methods;
+}
+
+void    Route::set_directory_listing(bool directory_listing_enabled)
+{
+    _directory_listing_enabled = directory_listing_enabled;
+}
+
+bool    Route::directory_listing_enabled() const
+{
+    return _directory_listing_enabled;
+}
+
+void    Route::set_accept_file_upload(bool accept_file_upload)
+{
+    _accept_file_upload = accept_file_upload;
+}
+
+bool    Route::accept_file_upload() const
+{
+    return _accept_file_upload;
 }

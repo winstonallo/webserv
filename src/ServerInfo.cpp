@@ -6,7 +6,13 @@
 
 ServerInfo::ServerInfo() {}
 
-ServerInfo::~ServerInfo() {}
+ServerInfo::~ServerInfo() 
+{
+	for (std::vector <LocationInfo *>::iterator it = locations.begin(); it != locations.end(); it++)
+	{
+		delete *it;
+	}
+}
 
 
 ServerInfo::ServerInfo(int tfd, struct sockaddr_storage ss, size_t taddr_len):
@@ -105,4 +111,9 @@ void	ServerInfo::set_client_max_body_size(const int client_max_body_size)
 void	ServerInfo::add_locations(std::vector <LocationInfo*> locations)
 {
 	this->locations = locations;
+}
+
+std::vector <LocationInfo*>	ServerInfo::get_locations() const
+{
+	return locations;
 }
