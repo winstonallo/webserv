@@ -121,9 +121,11 @@ int	Director::init_servers()
 {
 	FD_ZERO(&read_fds);
 	FD_ZERO(&write_fds);
-	std::vector<ServerInfo*>::iterator e = config.get_servers().end();
+
+	std::vector<ServerInfo *> servers = config.get_servers();
+	std::vector<ServerInfo*>::iterator e = servers.end();
 	std::vector<ServerInfo*>::iterator it ;
-	for (it = config.get_servers().begin() ; it != e; it++)
+	for (it = servers.begin(); it != e; it++)
 	{
 		if (init_server(*it) < 0)
 			return -1;
