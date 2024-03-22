@@ -393,44 +393,27 @@ void	Config::configure_standard_route(_map& route, const std::string& name)
 //		->	initialize a new cgi
 //
 //	->	return the setter for the current map key
-Config::cgi_setter_map::iterator	Config::initialize_cgi_iteration(const std::string& current_map_key, CGI* new_cgi)
-{
-	std::string cgi_name = current_map_key.substr(0, current_map_key.find_first_of(":"));
-	std::string key = current_map_key.substr(current_map_key.find_first_of(":") + 1);
-
-	if (new_cgi == NULL || cgi_name != new_cgi->get_name()) 
-	{
-		if (new_cgi != NULL) 
-		{
-			_cgi.push_back(new_cgi);
-		}
-		new_cgi = new CGI;
-		new_cgi->set_name(cgi_name);
-	}
-	
-	cgi_setter_map::iterator setter = _cgi_route_setters.find(key);
-	
-	return setter;
-}
-
-// configures cgi routes
-// this one is a bit different than configure_standard_route(),
-// since all the cgi routes are stored in the same map and need
-// to be iterated over and initialized one by one
-//
-// if:	the key is recognized
-//		->	call the setter for the route
-//
-// else:
-//		->	log error & skip the value
 void Config::configure_cgi(_map& route) 
 {
     CGI* new_cgi = NULL;
 
     for (_map::iterator it = route.begin(); it != route.end(); it++) 
 	{
-		cgi_setter_map::iterator setter = initialize_cgi_iteration(it->first, new_cgi);
+        std::string cgi_name = it->first.substr(0, it->first.find_first_of(":"));
+        std::string key = it->first.substr(it->first.find_first_of(":") + 1);
 
+        if (new_cgi == NULL || cgi_name != new_cgi->get_name()) 
+		{
+            if (new_cgi != NULL) 
+			{
+                _cgi.push_back(new_cgi);
+            }
+            new_cgi = new CGI;
+            new_cgi->set_name(cgi_name);
+        }
+
+        cgi_setter_map::iterator setter = _cgi_route_setters.find(key);
+		
 		if (setter != _cgi_route_setters.end()) 
 		{
             try 
@@ -444,7 +427,6 @@ void Config::configure_cgi(_map& route)
         } 
 		else 
 		{
-			std::string key = it->first.substr(it->first.find_first_of(":") + 1);
             Log::log("error: CGI config key '" + key + "' not recognized.\n", STD_ERR | ERROR_FILE);
         }
     }
@@ -453,6 +435,7 @@ void Config::configure_cgi(_map& route)
         _cgi.push_back(new_cgi);
     }
 }
+
 
 // takes the parsed routes from the config dispatcher 
 // and initializes the routes one by one
