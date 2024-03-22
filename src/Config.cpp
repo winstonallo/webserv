@@ -2,6 +2,7 @@
 #include "ConfigDispatcher.hpp"
 #include "ConfigParser.hpp"
 #include "LocationInfo.hpp"
+#include "Route.hpp"
 #include "ServerInfo.hpp"
 #include "Utils.hpp"
 #include <algorithm>
@@ -314,45 +315,12 @@ void	Config::set_routes(std::map <std::string, _map>& raw_routes)
 		}
 		else 
 		{
+			new_route->set_name(name);
 			for (_map::iterator current_route = it->second.begin(); current_route != it->second.end(); current_route++)
 			{
-				new_route->set_name(name);
-				if (current_route->first == "allowed_methods")
+				if (_setters.find(current_route->first) != _setters.end())
 				{
-					new_route->set_allowed_methods(current_route->second);
-				}
-				else if (current_route->first == "default_file" && current_route->second.empty() == false) 
-				{
-					new_route->set_default_file(current_route->second[0]);
-				}
-				else if (current_route->first == "root" && current_route->second.empty() == false)
-				{
-					new_route->set_root(current_route->second[0]);
-				}
-				else if (current_route->first == "upload_directory" && current_route->second.empty() == false)
-				{
-					new_route->set_upload_directory(current_route->second[0]);
-				}
-				else if (current_route->first == "http_redirect" && current_route->second.empty() == false)
-				{
-					if (current_route->second[0] == "enabled")
-					{
-						new_route->set_http_redirect(true);
-					}
-				}
-				else if (current_route->first == "accept_file_upload" && current_route->second.empty() == false)
-				{
-					if (current_route->second[0] == "enabled")
-					{
-						new_route->set_accept_file_upload(true);
-					}
-				}
-				else if (current_route->first == "directory_listing" && current_route->second.empty() == false)
-				{
-					if (current_route->second[0] == "enabled")
-					{
-						new_route->set_directory_listing(true);
-					}
+					(new_route->*(_setters[current_route->first]))(current_route->second);
 				}
 				else
 				{
@@ -427,6 +395,17 @@ std::string	Config::generate_default_error_page(const int status_code)
 	return new_html_path;
 }
 
+void	Config::initialize_route_setters()
+{
+	_setters["allowed_methods"] = &Route::set_allowed_methods;
+	_setters["default_file"] = &Route::set_default_file;
+	_setters["root"] = &Route::set_root;
+	_setters["upload_directory"] = &Route::set_upload_directory;
+	_setters["http_redirect"] = &Route::set_http_redirect;
+	_setters["accept_file_upload"] = &Route::set_accept_file_upload;
+	_setters["directory_listing"] = &Route::set_directory_listing;
+}
+
 // full initialization of the config in one constructor
 //
 // ConfigParser:
@@ -456,6 +435,7 @@ Config::Config(const std::string& config_path)
 
 	_error_pages = dispatcher.get_error_pages();
 	_error_status_codes = Utils::get_error_status_codes();
+	initialize_route_setters();
 	set_routes(routes);
 	set_servers(servers);
 }

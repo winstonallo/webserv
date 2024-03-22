@@ -13,6 +13,9 @@ class Config
 {
 	public:
 
+		typedef void (Route::*setter)(const std::vector <std::string>&);
+		typedef std::map <std::string, setter> setter_map;
+
 		std::vector <ServerInfo *>				get_servers() const;
 		std::vector <Route *>					get_routes() const;
 		std::string								get_error_page(const int key);
@@ -20,6 +23,8 @@ class Config
 		void									set_servers(std::map <int, std::map <std::string, std::vector <std::string> > >& raw_servers);
 		void									set_error_pages(std::map <int, std::string>& error_pages);
 		void									set_routes(std::map <std::string, _map>& raw_routes);
+
+		void									initialize_route_setters();
 
 		void									handle_port(_map& server, ServerInfo* new_server, std::vector <std::string>& new_unique_values);
 		void									handle_server_names(_map& server, ServerInfo* new_server, std::vector <std::string>& new_unique_values);
@@ -42,9 +47,7 @@ class Config
 		std::map <int, std::string>             _error_status_codes;
 
 		std::vector <std::string>				_unique_values;
-		std::vector <int>						_ports;
-		std::vector <std::string>				_server_names;
-		std::vector <std::string>				_hosts;
+		setter_map								_setters;
 
 		Config(const Config& rhs);
 		Config &operator=(const Config& rhs);

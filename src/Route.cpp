@@ -7,7 +7,7 @@ Route::~Route() {}
 
 void Route::set_name(const std::string& name)
 {
-    _name = name;
+    _name = name[0];
 }
 
 std::string Route::get_name() const
@@ -15,9 +15,9 @@ std::string Route::get_name() const
     return _name;
 }
 
-void Route::set_root(const std::string& root)
+void Route::set_root(const std::vector <std::string>&  root)
 {
-    _root = root;
+    _root = root[0];
 }
 
 std::string Route::get_root() const
@@ -25,9 +25,9 @@ std::string Route::get_root() const
     return _root;
 }
 
-void Route::set_default_file(const std::string& default_file)
+void Route::set_default_file(const std::vector <std::string>&  default_file)
 {
-    _default_file = default_file;
+    _default_file = default_file[0];
 }
 
 std::string Route::get_default_file() const
@@ -35,9 +35,9 @@ std::string Route::get_default_file() const
     return _default_file;
 }
 
-void Route::set_upload_directory(const std::string& upload_directory)
+void Route::set_upload_directory(const std::vector <std::string>&  upload_directory)
 {
-    _upload_directory = upload_directory;
+    _upload_directory = upload_directory[0];
 }
 
 std::string Route::get_upload_directory() const
@@ -45,9 +45,12 @@ std::string Route::get_upload_directory() const
     return _upload_directory;
 }
 
-void Route::set_http_redirect(bool http_redirect)
+void Route::set_http_redirect(const std::vector <std::string>&  http_redirect)
 {
-    _http_redirect = http_redirect;
+    if (http_redirect[0] == "enabled")
+    {
+        _http_redirect = true;
+    }
 }
 
 bool Route::get_http_redirect() const
@@ -65,9 +68,12 @@ std::vector <std::string> Route::get_allowed_methods() const
     return _allowed_methods;
 }
 
-void    Route::set_directory_listing(bool directory_listing_enabled)
+void    Route::set_directory_listing(const std::vector <std::string>&  directory_listing_enabled)
 {
-    _directory_listing_enabled = directory_listing_enabled;
+    if (directory_listing_enabled[0] == "enabled")
+    {
+        _directory_listing_enabled = true;
+    }
 }
 
 bool    Route::directory_listing_enabled() const
@@ -75,9 +81,12 @@ bool    Route::directory_listing_enabled() const
     return _directory_listing_enabled;
 }
 
-void    Route::set_accept_file_upload(bool accept_file_upload)
+void    Route::set_accept_file_upload(const std::vector <std::string>&  accept_file_upload)
 {
-    _accept_file_upload = accept_file_upload;
+    if (accept_file_upload[0] == "enabled")
+    {
+        _accept_file_upload = true;
+    }
 }
 
 bool    Route::accept_file_upload() const
