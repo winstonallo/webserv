@@ -355,5 +355,4 @@ void Request::init(std::string request)
     validate_uri();
     pct_decode();
 }
-Request::Request()
-{}
+Request::Request(){}

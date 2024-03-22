@@ -25,7 +25,7 @@ class Request
         void                        init(std::string request);
 
         // setters and getters
-        std::map <std::string, std::string> Request::get_headers() const{ return this->headers;}
+        std::map <std::string, std::string> get_headers() const{ return this->headers;}
         std::string get_method() const{ return this->method;}
         std::string get_uri() const{ return this->uri;}
         std::string get_protocol() const{ return this->protocol;}
