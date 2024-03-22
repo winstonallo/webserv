@@ -16,6 +16,7 @@ std::string Request::get_port() const{ return this->port;}
 std::string Request::get_path() const{ return this->path;}
 std::string Request::get_query() const{ return this->query;}
 std::string Request::get_fragment() const{ return this->fragment;}
+int			Request::get_error() const { return error;}
 
 std::ostream& operator<<(std::ostream& os, const Request& req)
 {

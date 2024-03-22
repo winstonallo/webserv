@@ -44,6 +44,7 @@ void*	Director::get_in_addr(struct sockaddr *sa)
 // return: int -> -1 if there was an error 0 if successfull
 int	Director::init_server(Server *si)
 {
+	si->set_director(this);
 	struct addrinfo hints, *ai, *p;
 	int listener;
 	int rv, yes=1 ;
@@ -122,7 +123,7 @@ int	Director::init_servers()
 	FD_ZERO(&read_fds);
 	FD_ZERO(&write_fds);
 
-	std::vector<Server *> servers = config.get_servers();
+	std::vector<Server*> servers = config.get_servers();
 	std::vector<Server*>::iterator e = servers.end();
 	std::vector<Server*>::iterator it ;
 	for (it = servers.begin(); it != e; it++)

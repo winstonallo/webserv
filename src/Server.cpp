@@ -142,6 +142,16 @@ void	Server::set_error_code(int cd)
 	errcode = cd;
 }
 
+void	Server::set_director(Director *d)
+{
+	director = d;
+}
+
+Director*	Server::get_director() const
+{
+	return director;
+}
+
 void	Server::init_status_strings()
 {
 	status_string[100] = "Continue";
@@ -224,13 +234,34 @@ std::string		Server::create_response(Request& rq)
 	std::string 		ex;
 	char				buf[100];
 	std::string			body;
+	bool				failed;
 
-	if (rq.get_error())
+	if (rq.get_error() == 0)
 	{
-
+		try
+		{
+			body = get_body(rq);
+		}
+		catch(const std::exception& e)
+		{
+			failed = true;
+		}
 	}
-
-	body = get_body(rq);
+	else
+		failed = true;
+	
+	if (failed)
+	{
+		std::ifstream error_file(director->get_config().get_error_page(errcode));
+		if (error_file.fail())
+		{
+			Log::log("Error reading error page file.\n", STD_ERR | ERROR_FILE);
+			body = DEFAULT_ERROR_PAGE;
+		}
+		std::stringstream ss;
+		ss << error_file.rdbuf();
+		body = ss.str();
+	}
 
 	ss << "HTTP/1.1 " << errcode << " " << status_string[errcode]  << "\r\n";
 

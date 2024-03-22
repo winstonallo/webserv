@@ -13,6 +13,7 @@
 #include "Utils.hpp"
 #include "Log.hpp"
 #include "LocationInfo.hpp"
+#include "Director.hpp"
 
 class LocationInfo;
 
@@ -47,6 +48,8 @@ class Server : public Node
 		void								set_host_address(struct in_addr& host);
 		int									get_client_max_body_size() const;
 		void								set_client_max_body_size(const int client_max_body_size);
+		void								set_director(Director *d);
+		Director*							get_director() const;
 		LocationInfo&						get_location(int);
 		void								add_locations(std::vector <LocationInfo *> locations);
 		bool								is_fd_in_clients(int fd) const;
@@ -77,6 +80,7 @@ class Server : public Node
 		std::map<int, std::string>			status_string;
 		std::map<std::string, std::string>	content_type;
 		int									errcode;
+		Director*							director;
 };
 
 #endif
