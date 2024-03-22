@@ -1,6 +1,7 @@
 #ifndef CONFIG_HPP
 #define CONFIG_HPP
 
+#include "LocationInfo.hpp"
 #include "ServerInfo.hpp"
 #include "Route.hpp"
 #include "CGI.hpp"
@@ -18,6 +19,8 @@ class Config
 		typedef std::map <std::string, route_setter> route_setter_map;
 		typedef void (CGI::*cgi_setter)(const std::vector <std::string>&);
 		typedef std::map <std::string, cgi_setter> cgi_setter_map;
+		typedef void (LocationInfo::*location_setter)(const std::vector <std::string>&);
+		typedef std::map <std::string, location_setter> location_setter_map;
 
 		std::vector <ServerInfo *>				get_servers() const;
 		std::vector <Route *>					get_routes() const;
@@ -29,6 +32,7 @@ class Config
 
 		void									initialize_standard_route_setters();
 		void									initialize_cgi_setters();
+		void									initialize_location_setters();
 
 		void									configure_port(_map& server, ServerInfo* new_server, std::vector <std::string>& new_unique_values);
 		void									configure_server_names(_map& server, ServerInfo* new_server, std::vector <std::string>& new_unique_values);
@@ -36,7 +40,6 @@ class Config
 		void									configure_access_log(_map& server, ServerInfo* new_server);
 		void									configure_client_max_body_size(_map& server, ServerInfo* new_server);
 		void									configure_locations(_map& server, ServerInfo* new_server);
-
 		void									configure_standard_route(_map &route, const std::string& name);
 		void									configure_cgi(_map &route);
 
@@ -58,6 +61,7 @@ class Config
 
 		route_setter_map						_standard_route_setters;
 		cgi_setter_map							_cgi_route_setters;
+		location_setter_map						_location_setters;
 
 		Config(const Config& rhs);
 		Config &operator=(const Config& rhs);

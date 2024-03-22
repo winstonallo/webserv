@@ -21,20 +21,23 @@ LocationInfo&	LocationInfo::operator=(const LocationInfo& rhs)
 {
 	if (this != &rhs)
 	{
-		path = rhs.path;
+		_root = rhs._root;
 		autoindex = rhs.autoindex;
 	}
 	return (*this);
 }
 
-std::string	LocationInfo::getPath() const
+std::string	LocationInfo::get_root() const
 {
-	return (path);
+	return (_root);
 }
 
-void	LocationInfo::setPath(std::string p)
+void	LocationInfo::set_root(const std::vector <std::string>& root)
 {
-	path = p;
+	if (root.empty() == false)
+	{
+		_root = root[0];
+	}
 }
 
 bool	LocationInfo::getAutoindex() const
@@ -52,7 +55,7 @@ std::vector <std::string>	LocationInfo::get_allowed_methods() const
 	return _allowed_methods;
 }
 
-void	LocationInfo::set_allowed_methods(std::vector <std::string>& allowed_methods)
+void	LocationInfo::set_allowed_methods(const std::vector <std::string>& allowed_methods)
 {
 	_allowed_methods = allowed_methods;
 }
@@ -62,9 +65,15 @@ bool	LocationInfo::directory_listing_enabled() const
 	return _directory_listing_enabled;
 }
 
-void	LocationInfo::set_directory_listing(bool directory_listing_enabled)
+void	LocationInfo::set_directory_listing(const std::vector <std::string>& directory_listing_enabled)
 {
-	_directory_listing_enabled = directory_listing_enabled;
+	if (directory_listing_enabled.empty() == false)
+	{
+		if (directory_listing_enabled[0] == "enabled")
+		{
+			_directory_listing_enabled = true;
+		}
+	}
 }
 
 std::string	LocationInfo::get_name() const

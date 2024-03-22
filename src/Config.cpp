@@ -18,6 +18,47 @@
 #include <vector>
 #include <arpa/inet.h>
 
+// full initialization of the config in one constructor
+// 
+// HOW TO INITIALIZE:
+//		Config config(optional: std::string config_path);
+//		
+//		@param path:	path to .conf file - if no path is specified, will use: "config_files/webserv.conf"
+//
+// ConfigParser:
+//		1. 	reads the whole config
+//		2. 	performs error handling on file structure
+//		3. 	stores config in a one level map with the config path as key
+//
+// ConfigDispatcher:
+//		1. 	splits the config into logical parts
+//			a. servers
+//			b. routes
+//			c. error pages
+//
+// Config:
+// 		1. 	gets error pages (already fully parsed in ConfigDispatcher 
+//			since they are simple top level key-value pairs)
+//		2.	performs final parsing and validation on routes & servers
+//		3.	loads into ServerInfo, LocationInfo & Route
+//			objects for server initialization
+Config::Config(const std::string& config_path)
+{
+	ConfigParser 		parser(config_path);
+	ConfigDispatcher 	dispatcher(parser.get_config());
+
+	std::map <int, _map> servers = dispatcher.get_servers();
+	std::map <std::string, _map> routes = dispatcher.get_routes();
+
+	_error_pages = dispatcher.get_error_pages();
+	_error_status_codes = Utils::get_error_status_codes();
+	initialize_standard_route_setters();
+	initialize_cgi_setters();
+	initialize_location_setters();
+	set_routes(routes);
+	set_servers(servers);
+}
+
 // takes the parsed servers from the config dispatcher and initializes the servers one by one
 //
 // if:	any of the required fields are missing
@@ -100,24 +141,22 @@ void	Config::configure_locations(_map& server, ServerInfo* new_server)
 					locations.push_back(new_location);
 				}
 				new_location = new LocationInfo;
+				new_location->set_name(path);
 			}
 
-			new_location->set_name(path);
+			std::string key = it->first.substr(it->first.find_first_of(":") + 1);
+			location_setter_map::iterator setter = _location_setters.find(key);
 
-			if (it->first.find("root") != std::string::npos && it->second.empty() == false)
+			if (setter != _location_setters.end())
 			{
-				new_location->setPath(it->second[0]);
-			}
-			else if (it->first.find("directory_listing") != std::string::npos && it->second.empty() == false)
-			{
-				if (it->second[0] == "enabled")
+				try 
 				{
-					new_location->set_directory_listing(true);
+					(new_location->*(setter->second))(it->second);
 				}
-			}
-			else if (it->first.find("allowed_methods") != std::string::npos)
-			{
-				new_location->set_allowed_methods(it->second);
+				catch (const std::exception& e)
+				{
+					Log::log(e.what(), STD_ERR | ERROR_FILE);
+				}
 			}
 			else
 			{
@@ -324,37 +363,46 @@ void	Config::configure_standard_route(_map& route, const std::string& name)
 	_routes.push_back(new_route);
 }
 
-void Config::configure_cgi(_map& route) {
+void Config::configure_cgi(_map& route) 
+{
     CGI* new_cgi = NULL;
 
-    for (_map::iterator it = route.begin(); it != route.end(); ++it) {
+    for (_map::iterator it = route.begin(); it != route.end(); it++) 
+	{
         std::string cgi_name = it->first.substr(0, it->first.find_first_of(":"));
         std::string key = it->first.substr(it->first.find_first_of(":") + 1);
 
-        if (new_cgi == NULL || cgi_name != new_cgi->get_name()) {
-            if (new_cgi != NULL) {
-                _cgi.push_back(new_cgi); // Safely stored before allocating new.
+        if (new_cgi == NULL || cgi_name != new_cgi->get_name()) 
+		{
+            if (new_cgi != NULL) 
+			{
+                _cgi.push_back(new_cgi);
             }
-            new_cgi = new CGI; // Consider using smart pointers if possible.
-            new_cgi->set_name(cgi_name); // Assuming there's a method to set the CGI name.
+            new_cgi = new CGI;
+            new_cgi->set_name(cgi_name);
         }
 
-        // Perform the search in the map once.
         cgi_setter_map::iterator setter = _cgi_route_setters.find(key);
-        if (setter != _cgi_route_setters.end()) {
-            try {
+		
+		if (setter != _cgi_route_setters.end()) 
+		{
+            try 
+			{
                 (new_cgi->*(setter->second))(it->second);
-            } catch (const std::exception& e) {
+            } 
+			catch (const std::exception& e) 
+			{
                 Log::log(e.what(), STD_ERR | ERROR_FILE);
-                // Consider handling or cleaning up new_cgi here if necessary.
             }
-        } else {
-            Log::log("error: CGI config key '" + key + "' not recognized.", STD_ERR | ERROR_FILE);
+        } 
+		else 
+		{
+            Log::log("error: CGI config key '" + key + "' not recognized.\n", STD_ERR | ERROR_FILE);
         }
     }
-
-    if (new_cgi != NULL) {
-        _cgi.push_back(new_cgi); // Add the last CGI object to the collection.
+    if (new_cgi != NULL) 
+	{
+        _cgi.push_back(new_cgi);
     }
 }
 
@@ -461,38 +509,11 @@ void	Config::initialize_standard_route_setters()
 	_standard_route_setters["directory_listing"] = &Route::set_directory_listing;
 }
 
-// full initialization of the config in one constructor
-//
-// ConfigParser:
-//		1. 	reads the whole config
-//		2. 	performs error handling on file structure
-//		3. 	stores config in a one level map with the config path as key
-//
-// ConfigDispatcher:
-//		1. 	splits the config into logical parts
-//			a. servers
-//			b. routes
-//			c. error pages
-//
-// Config:
-// 		1. 	gets error pages (already fully parsed in ConfigDispatcher 
-//			since they are simple top level key-value pairs)
-//		2.	performs final parsing and validation on routes & servers
-//		3.	loads into ServerInfo, LocationInfo & Route
-//			objects for server initialization
-Config::Config(const std::string& config_path)
+void	Config::initialize_location_setters()
 {
-	ConfigParser 		parser(config_path);
-	ConfigDispatcher 	dispatcher(parser.get_config());
-
-	std::map <int, _map> servers = dispatcher.get_servers();
-	std::map <std::string, _map> routes = dispatcher.get_routes();
-
-	_error_pages = dispatcher.get_error_pages();
-	_error_status_codes = Utils::get_error_status_codes();
-	initialize_standard_route_setters();
-	set_routes(routes);
-	set_servers(servers);
+	_location_setters["root"] = &LocationInfo::set_root;
+	_location_setters["directory_listing"] = &LocationInfo::set_directory_listing;
+	_location_setters["allowed_methods"] = &LocationInfo::set_allowed_methods;
 }
 
 Config::~Config() 
