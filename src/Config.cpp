@@ -320,7 +320,14 @@ void	Config::set_routes(std::map <std::string, _map>& raw_routes)
 			{
 				if (_setters.find(current_route->first) != _setters.end())
 				{
-					(new_route->*(_setters[current_route->first]))(current_route->second);
+					try 
+					{
+						(new_route->*(_setters[current_route->first]))(current_route->second);
+					}
+					catch (const std::exception& e)
+					{
+						Log::log(e.what(), STD_ERR | ERROR_FILE);
+					}
 				}
 				else
 				{

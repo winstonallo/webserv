@@ -1,5 +1,12 @@
 #include "Route.hpp"
+#include "Utils.hpp"
+#include <cstring>
+#include <cerrno>
+#include <fcntl.h>
 #include <ostream>
+#include <stdexcept>
+#include <unistd.h>
+#include <sys/stat.h>
 
 Route::Route() : _directory_listing_enabled(false), _accept_file_upload(false), _http_redirect(false) {}
 
@@ -27,6 +34,10 @@ std::string Route::get_root() const
 
 void Route::set_default_file(const std::vector <std::string>&  default_file)
 {
+    if (Utils::file_exists(_root + default_file[0]) == false)
+    {
+        throw std::runtime_error("error: could not open '" + default_file[0] + "' at '" + _root + "'\n");
+    }
     _default_file = default_file[0];
 }
 
@@ -37,7 +48,20 @@ std::string Route::get_default_file() const
 
 void Route::set_upload_directory(const std::vector <std::string>&  upload_directory)
 {
-    _upload_directory = upload_directory[0];
+    struct stat info;
+
+    if (stat(upload_directory[0].c_str(), &info) != 0)
+    {
+        throw std::runtime_error("error accessing path '" + upload_directory[0] + "': " + strerror(errno));
+    }
+    else if (info.st_mode & S_IFDIR)
+    {
+        _upload_directory = upload_directory[0];
+    }
+    else 
+    {
+        throw std::runtime_error("error: upload directory '" + upload_directory[0] + "': is not a directory\n");
+    }
 }
 
 std::string Route::get_upload_directory() const
