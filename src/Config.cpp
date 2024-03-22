@@ -62,20 +62,20 @@ void	Config::set_servers(std::map <int, std::map <std::string, std::vector <std:
 
 // initializes the locations for a server
 //
-// if:	the key is "location"
-//		->	initialize a new location:
+// if:		the key is "location"
+//			->	initialize a new location:
 //
-//		 if: the key is "root"
-//				->	set the path for the new location
+//		 if: 		the key is "root"
+//					->	set the path for the new location
 //		
 //		 else if: the key is "directory_listing"
-//				->	set the directory listing for the location
+//					->	set the directory listing for the location
 //		
 //		 else if: the key is "allowed_methods"
-//				->	set the allowed methods for the location
+//					->	set the allowed methods for the location
 //		
 //		 else:
-//				->	log error & skip the value
+//					->	log error & skip the value
 void	Config::handle_locations(_map& server, ServerInfo* new_server)
 {
 	std::vector <LocationInfo*> locations;
@@ -130,11 +130,18 @@ void	Config::handle_locations(_map& server, ServerInfo* new_server)
 	new_server->add_locations(locations);
 }
 
-// initializes the host for a server
+// finds the host in the server map and performs some error handling on them 
+// before storing them in the current ServerInfo
 //
-// if:	the host is missing
-//		->	log error & skip the server
-
+//	if:		no host in config
+//			-> skip server in initialization
+//
+//	if:		host already given to another server
+//			-> skip server in initialization
+//
+//	else:	
+//			-> add host to vector of unique values
+//			-> set host of current ServerInfo object
 void	Config::handle_host(_map& server, ServerInfo* new_server, std::vector <std::string>& new_unique_values)
 {
 	if (server.find("host") == server.end() or server["host"].empty() == true)
@@ -163,6 +170,18 @@ void	Config::handle_host(_map& server, ServerInfo* new_server, std::vector <std:
 	new_server->set_host_address(ip_address);
 }
 
+// finds the server_name(s) in the server map and performs some error handling on them 
+// before storing them in the current ServerInfo
+//
+//	if:		no server name in config
+//			-> skip server in initialization
+//
+//	if:		server name already given to another server
+//			-> skip server in initialization
+//
+//	else:	
+//			-> add server name(s) to vector of unique values
+//			-> set server name(s) of current ServerInfo object
 void	Config::handle_server_names(_map& server, ServerInfo* new_server, std::vector <std::string>& new_unique_values)
 {
 	if (server.find("server_name") == server.end() or server["server_name"].empty() == true)
@@ -185,6 +204,17 @@ void	Config::handle_server_names(_map& server, ServerInfo* new_server, std::vect
 	new_unique_values.insert(new_unique_values.end(), new_server_names.begin(), new_server_names.end());
 }
 
+// finds the port in the server map and performs some error handling on it before storing it in the current ServerInfo
+//
+//	if:		no port in config
+//			-> skip server in initialization
+//
+//	if:		port already given to another server
+//			-> skip server in initialization
+//
+//	else:	
+//			-> add port to vector of unique values
+//			-> set port of current ServerInfo object
 void	Config::handle_port(_map& server, ServerInfo* new_server, std::vector <std::string>& new_unique_values)
 {
 	if (server.find("port") == server.end() or server["port"].empty() == true)
@@ -205,12 +235,12 @@ void	Config::handle_port(_map& server, ServerInfo* new_server, std::vector <std:
 
 // validates access log from config
 //
-// if:	the file does not exist (meaning we can just create it)
-// or:	it exists and we have write access to it
-//		->	config valid, return the filename
+// 	if:		the file does not exist (meaning we can just create it)
+// 	or:		it exists and we have write access to it
+//			->	config valid, return the filename
 //
-// else:
-//		->	path invalid, log error & return default 
+// 	else:
+//			->	path invalid, log error & return default 
 void	Config::handle_access_log(_map& server, ServerInfo* new_server)
 {
 	std::string access_log;
@@ -230,6 +260,16 @@ void	Config::handle_access_log(_map& server, ServerInfo* new_server)
 	new_server->set_access_log(ACCESS_LOG_DEFAULT);
 }
 
+// validates client max body size from config
+//
+// if:	the value is missing or empty
+//		->	log error & fall back to default
+//
+// else if: the value is too high
+//		->	log error & cap it to 10M
+//
+// else if: the value is invalid
+//		->	log error & fall back to default
 void	Config::handle_client_max_body_size(_map& server, ServerInfo* new_server)
 {
 	if (server.find("client_max_body_size") == server.end() or server["client_max_body_size"].empty() == true)
@@ -255,6 +295,11 @@ void	Config::handle_client_max_body_size(_map& server, ServerInfo* new_server)
 	new_server->set_client_max_body_size(size);
 }
 
+// takes the parsed routes from the config dispatcher 
+// and initializes the routes one by one
+//
+// TODO: handle_cgi()
+// TODO: add extensive comments
 void	Config::set_routes(std::map <std::string, _map>& raw_routes)
 {
 	Route *new_route;
@@ -329,6 +374,10 @@ std::vector <Route *>	Config::get_routes() const
 	return _routes;
 }
 
+// returns the error page for a given status code
+//
+// if:	the status code is not found in the error pages from the config
+//		->	generate a default error page
 std::string	Config::get_error_page(const int key)
 {
 	if (_error_pages.find(key) != _error_pages.end())
@@ -341,6 +390,9 @@ std::string	Config::get_error_page(const int key)
 	}
 }
 
+// generates a default error page for a given status code
+//
+// cat DEFAULT_ERROR_PAGE | sed 's/400/XXX/g' | sed 's/bad request/new message/g' > new_html_path
 std::string	Config::generate_default_error_page(const int status_code)
 {
 	std::string default_error_code = "400", default_error_message = "bad request", default_html = DEFAULT_ERROR_PAGE;
@@ -368,13 +420,32 @@ std::string	Config::generate_default_error_page(const int status_code)
 	if (oss == false)
 	{
 		Log::log("error: could not create default error page, falling back to 400: bad_request\n", STD_ERR | ERROR_FILE);
-		return default_html;
+		return DEFAULT_ERROR_PAGE;
 	}
 
 	oss << default_html;
 	return new_html_path;
 }
 
+// full initialization of the config in one constructor
+//
+// ConfigParser:
+//		1. 	reads the whole config
+//		2. 	performs error handling on file structure
+//		3. 	stores config in a one level map with the config path as key
+//
+// ConfigDispatcher:
+//		1. 	splits the config into logical parts
+//			a. servers
+//			b. routes
+//			c. error pages
+//
+// Config:
+// 		1. 	gets error pages (already fully parsed in ConfigDispatcher 
+//			since they are simple top level key-value pairs)
+//		2.	performs final parsing and validation on routes & servers
+//		3.	loads into ServerInfo, LocationInfo & Route
+//			objects for server initialization
 Config::Config(const std::string& config_path)
 {
 	ConfigParser 		parser(config_path);
