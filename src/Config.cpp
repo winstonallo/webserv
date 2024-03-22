@@ -238,6 +238,7 @@ void	Config::set_routes(std::map <std::string, _map>& raw_routes)
 		{
 			for (_map::iterator current_route = it->second.begin(); current_route != it->second.end(); current_route++)
 			{
+				new_route->set_name(name);
 				if (current_route->first == "allowed_methods")
 				{
 					new_route->set_allowed_methods(current_route->second);

@@ -1,6 +1,7 @@
 #ifndef ROUTE_HPP
 #define ROUTE_HPP
 
+#include <ostream>
 #include <string>
 #include <vector>
 
@@ -42,5 +43,7 @@ class Route
         Route(const Route& rhs);
         Route &operator=(const Route& rhs);
 };
+
+std::ostream    &operator<<(std::ostream &os, const Route &route);
 
 #endif

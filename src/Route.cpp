@@ -1,6 +1,7 @@
 #include "Route.hpp"
+#include <ostream>
 
-Route::Route() : _directory_listing_enabled(false) {}
+Route::Route() : _directory_listing_enabled(false), _accept_file_upload(false), _http_redirect(false) {}
 
 Route::~Route() {}
 
@@ -82,4 +83,43 @@ void    Route::set_accept_file_upload(bool accept_file_upload)
 bool    Route::accept_file_upload() const
 {
     return _accept_file_upload;
+}
+
+std::ostream &operator<<(std::ostream &os, const Route& route)
+{
+    if (route.get_name().empty() == true)
+        return os;
+    os << "route: " << route.get_name() << std::endl;
+    os << "\troot: " << route.get_root() << std::endl;
+    os << "\tdefault file: " << route.get_default_file() << std::endl;
+    os << "\tupload directory: " << route.get_upload_directory() << std::endl;
+    os << "\tallowed methods: ";
+    std::vector <std::string> methods = route.get_allowed_methods();
+    for (std::vector<std::string>::iterator it = methods.begin(); it != methods.end(); it++)
+        os << *it << " ";
+    if (route.directory_listing_enabled() == true)
+    {   
+        os << "\n\tdirectory listing enabled: true" << std::endl;
+    }
+    else
+    {
+        os << "\n\tdirectory listing enabled: false" << std::endl;
+    }
+    if (route.accept_file_upload() == true)
+    {    
+        os << "\taccept file upload: true" << std::endl;
+    }
+    else
+    {
+        os << "\taccept file upload: false"  << std::endl;
+    }
+    if (route.get_http_redirect() == true)
+    {
+        os << "\thttp redirect: true" << std::endl;
+    }
+    else
+    {
+        os << "\thttp redirect: false" << std::endl;
+    }
+    return os;
 }
