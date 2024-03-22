@@ -16,8 +16,6 @@ class Config
 		std::vector <ServerInfo *>				get_servers() const;
 		std::vector <Route *>					get_routes() const;
 		std::string								get_error_page(const int key);
-	
-
 
 		void									set_servers(std::map <int, std::map <std::string, std::vector <std::string> > >& raw_servers);
 		void									set_error_pages(std::map <int, std::string>& error_pages);
@@ -55,6 +53,26 @@ class Config
 #define CLIENT_MAX_BODY_SIZE_DEFAULT 1000000
 #define CLIENT_MAX_BODY_SIZE_MAX 10000000
 #define ACCESS_LOG_DEFAULT "access.log"
-#define DEFAULT_ERROR_PAGE "files/error_pages/400.html"
+#define DEFAULT_ERROR_PAGE "<!DOCTYPE html>\n\
+<html lang=\"en\">\n\
+<head>\n\
+<meta charset=\"UTF-8\">\n\
+<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n\
+<title>400</title>\n\
+<link href=\"error.css\" rel=\"stylesheet\">\n\
+</head>\n\
+<body>\n\
+<div class=\"container bsod\">\n\
+  <div class=\"neg\">\n\
+    <h1 class=\"bg title\">error 400</h1>\n\
+    <p>bad request</p>\n\
+  </div>\n\
+  <div class=\"nav\">\n\
+    <a href=\"/\" class=\"link\">go home</a>\n\
+    <a href=\"/contact\" class=\"link\">contact us</a>\n\
+  </div>\n\
+</div>\n\
+</body>\n\
+</html>"
 
 #endif
