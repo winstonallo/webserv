@@ -1,7 +1,7 @@
 #ifndef CONFIG_HPP
 #define CONFIG_HPP
 
-#include "ServerInfo.hpp"
+#include "Server.hpp"
 #include <map>
 #include <netinet/in.h>
 #include <string>
@@ -12,7 +12,7 @@ class Config
 {
 	public:
 
-		std::vector <ServerInfo *>				get_servers();
+		std::vector <Server *>					get_servers();
 		std::string								get_error_page(const int key);
 	
 
@@ -22,12 +22,12 @@ class Config
 		void									set_routes(std::map <std::string, std::map <std::string, std::vector <std::string> > >& raw_routes);
 
 
-		void									handle_port(server_map& server, ServerInfo* new_server, std::vector <std::string>& new_unique_values);
-		void									handle_server_names(server_map& server, ServerInfo* new_server, std::vector <std::string>& new_unique_values);
-		void									handle_host(server_map& server, ServerInfo* new_server, std::vector <std::string>& new_unique_values);
-		void									handle_access_log(server_map& server, ServerInfo* new_server);
-		void									handle_client_max_body_size(server_map& server, ServerInfo* new_server);
-		void									handle_locations(server_map& server, ServerInfo* new_server);
+		void									handle_port(server_map& server, Server* new_server, std::vector <std::string>& new_unique_values);
+		void									handle_server_names(server_map& server, Server* new_server, std::vector <std::string>& new_unique_values);
+		void									handle_host(server_map& server, Server* new_server, std::vector <std::string>& new_unique_values);
+		void									handle_access_log(server_map& server, Server* new_server);
+		void									handle_client_max_body_size(server_map& server, Server* new_server);
+		void									handle_locations(server_map& server, Server* new_server);
 
 		std::string                             generate_default_error_page(const int status_code);
 
@@ -36,7 +36,7 @@ class Config
 	
 	private:
 
-		std::vector <ServerInfo *>				_servers;
+		std::vector <Server *>					_servers;
 		std::map <int, std::string>				_error_pages;
 
 		std::map <int, std::string>             _error_status_codes;

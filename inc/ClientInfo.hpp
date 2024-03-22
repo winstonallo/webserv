@@ -7,12 +7,12 @@
 #include <ctime>
 #include "Node.hpp"
 #include "Request.hpp"
-#include "ServerInfo.hpp"
+#include "Server.hpp"
 
 //purpose:	data filled from the request parsing for and used for 
 //			answering requests
 
-class ServerInfo;
+class Server;
 
 class ClientInfo : public Node 
 {
@@ -26,16 +26,12 @@ class ClientInfo : public Node
 		time_t						get_prev_time() const;
 		void						set_prev_time(time_t tm);
 		void						set_time();
-		ServerInfo*					get_server_info() const;
-		void						set_server_info(ServerInfo* si);
-		// void						set_request(Request rq);
-		// Request						get_request() const;
+		Server*						get_server() const;
+		void						set_server(Server* si);
 
 	private:
-		ServerInfo*					server_info;
+		Server*						server;
 		time_t						prev_time;
-		//Request					request;
-
 };
 
 #endif

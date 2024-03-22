@@ -1,37 +1,118 @@
 #include "Server.hpp"
+#include "LocationInfo.hpp"
+#include <netinet/in.h>
+#include <string>
+#include <vector>
 
-Server::Server()
+Server::Server() 
 {
 	init_status_strings();
 	init_content_types(); 
 }
 
-Server::~Server()
-{}
+Server::~Server() {}
+
+
+Server::Server(int tfd, struct sockaddr_storage ss, size_t taddr_len):
+	Node(tfd, ss, taddr_len, SERVER_NODE)
+{
+	init_status_strings();
+	init_content_types(); 
+}
+
+Server::Server(const Server& rhs) : Node()
+{*this = rhs;}
 
 Server&	Server::operator=(const Server& rhs)
 {
 	if (this != &rhs)
 	{
-
+		port = rhs.port;
+		server_name = rhs.server_name;
+//		address = rhs.address;
+		autoindex = rhs.autoindex;
+		root = rhs.root;
+		error_log = rhs.error_log;
+		access_log = rhs.access_log;
+		locations = rhs.locations;
 	}
 	return (*this);
 }
 
-Server::Server(const Server& rhs)
+int	Server::get_port() const
 {
-	*this = rhs;
+	return (port);
 }
 
-// Request	Server::get_request() const
-// {
-// 	return request;
-// }
+void	Server::set_port(int prt)
+{
+	port = prt;
+}
 
-// ServerInfo*	Server::get_server_info() const
-// {
-// 	return server_info;
-// }
+void	Server::set_server_name(const std::vector <std::string>& tserver_name)
+{
+	server_name = tserver_name;
+}
+
+std::vector <std::string>	Server::get_server_name() const
+{
+	return server_name;
+}
+
+bool	Server::get_auto_index() const
+{
+	return (autoindex); 
+}
+
+void	Server::set_auto_index(bool t)
+{
+	autoindex = t;
+}
+
+std::string	Server::get_error_log() const
+{
+	return (error_log);
+}
+
+void	Server::set_error_log(const std::string& log)
+{
+	error_log = log;
+}
+
+std::string	Server::get_access_log() const
+{
+	return (access_log);
+}
+
+void	Server::set_access_log(const std::string& log)
+{
+	access_log = log;
+}
+
+struct in_addr		Server::get_host_address() const
+{
+	return _host_address;
+}
+
+void	Server::set_host_address(struct in_addr& host)
+{
+	_host_address = host;
+}
+
+int	Server::get_client_max_body_size() const
+{
+	return _client_max_body_size;
+}
+
+void	Server::set_client_max_body_size(const int client_max_body_size)
+{
+	_client_max_body_size= client_max_body_size;
+}
+
+void	Server::add_locations(std::vector <LocationInfo*> locations)
+{
+	this->locations = locations;
+}
 
 std::string Server::respond(Request& rq)
 {
@@ -48,6 +129,8 @@ std::string Server::respond(Request& rq)
 	}
 	return "Error";
 }
+
+//Server
 
 int		Server::get_error_code() const
 {

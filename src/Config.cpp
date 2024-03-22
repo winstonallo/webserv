@@ -2,7 +2,7 @@
 #include "ConfigDispatcher.hpp"
 #include "ConfigParser.hpp"
 #include "LocationInfo.hpp"
-#include "ServerInfo.hpp"
+#include "Server.hpp"
 #include "Utils.hpp"
 #include <algorithm>
 #include <cstddef>
@@ -18,13 +18,13 @@
 
 void	Config::set_servers(std::map <int, std::map <std::string, std::vector <std::string> > >& raw_servers)
 {
-	ServerInfo* new_server;
+	Server* new_server;
 
 	for (std::map <int, server_map>::iterator it = raw_servers.begin(); it != raw_servers.end(); it++)
 	{
 		try
 		{	
-			new_server = new ServerInfo();
+			new_server = new Server();
 			std::vector <std::string>	new_unique_values;
 
 			handle_server_names(it->second, new_server, new_unique_values);
@@ -48,7 +48,7 @@ void	Config::set_servers(std::map <int, std::map <std::string, std::vector <std:
 	}
 }
 
-void	Config::handle_locations(server_map& server, ServerInfo* new_server)
+void	Config::handle_locations(server_map& server, Server* new_server)
 {
 	std::vector <LocationInfo*> locations;
 	std::string					location_key_prefix = "location";
@@ -95,7 +95,7 @@ void	Config::handle_locations(server_map& server, ServerInfo* new_server)
 	new_server->add_locations(locations);
 }
 
-void	Config::handle_host(server_map& server, ServerInfo* new_server, std::vector <std::string>& new_unique_values)
+void	Config::handle_host(server_map& server, Server* new_server, std::vector <std::string>& new_unique_values)
 {
 	if (server.find("host") == server.end() or server["host"].empty() == true)
 	{
@@ -123,7 +123,7 @@ void	Config::handle_host(server_map& server, ServerInfo* new_server, std::vector
 	new_server->set_host_address(ip_address);
 }
 
-void	Config::handle_server_names(server_map& server, ServerInfo* new_server, std::vector <std::string>& new_unique_values)
+void	Config::handle_server_names(server_map& server, Server* new_server, std::vector <std::string>& new_unique_values)
 {
 	if (server.find("server_name") == server.end() or server["server_name"].empty() == true)
 	{
@@ -145,7 +145,7 @@ void	Config::handle_server_names(server_map& server, ServerInfo* new_server, std
 	new_unique_values.insert(new_unique_values.end(), new_server_names.begin(), new_server_names.end());
 }
 
-void	Config::handle_port(server_map& server, ServerInfo* new_server, std::vector <std::string>& new_unique_values)
+void	Config::handle_port(server_map& server, Server* new_server, std::vector <std::string>& new_unique_values)
 {
 	if (server.find("port") == server.end() or server["port"].empty() == true)
 	{
@@ -171,7 +171,7 @@ void	Config::handle_port(server_map& server, ServerInfo* new_server, std::vector
 //
 // else:
 //		->	path invalid, log error & return default 
-void	Config::handle_access_log(server_map& server, ServerInfo* new_server)
+void	Config::handle_access_log(server_map& server, Server* new_server)
 {
 	std::string access_log;
 
@@ -190,7 +190,7 @@ void	Config::handle_access_log(server_map& server, ServerInfo* new_server)
 	new_server->set_access_log(ACCESS_LOG_DEFAULT);
 }
 
-void	Config::handle_client_max_body_size(server_map& server, ServerInfo* new_server)
+void	Config::handle_client_max_body_size(server_map& server, Server* new_server)
 {
 	if (server.find("client_max_body_size") == server.end() or server["client_max_body_size"].empty() == true)
 	{
@@ -215,7 +215,7 @@ void	Config::handle_client_max_body_size(server_map& server, ServerInfo* new_ser
 	new_server->set_client_max_body_size(size);
 }
 
-std::vector <ServerInfo *>	Config::get_servers()
+std::vector <Server *>	Config::get_servers()
 {
 	return _servers;
 }
@@ -272,7 +272,7 @@ Config::Config(const std::string& config_path)
 
 Config::~Config() 
 {
-	for (std::vector <ServerInfo *>::iterator it = _servers.begin(); it != _servers.end(); it++)
+	for (std::vector <Server *>::iterator it = _servers.begin(); it != _servers.end(); it++)
 	{
 		delete *it;
 	}

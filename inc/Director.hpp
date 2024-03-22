@@ -18,7 +18,7 @@
 #include <sys/time.h>
 #include "Node.hpp"
 #include "Request.hpp"
-#include "ServerInfo.hpp"
+#include "Server.hpp"
 #include "Server.hpp"
 #include "ClientInfo.hpp"
 #include "Config.hpp"
@@ -45,7 +45,7 @@ class Director
 										Director(const Director& rhs);
 		Director&						operator=(const Director& rhs);
 		void							*get_in_addr(struct sockaddr *sa);
-		int								init_server(ServerInfo *si);
+		int								init_server(Server *si);
 		int								create_client_connection(int listener);
 		int								read_from_client(int fd);
 		int								write_to_client(int fd);

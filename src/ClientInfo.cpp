@@ -47,14 +47,14 @@ void	ClientInfo::set_time()
 	prev_time = time(NULL);
 }
 
-void	ClientInfo::set_server_info(ServerInfo *si)
+void	ClientInfo::set_server(Server *si)
 {
-	server_info = si;
+	server = si;
 }
 
-ServerInfo*		ClientInfo::get_server_info() const
+Server*		ClientInfo::get_server() const
 {
-	return server_info;
+	return server;
 }
 
 

@@ -33,16 +33,16 @@ void*	Director::get_in_addr(struct sockaddr *sa)
 	return &(((struct sockaddr_in6 *)sa)->sin6_addr);
 }
 
-// purpose: Initializes the Server that is passed in with ServerInfo*.
+// purpose: Initializes the Server that is passed in with Server*.
 // 			We loop through the addreses of the Server and create for the first one 
 //			a listener socket, which we set to be port-reusable and bind it to a port.
-// 			we also save information to the ServerInfo (file descriptor, address)
+// 			we also save information to the Server (file descriptor, address)
 //
 // argument: si -> pointer to the Server information which we 
 // 			 got from config parsing.
 //
 // return: int -> -1 if there was an error 0 if successfull
-int	Director::init_server(ServerInfo *si)
+int	Director::init_server(Server *si)
 {
 	struct addrinfo hints, *ai, *p;
 	int listener;
@@ -122,9 +122,9 @@ int	Director::init_servers()
 	FD_ZERO(&read_fds);
 	FD_ZERO(&write_fds);
 
-	std::vector<ServerInfo *> servers = config.get_servers();
-	std::vector<ServerInfo*>::iterator e = servers.end();
-	std::vector<ServerInfo*>::iterator it ;
+	std::vector<Server *> servers = config.get_servers();
+	std::vector<Server*>::iterator e = servers.end();
+	std::vector<Server*>::iterator it ;
 	for (it = servers.begin(); it != e; it++)
 	{
 		if (init_server(*it) < 0)
@@ -272,7 +272,7 @@ int	Director::create_client_connection(int listener)
 		if (nodes.find(newfd) == nodes.end())
 		{
 			ClientInfo *newcl = new ClientInfo(newfd, remoteaddr, (size_t)addrlen);
-			newcl->set_server_info(dynamic_cast<ServerInfo*>(nodes[listener]));
+			newcl->set_server(dynamic_cast<Server*>(nodes[listener]));
 			nodes[newfd] = newcl;
 		}
 		else
@@ -355,7 +355,7 @@ int	Director::read_from_client(int client_fd)
 		try
 		{
 			Request	req(msg);
-			ci->get_server_info()->server.create_response(req); 
+			ci->get_server()->create_response(req); 
 			FD_CLR(client_fd, &read_fds);
 			if (client_fd == fdmax)	fdmax--;
 			FD_SET(client_fd, &write_fds);
@@ -382,7 +382,7 @@ int	Director::write_to_client(int fd)
 	int				num_bytes;
 	ClientInfo*		cl = dynamic_cast<ClientInfo*>(nodes[fd]);
 
-	std::string content = cl->get_server_info()->server.response;
+	std::string content = cl->get_server()->response;
 	int sz = content.size();
 
 	if (sz < MSG_SIZE)
@@ -424,7 +424,7 @@ int	Director::write_to_client(int fd)
 	else
 	{
 		cl->set_time();
-		cl->get_server_info()->server.response = cl->get_server_info()->server.response.substr(num_bytes);
+		cl->get_server()->response = cl->get_server()->response.substr(num_bytes);
 	}
 	return (0);
 }
