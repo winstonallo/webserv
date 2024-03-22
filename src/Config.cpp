@@ -103,6 +103,27 @@ void	Config::set_servers(std::map <int, std::map <std::string, std::vector <std:
 	}
 }
 
+// extracts the location path from the current map key
+//
+// if:		"location" in key
+//			->	return the path
+//
+// else:
+//			->	return empty string
+std::string	Config::extract_location_path(const std::string& current_map_key)
+{
+	std::string location_key_prefix = "location";
+    size_t found = current_map_key.find(location_key_prefix);
+
+    if (found != std::string::npos) 
+	{
+        size_t colon = current_map_key.find(":", found);
+        return current_map_key.substr(found + location_key_prefix.size(), colon - (found + location_key_prefix.size()));
+    }
+
+    return ""; 
+}
+
 // initializes the locations for a server
 //
 // if:		the key is "location"
@@ -121,19 +142,15 @@ void	Config::set_servers(std::map <int, std::map <std::string, std::vector <std:
 //					->	log error & skip the value
 void	Config::configure_locations(_map& server, ServerInfo* new_server)
 {
-	std::vector <LocationInfo*> locations;
-	std::string					location_key_prefix = "location";
-	LocationInfo*				new_location = NULL;
+	std::vector <LocationInfo *> 	locations;
+	LocationInfo*					new_location = NULL;
 
 	for (_map::iterator it = server.begin(); it != server.end(); it++)
 	{
-		size_t found = it->first.find(location_key_prefix);
+		std::string path = extract_location_path(it->first);
 
-		if (found != std::string::npos)
-		{
-			size_t	colon = it->first.find(":", found);
-			std::string	path = it->first.substr(found + location_key_prefix.size(), colon - (found + location_key_prefix.size()));
-			
+		if (path.empty() == false)
+		{		
 			if (new_location == NULL || new_location->get_name() != path)
 			{
 				if (new_location != NULL)
@@ -336,6 +353,13 @@ void	Config::configure_client_max_body_size(_map& server, ServerInfo* new_server
 	new_server->set_client_max_body_size(size);
 }
 
+// configures standard route (aka != cgi)
+//
+// if:	the key is recognized
+//		->	call the setter for the route
+//
+// else:
+//		->	log error & skip the value
 void	Config::configure_standard_route(_map& route, const std::string& name)
 {
 	Route* new_route = new Route;
@@ -363,27 +387,50 @@ void	Config::configure_standard_route(_map& route, const std::string& name)
 	_routes.push_back(new_route);
 }
 
+// initializes the cgi before setting the values
+//
+// if:	the new_cgi is NULL or the name of the current map key is different from the new_cgi name
+//		->	initialize a new cgi
+//
+//	->	return the setter for the current map key
+Config::cgi_setter_map::iterator	Config::initialize_cgi_iteration(const std::string& current_map_key, CGI* new_cgi)
+{
+	std::string cgi_name = current_map_key.substr(0, current_map_key.find_first_of(":"));
+	std::string key = current_map_key.substr(current_map_key.find_first_of(":") + 1);
+
+	if (new_cgi == NULL || cgi_name != new_cgi->get_name()) 
+	{
+		if (new_cgi != NULL) 
+		{
+			_cgi.push_back(new_cgi);
+		}
+		new_cgi = new CGI;
+		new_cgi->set_name(cgi_name);
+	}
+	
+	cgi_setter_map::iterator setter = _cgi_route_setters.find(key);
+	
+	return setter;
+}
+
+// configures cgi routes
+// this one is a bit different than configure_standard_route(),
+// since all the cgi routes are stored in the same map and need
+// to be iterated over and initialized one by one
+//
+// if:	the key is recognized
+//		->	call the setter for the route
+//
+// else:
+//		->	log error & skip the value
 void Config::configure_cgi(_map& route) 
 {
     CGI* new_cgi = NULL;
 
     for (_map::iterator it = route.begin(); it != route.end(); it++) 
 	{
-        std::string cgi_name = it->first.substr(0, it->first.find_first_of(":"));
-        std::string key = it->first.substr(it->first.find_first_of(":") + 1);
+		cgi_setter_map::iterator setter = initialize_cgi_iteration(it->first, new_cgi);
 
-        if (new_cgi == NULL || cgi_name != new_cgi->get_name()) 
-		{
-            if (new_cgi != NULL) 
-			{
-                _cgi.push_back(new_cgi);
-            }
-            new_cgi = new CGI;
-            new_cgi->set_name(cgi_name);
-        }
-
-        cgi_setter_map::iterator setter = _cgi_route_setters.find(key);
-		
 		if (setter != _cgi_route_setters.end()) 
 		{
             try 
@@ -397,6 +444,7 @@ void Config::configure_cgi(_map& route)
         } 
 		else 
 		{
+			std::string key = it->first.substr(it->first.find_first_of(":") + 1);
             Log::log("error: CGI config key '" + key + "' not recognized.\n", STD_ERR | ERROR_FILE);
         }
     }
@@ -409,8 +457,11 @@ void Config::configure_cgi(_map& route)
 // takes the parsed routes from the config dispatcher 
 // and initializes the routes one by one
 //
-// TODO: configure_cgi()
-// TODO: add extensive comments
+// if:  the key is "/cgi-bin"
+//		->	configure the cgi
+//
+// else:
+//		->	configure the standard route
 void	Config::set_routes(std::map <std::string, _map>& raw_routes)
 {
 	for (std::map <std::string, _map>::iterator it = raw_routes.begin(); it != raw_routes.end(); it++)
@@ -438,10 +489,11 @@ std::vector <Route *>	Config::get_routes() const
 	return _routes;
 }
 
-// returns the error page for a given status code
-//
-// if:	the status code is not found in the error pages from the config
-//		->	generate a default error page
+std::vector <CGI *>		Config::get_cgi() const
+{
+	return _cgi;
+}
+
 std::string	Config::get_error_page(const int key)
 {
 	if (_error_pages.find(key) != _error_pages.end())
@@ -450,45 +502,8 @@ std::string	Config::get_error_page(const int key)
 	}
 	else 
 	{
-		return generate_default_error_page(key);
+		return Utils::generate_default_error_page(key);
 	}
-}
-
-// generates a default error page for a given status code
-//
-// cat DEFAULT_ERROR_PAGE | sed 's/400/XXX/g' | sed 's/bad request/new message/g' > new_html_path
-std::string	Config::generate_default_error_page(const int status_code)
-{
-	std::string default_error_code = "400", default_error_message = "bad request", default_html = DEFAULT_ERROR_PAGE;
-	std::string	new_error_code = Utils::itoa(status_code), new_error_message = _error_status_codes[status_code];
-
-	size_t pos_code = default_html.find(default_error_code), pos_message = default_html.find(default_error_message);
-
-	while (pos_code != std::string::npos || pos_message != std::string::npos)
-	{
-		if (pos_code != std::string::npos)
-		{
-			default_html.replace(pos_code, default_error_code.size(), new_error_code);
-			pos_code = default_html.find(default_error_code, pos_code + new_error_code.size());
-		}
-		if (pos_message != std::string::npos)
-		{
-			default_html.replace(pos_message, default_error_message.size(), new_error_message);
-			pos_message = default_html.find(default_error_message, pos_message + new_error_message.size());
-		}
-	}
-	std::string new_html_path = "/tmp/" + Utils::itoa(status_code) + ".html";
-
-	std::ofstream	oss(new_html_path.c_str());
-
-	if (oss == false)
-	{
-		Log::log("error: could not create default error page, falling back to 400: bad_request\n", STD_ERR | ERROR_FILE);
-		return DEFAULT_ERROR_PAGE;
-	}
-
-	oss << default_html;
-	return new_html_path;
 }
 
 void	Config::initialize_cgi_setters()

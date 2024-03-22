@@ -8,6 +8,7 @@
 #include <map>
 #include <netinet/in.h>
 #include <string>
+#include <vector>
 
 typedef std::map <std::string, std::vector <std::string> > _map;
 
@@ -24,7 +25,9 @@ class Config
 
 		std::vector <ServerInfo *>				get_servers() const;
 		std::vector <Route *>					get_routes() const;
+		std::vector <CGI *>						get_cgi() const;
 		std::string								get_error_page(const int key);
+
 
 		void									set_servers(std::map <int, std::map <std::string, std::vector <std::string> > >& raw_servers);
 		void									set_error_pages(std::map <int, std::string>& error_pages);
@@ -40,8 +43,12 @@ class Config
 		void									configure_access_log(_map& server, ServerInfo* new_server);
 		void									configure_client_max_body_size(_map& server, ServerInfo* new_server);
 		void									configure_locations(_map& server, ServerInfo* new_server);
+		void									configure_location(const std::string& path, const std::string& key, LocationInfo*& new_location, const std::vector <std::string>& value);
+		std::string								extract_location_path(const std::string& current_map_key);
 		void									configure_standard_route(_map &route, const std::string& name);
 		void									configure_cgi(_map &route);
+		Config::cgi_setter_map::iterator		initialize_cgi_iteration(const std::string& current_map_key, CGI* new_cgi);
+
 
 		std::string                             generate_default_error_page(const int status_code);
 
@@ -53,6 +60,7 @@ class Config
 		std::vector <CGI *>						_cgi;
 		std::vector <Route *>					_routes;
 		std::vector <ServerInfo *>				_servers;
+		std::vector <LocationInfo *>			_locations;
 		std::map <int, std::string>				_error_pages;
 
 		std::map <int, std::string>             _error_status_codes;
@@ -70,26 +78,6 @@ class Config
 #define CLIENT_MAX_BODY_SIZE_DEFAULT 1000000
 #define CLIENT_MAX_BODY_SIZE_MAX 10000000
 #define ACCESS_LOG_DEFAULT "access.log"
-#define DEFAULT_ERROR_PAGE "<!DOCTYPE html>\n\
-<html lang=\"en\">\n\
-<head>\n\
-<meta charset=\"UTF-8\">\n\
-<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n\
-<title>400</title>\n\
-<link href=\"error.css\" rel=\"stylesheet\">\n\
-</head>\n\
-<body>\n\
-<div class=\"container bsod\">\n\
-  <div class=\"neg\">\n\
-    <h1 class=\"bg title\">error 400</h1>\n\
-    <p>bad request</p>\n\
-  </div>\n\
-  <div class=\"nav\">\n\
-    <a href=\"/\" class=\"link\">go home</a>\n\
-    <a href=\"/contact\" class=\"link\">contact us</a>\n\
-  </div>\n\
-</div>\n\
-</body>\n\
-</html>"
+
 
 #endif

@@ -36,7 +36,10 @@ std::string CGI::get_handler() const
 
 void CGI::set_allowed_methods(const std::vector <std::string>& allowed_methods)
 {
-    _allowed_methods = allowed_methods;
+    if (allowed_methods.empty() == false)
+    {
+        _allowed_methods = allowed_methods;
+    }
 }
 
 std::vector <std::string> CGI::get_allowed_methods() const
