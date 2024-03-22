@@ -302,8 +302,8 @@ void Request::validate_uri(void)
     std::cout << "fragment: " <<    this->fragment << std::endl;
     std::cout << "port: " <<        this->port << std::endl << std::endl; */
 }
-// validate request
 
+// validate request
 void Request::validate_request()
 {
     if (this->get_method() != "GET" && this->get_method() != "POST" && this->get_method() != "DELETE")
@@ -341,11 +341,24 @@ void Request::validate_request()
             }
         }
     }
-    // validate uri
 
 }
-// constructor
 
+void Request::check_length()
+{
+    if (this->get_uri().size() > MAX_URL_LENGTH)
+    {
+        this->errcode = 414;
+        throw std::runtime_error("Request-URI Too Long");
+    }
+    //headers
+    if (this->get_headers().size() > MAX_HEADER_LENGTH)
+    {
+        this->errcode = 431;
+        throw std::runtime_error("Request Header Fields Too Large");
+    }
+
+}
 
 void Request::init(std::string request)
 {
@@ -354,5 +367,6 @@ void Request::init(std::string request)
     validate_request();
     validate_uri();
     pct_decode();
+    check_length();
 }
 Request::Request(){}

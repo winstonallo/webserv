@@ -5,24 +5,23 @@
 #include <map>
 #include <sstream>
 #include <algorithm>
+
 #include "Utils.hpp"
+#include "Config.hpp"
 
 
 class Request
 {
 	public:
         // constructors and destructors
-									Request();
-									~Request();
-									Request(const Request& rhs);
-		Request&					operator=(const Request& rhs);
+		Request();
+		~Request();
+		Request(const Request& rhs);
+		Request&		operator=(const Request& rhs);
 
-        // init and parse request
-        void                        parse(std::string request);
-        void                        validate_request(void);
-        void                        validate_uri(void);
-        void                        pct_decode(void);
+        // init request
         void                        init(std::string request);
+        
 
         // setters and getters
         std::map <std::string, std::string> get_headers() const{ return this->headers;}
@@ -39,7 +38,7 @@ class Request
         int get_errcode() const{ return this->errcode;}
         std::string get_header(const std::string& key) const;
 
-	protected:
+	private:
 
 		std::string 					protocol;
         std::string 					method;
@@ -53,6 +52,11 @@ class Request
         std::string 					query;
         std::string 					fragment;
         int                             errcode;
+		void                        parse(std::string request);
+        void                        validate_request(void);
+        void                        validate_uri(void);
+        void                        pct_decode(void);
+        void                        check_length(void);
 
 };
 std::ostream& operator<<(std::ostream& os, const Request& req);
