@@ -14,7 +14,7 @@ Route::~Route() {}
 
 void Route::set_name(const std::string& name)
 {
-    _name = name[0];
+    _name = name;
 }
 
 std::string Route::get_name() const
@@ -24,6 +24,7 @@ std::string Route::get_name() const
 
 void Route::set_root(const std::vector <std::string>&  root)
 {
+    if (root.empty())
     _root = root[0];
 }
 
@@ -34,6 +35,10 @@ std::string Route::get_root() const
 
 void Route::set_default_file(const std::vector <std::string>&  default_file)
 {
+    if (default_file.empty() == true)
+    {
+        throw std::runtime_error("error: empty value for default file in " + _name + "config, ignoring");
+    }
     if (Utils::file_exists(_root + default_file[0]) == false)
     {
         throw std::runtime_error("error: could not open '" + default_file[0] + "' at '" + _root + "'\n");
