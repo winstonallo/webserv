@@ -244,6 +244,7 @@ std::string		Server::create_response(Request& rq)
 		}
 		catch(const std::exception& e)
 		{
+			errcode = 400;
 			failed = true;
 		}
 	}
@@ -252,7 +253,7 @@ std::string		Server::create_response(Request& rq)
 	
 	if (failed)
 	{
-		std::ifstream error_file(director->get_config().get_error_page(errcode));
+		std::ifstream error_file(director->get_config()->get_error_page(errcode).c_str());
 		if (error_file.fail())
 		{
 			Log::log("Error reading error page file.\n", STD_ERR | ERROR_FILE);
@@ -288,6 +289,7 @@ std::string		Server::create_response(Request& rq)
 
 std::string		Server::get_body(Request& rq)
 {
+	throw std::runtime_error("error");
 	if (rq.get_method() == "GET" || rq.get_method() == "HEAD")
 	{
 		std::ifstream file("files/index.html");

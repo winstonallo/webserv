@@ -16,7 +16,7 @@
 #include "Director.hpp"
 
 class LocationInfo;
-
+class Director;
 //purpose:	Data class for the parsed values (from the config file)
 //			It is used fjor the initialization and the running of the servers.
 class Server : public Node

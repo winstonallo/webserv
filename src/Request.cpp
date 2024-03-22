@@ -360,8 +360,3 @@ Request::Request(std::string request)
     validate_uri();
     pct_decode();
 }
-
-int Request::get_error() const
-{
-	return (error);
-}

@@ -21,8 +21,8 @@
 #include "Server.hpp"
 #include "Server.hpp"
 #include "ClientInfo.hpp"
-#include "Config.hpp"
 #include "ConfigParser.hpp"
+#include "Config.hpp"
 #include "Log.hpp"
 #include "LocationInfo.hpp"
 
@@ -31,7 +31,7 @@
 
 // purpose:	class that handles all connections wit select(ing) the 
 // 			the sockets that are ready to be readed or written.
-
+class Config;
 
 class Director 
 {
@@ -40,6 +40,7 @@ class Director
 										~Director();
 		int								init_servers();
 		int								run_servers();
+		Config*							get_config();
 
 	private:
 										Director(const Director& rhs);
@@ -51,7 +52,7 @@ class Director
 		int								write_to_client(int fd);
 
 		int								fdmax;
-		Config							config;
+		Config*							config;
 		std::map<int, Node*>			nodes;
 		fd_set							read_fds, write_fds;
 };

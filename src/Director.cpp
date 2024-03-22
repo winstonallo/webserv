@@ -1,12 +1,14 @@
 #include "Director.hpp"
 
-Director::Director(const std::string& config_path):fdmax(-1), config(config_path)
+Director::Director(const std::string& config_path):fdmax(-1), config(new Config(config_path))
 {
 
 }
 
 Director::~Director()
-{}
+{
+	delete config;
+}
 
 Director::Director(const Director& rhs)
 {
@@ -18,6 +20,11 @@ Director&	Director::operator=(const Director& rhs)
 	if (this != &rhs)
 	{}
 	return (*this);
+}
+
+Config*	Director::get_config()
+{
+	return config;
 }
 
 // purpose: gets the inner address of sockaddr sa for both cases that 
@@ -123,7 +130,7 @@ int	Director::init_servers()
 	FD_ZERO(&read_fds);
 	FD_ZERO(&write_fds);
 
-	std::vector<Server*> servers = config.get_servers();
+	std::vector<Server*> servers = config->get_servers();
 	std::vector<Server*>::iterator e = servers.end();
 	std::vector<Server*>::iterator it ;
 	for (it = servers.begin(); it != e; it++)
@@ -215,30 +222,40 @@ int	Director::run_servers()
 						Log::log(ss.str(), ERROR_FILE | STD_ERR);
 					}
 				}
-				time_t curr_time = time(NULL);
 
 				//timeout for clients
-				if (curr_time - dynamic_cast<ClientInfo *>(nodes[i])->get_prev_time() > TIMEOUT_TIME)
-				{
-					std::stringstream ss2;
+			}
+		}
 
-					ss2 << "Closing connection from ";
-					ss2 << inet_ntop(nodes[i]->get_addr().ss_family,
-						get_in_addr((struct sockaddr *)&nodes[i]->get_addr()),
-						remoteIP, INET6_ADDRSTRLEN);
-					ss2 << " on socket " << i << std::endl;
-					Log::log(ss2.str(), ACCEPT_FILE | STD_OUT);
+		time_t curr_time = time(NULL);
+		std::map<int, Node*>::iterator e = nodes.end();
+		std::map<int, Node*>::iterator it;
+		for (it = nodes.begin(); it != e; it++)
+		{	
+			ClientInfo* client = dynamic_cast<ClientInfo *>(it->second);
+			int client_fd;
+			if (client)
+				client_fd = it->first;	
+			if (client && (curr_time - client->get_prev_time() > TIMEOUT_TIME))
+			{
+				std::stringstream ss2;
 
-					if (FD_ISSET(i, &write_fds))
-						FD_CLR(i, &write_fds);
-					if (FD_ISSET(i, &read_fds))
-						FD_CLR(i, &read_fds);
-					if (i == fdmax)
-						fdmax--;
-					delete nodes[i];
-					nodes.erase(i);
-					close(i);
-				}
+				ss2 << "Closing connection from ";
+				ss2 << inet_ntop(client->get_addr().ss_family,
+					get_in_addr((struct sockaddr *)&client->get_addr()),
+					remoteIP, INET6_ADDRSTRLEN);
+				ss2 << " on socket " << client_fd << std::endl;
+				Log::log(ss2.str(), ACCEPT_FILE | STD_OUT);
+
+				if (FD_ISSET(client_fd, &write_fds))
+					FD_CLR(client_fd, &write_fds);
+				if (FD_ISSET(client_fd, &read_fds))
+					FD_CLR(client_fd, &read_fds);
+				if (client_fd == fdmax)
+					fdmax--;
+				delete client;
+				nodes.erase(client_fd);
+				close(client_fd);
 			}
 		}
 	}

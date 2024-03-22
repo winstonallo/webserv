@@ -12,7 +12,7 @@ int main(int argc, char **argv)
             ConfigDispatcher    dispatcher(parser.get_config());
             Config              config(dispatcher.get_error_pages());
             std::map <int, std::map <std::string, std::vector <std::string> > > servers = dispatcher.get_servers();
-            config.set_servers(servers);
+            config->set_servers(servers);
         }
         catch (const std::exception& e)
         {

@@ -7,6 +7,7 @@
 #include <string>
 
 typedef std::map <std::string, std::vector <std::string> > server_map;
+class Server;
 
 class Config
 {
