@@ -1,4 +1,5 @@
 #include "Config.hpp"
+#include "CGI.hpp"
 #include "ConfigDispatcher.hpp"
 #include "ConfigParser.hpp"
 #include "LocationInfo.hpp"
@@ -40,12 +41,12 @@ void	Config::set_servers(std::map <int, std::map <std::string, std::vector <std:
 			new_server = new ServerInfo();
 			std::vector <std::string>	new_unique_values;
 
-			handle_server_names(it->second, new_server, new_unique_values);
-			handle_port(it->second, new_server, new_unique_values);
-			handle_access_log(it->second, new_server);
-			handle_host(it->second, new_server, new_unique_values);
-			handle_client_max_body_size(it->second, new_server);
-			handle_locations(it->second, new_server);
+			configure_server_names(it->second, new_server, new_unique_values);
+			configure_port(it->second, new_server, new_unique_values);
+			configure_access_log(it->second, new_server);
+			configure_host(it->second, new_server, new_unique_values);
+			configure_client_max_body_size(it->second, new_server);
+			configure_locations(it->second, new_server);
 
 			_servers.push_back(new_server);
 			_unique_values.insert(_unique_values.end(), new_unique_values.begin(), new_unique_values.end());
@@ -77,7 +78,7 @@ void	Config::set_servers(std::map <int, std::map <std::string, std::vector <std:
 //		
 //		 else:
 //					->	log error & skip the value
-void	Config::handle_locations(_map& server, ServerInfo* new_server)
+void	Config::configure_locations(_map& server, ServerInfo* new_server)
 {
 	std::vector <LocationInfo*> locations;
 	std::string					location_key_prefix = "location";
@@ -98,7 +99,7 @@ void	Config::handle_locations(_map& server, ServerInfo* new_server)
 				{
 					locations.push_back(new_location);
 				}
-				new_location = new LocationInfo();
+				new_location = new LocationInfo;
 			}
 
 			new_location->set_name(path);
@@ -143,7 +144,7 @@ void	Config::handle_locations(_map& server, ServerInfo* new_server)
 //	else:	
 //			-> add host to vector of unique values
 //			-> set host of current ServerInfo object
-void	Config::handle_host(_map& server, ServerInfo* new_server, std::vector <std::string>& new_unique_values)
+void	Config::configure_host(_map& server, ServerInfo* new_server, std::vector <std::string>& new_unique_values)
 {
 	if (server.find("host") == server.end() or server["host"].empty() == true)
 	{
@@ -183,7 +184,7 @@ void	Config::handle_host(_map& server, ServerInfo* new_server, std::vector <std:
 //	else:	
 //			-> add server name(s) to vector of unique values
 //			-> set server name(s) of current ServerInfo object
-void	Config::handle_server_names(_map& server, ServerInfo* new_server, std::vector <std::string>& new_unique_values)
+void	Config::configure_server_names(_map& server, ServerInfo* new_server, std::vector <std::string>& new_unique_values)
 {
 	if (server.find("server_name") == server.end() or server["server_name"].empty() == true)
 	{
@@ -216,7 +217,7 @@ void	Config::handle_server_names(_map& server, ServerInfo* new_server, std::vect
 //	else:	
 //			-> add port to vector of unique values
 //			-> set port of current ServerInfo object
-void	Config::handle_port(_map& server, ServerInfo* new_server, std::vector <std::string>& new_unique_values)
+void	Config::configure_port(_map& server, ServerInfo* new_server, std::vector <std::string>& new_unique_values)
 {
 	if (server.find("port") == server.end() or server["port"].empty() == true)
 	{
@@ -242,7 +243,7 @@ void	Config::handle_port(_map& server, ServerInfo* new_server, std::vector <std:
 //
 // 	else:
 //			->	path invalid, log error & return default 
-void	Config::handle_access_log(_map& server, ServerInfo* new_server)
+void	Config::configure_access_log(_map& server, ServerInfo* new_server)
 {
 	std::string access_log;
 
@@ -271,7 +272,7 @@ void	Config::handle_access_log(_map& server, ServerInfo* new_server)
 //
 // else if: the value is invalid
 //		->	log error & fall back to default
-void	Config::handle_client_max_body_size(_map& server, ServerInfo* new_server)
+void	Config::configure_client_max_body_size(_map& server, ServerInfo* new_server)
 {
 	if (server.find("client_max_body_size") == server.end() or server["client_max_body_size"].empty() == true)
 	{
@@ -296,46 +297,86 @@ void	Config::handle_client_max_body_size(_map& server, ServerInfo* new_server)
 	new_server->set_client_max_body_size(size);
 }
 
+void	Config::configure_standard_route(_map& route, const std::string& name)
+{
+	Route* new_route = new Route;
+
+	new_route->set_name(name);
+
+	for (_map::iterator current_route = route.begin(); current_route != route.end(); current_route++)
+	{
+		if (_standard_route_setters.find(current_route->first) != _standard_route_setters.end())
+		{
+			try 
+			{
+				(new_route->*(_standard_route_setters[current_route->first]))(current_route->second);
+			}
+			catch (const std::exception& e)
+			{
+				Log::log(e.what(), STD_ERR | ERROR_FILE);
+			}
+		}
+		else
+		{
+			Log::log("error: config value '" + current_route->first + "' not recognized, will be ignored in route initialization\n", STD_ERR | ERROR_FILE);
+		}
+	}
+	_routes.push_back(new_route);
+}
+
+void Config::configure_cgi(_map& route) {
+    CGI* new_cgi = NULL;
+
+    for (_map::iterator it = route.begin(); it != route.end(); ++it) {
+        std::string cgi_name = it->first.substr(0, it->first.find_first_of(":"));
+        std::string key = it->first.substr(it->first.find_first_of(":") + 1);
+
+        if (new_cgi == NULL || cgi_name != new_cgi->get_name()) {
+            if (new_cgi != NULL) {
+                _cgi.push_back(new_cgi); // Safely stored before allocating new.
+            }
+            new_cgi = new CGI; // Consider using smart pointers if possible.
+            new_cgi->set_name(cgi_name); // Assuming there's a method to set the CGI name.
+        }
+
+        // Perform the search in the map once.
+        cgi_setter_map::iterator setter = _cgi_route_setters.find(key);
+        if (setter != _cgi_route_setters.end()) {
+            try {
+                (new_cgi->*(setter->second))(it->second);
+            } catch (const std::exception& e) {
+                Log::log(e.what(), STD_ERR | ERROR_FILE);
+                // Consider handling or cleaning up new_cgi here if necessary.
+            }
+        } else {
+            Log::log("error: CGI config key '" + key + "' not recognized.", STD_ERR | ERROR_FILE);
+        }
+    }
+
+    if (new_cgi != NULL) {
+        _cgi.push_back(new_cgi); // Add the last CGI object to the collection.
+    }
+}
+
 // takes the parsed routes from the config dispatcher 
 // and initializes the routes one by one
 //
-// TODO: handle_cgi()
+// TODO: configure_cgi()
 // TODO: add extensive comments
 void	Config::set_routes(std::map <std::string, _map>& raw_routes)
 {
-	Route *new_route;
 	for (std::map <std::string, _map>::iterator it = raw_routes.begin(); it != raw_routes.end(); it++)
 	{
-		new_route = new Route();
-
 		std::string name = it->first;
+
 		if (name == "/cgi-bin")
 		{
-			// TODO: handle_cgi();
+			configure_cgi(it->second);
 		}
 		else 
 		{
-			new_route->set_name(name);
-			for (_map::iterator current_route = it->second.begin(); current_route != it->second.end(); current_route++)
-			{
-				if (_setters.find(current_route->first) != _setters.end())
-				{
-					try 
-					{
-						(new_route->*(_setters[current_route->first]))(current_route->second);
-					}
-					catch (const std::exception& e)
-					{
-						Log::log(e.what(), STD_ERR | ERROR_FILE);
-					}
-				}
-				else
-				{
-					Log::log("error: config value '" + current_route->first + "' not recognized, will be ignored in route initialization\n", STD_ERR | ERROR_FILE);
-				}
-			}
+			configure_standard_route(it->second, name);
 		}
-		_routes.push_back(new_route);
 	}
 }
 
@@ -402,15 +443,22 @@ std::string	Config::generate_default_error_page(const int status_code)
 	return new_html_path;
 }
 
-void	Config::initialize_route_setters()
+void	Config::initialize_cgi_setters()
 {
-	_setters["allowed_methods"] = &Route::set_allowed_methods;
-	_setters["default_file"] = &Route::set_default_file;
-	_setters["root"] = &Route::set_root;
-	_setters["upload_directory"] = &Route::set_upload_directory;
-	_setters["http_redirect"] = &Route::set_http_redirect;
-	_setters["accept_file_upload"] = &Route::set_accept_file_upload;
-	_setters["directory_listing"] = &Route::set_directory_listing;
+	_cgi_route_setters["extension"] = &CGI::set_extension;
+	_cgi_route_setters["handler"] = &CGI::set_handler;
+	_cgi_route_setters["allowed_methods"] = &CGI::set_allowed_methods;
+}
+
+void	Config::initialize_standard_route_setters()
+{
+	_standard_route_setters["allowed_methods"] = &Route::set_allowed_methods;
+	_standard_route_setters["default_file"] = &Route::set_default_file;
+	_standard_route_setters["root"] = &Route::set_root;
+	_standard_route_setters["upload_directory"] = &Route::set_upload_directory;
+	_standard_route_setters["http_redirect"] = &Route::set_http_redirect;
+	_standard_route_setters["accept_file_upload"] = &Route::set_accept_file_upload;
+	_standard_route_setters["directory_listing"] = &Route::set_directory_listing;
 }
 
 // full initialization of the config in one constructor
@@ -442,7 +490,7 @@ Config::Config(const std::string& config_path)
 
 	_error_pages = dispatcher.get_error_pages();
 	_error_status_codes = Utils::get_error_status_codes();
-	initialize_route_setters();
+	initialize_standard_route_setters();
 	set_routes(routes);
 	set_servers(servers);
 }
@@ -454,6 +502,10 @@ Config::~Config()
 		delete *it;
 	}
 	for (std::vector <Route *>::iterator it = _routes.begin(); it != _routes.end(); it++)
+	{
+		delete *it;
+	}
+	for (std::vector<CGI *>::iterator it = _cgi.begin(); it != _cgi.end(); it++)
 	{
 		delete *it;
 	}

@@ -3,6 +3,7 @@
 
 #include "ServerInfo.hpp"
 #include "Route.hpp"
+#include "CGI.hpp"
 #include <map>
 #include <netinet/in.h>
 #include <string>
@@ -13,8 +14,10 @@ class Config
 {
 	public:
 
-		typedef void (Route::*setter)(const std::vector <std::string>&);
-		typedef std::map <std::string, setter> setter_map;
+		typedef void (Route::*route_setter)(const std::vector <std::string>&);
+		typedef std::map <std::string, route_setter> route_setter_map;
+		typedef void (CGI::*cgi_setter)(const std::vector <std::string>&);
+		typedef std::map <std::string, cgi_setter> cgi_setter_map;
 
 		std::vector <ServerInfo *>				get_servers() const;
 		std::vector <Route *>					get_routes() const;
@@ -24,14 +27,18 @@ class Config
 		void									set_error_pages(std::map <int, std::string>& error_pages);
 		void									set_routes(std::map <std::string, _map>& raw_routes);
 
-		void									initialize_route_setters();
+		void									initialize_standard_route_setters();
+		void									initialize_cgi_setters();
 
-		void									handle_port(_map& server, ServerInfo* new_server, std::vector <std::string>& new_unique_values);
-		void									handle_server_names(_map& server, ServerInfo* new_server, std::vector <std::string>& new_unique_values);
-		void									handle_host(_map& server, ServerInfo* new_server, std::vector <std::string>& new_unique_values);
-		void									handle_access_log(_map& server, ServerInfo* new_server);
-		void									handle_client_max_body_size(_map& server, ServerInfo* new_server);
-		void									handle_locations(_map& server, ServerInfo* new_server);
+		void									configure_port(_map& server, ServerInfo* new_server, std::vector <std::string>& new_unique_values);
+		void									configure_server_names(_map& server, ServerInfo* new_server, std::vector <std::string>& new_unique_values);
+		void									configure_host(_map& server, ServerInfo* new_server, std::vector <std::string>& new_unique_values);
+		void									configure_access_log(_map& server, ServerInfo* new_server);
+		void									configure_client_max_body_size(_map& server, ServerInfo* new_server);
+		void									configure_locations(_map& server, ServerInfo* new_server);
+
+		void									configure_standard_route(_map &route, const std::string& name);
+		void									configure_cgi(_map &route);
 
 		std::string                             generate_default_error_page(const int status_code);
 
@@ -40,14 +47,17 @@ class Config
 	
 	private:
 
-		std::vector <ServerInfo *>				_servers;
+		std::vector <CGI *>						_cgi;
 		std::vector <Route *>					_routes;
+		std::vector <ServerInfo *>				_servers;
 		std::map <int, std::string>				_error_pages;
 
 		std::map <int, std::string>             _error_status_codes;
 
 		std::vector <std::string>				_unique_values;
-		setter_map								_setters;
+
+		route_setter_map						_standard_route_setters;
+		cgi_setter_map							_cgi_route_setters;
 
 		Config(const Config& rhs);
 		Config &operator=(const Config& rhs);
