@@ -16,6 +16,18 @@
 #include <vector>
 #include <arpa/inet.h>
 
+// takes the parsed servers from the config dispatcher and initializes the servers one by one
+//
+// if:	any of the required fields are missing
+//		->	log error & fall back to default values
+//
+// else if: a unique value is already taken (host, port, server name)
+//		->	log error & skip the server
+//
+// else:
+//		->	initialize the server
+//		->	add the server to the list of servers
+//		->	add the unique values to the list of unique values
 void	Config::set_servers(std::map <int, std::map <std::string, std::vector <std::string> > >& raw_servers)
 {
 	ServerInfo* new_server;
@@ -48,6 +60,22 @@ void	Config::set_servers(std::map <int, std::map <std::string, std::vector <std:
 	}
 }
 
+// initializes the locations for a server
+//
+// if:	the key is "location"
+//		->	initialize a new location:
+//
+//		 if: the key is "root"
+//				->	set the path for the new location
+//		
+//		 else if: the key is "directory_listing"
+//				->	set the directory listing for the location
+//		
+//		 else if: the key is "allowed_methods"
+//				->	set the allowed methods for the location
+//		
+//		 else:
+//				->	log error & skip the value
 void	Config::handle_locations(_map& server, ServerInfo* new_server)
 {
 	std::vector <LocationInfo*> locations;
@@ -101,6 +129,11 @@ void	Config::handle_locations(_map& server, ServerInfo* new_server)
 	}
 	new_server->add_locations(locations);
 }
+
+// initializes the host for a server
+//
+// if:	the host is missing
+//		->	log error & skip the server
 
 void	Config::handle_host(_map& server, ServerInfo* new_server, std::vector <std::string>& new_unique_values)
 {
@@ -331,6 +364,13 @@ std::string	Config::generate_default_error_page(const int status_code)
 	std::string new_html_path = "/tmp/" + Utils::itoa(status_code) + ".html";
 
 	std::ofstream	oss(new_html_path.c_str());
+
+	if (oss == false)
+	{
+		Log::log("error: could not create default error page, falling back to 400: bad_request\n", STD_ERR | ERROR_FILE);
+		return default_html;
+	}
+
 	oss << default_html;
 	return new_html_path;
 }
