@@ -313,11 +313,13 @@ int		Server::process(Request& rq)
 	get_best_location_match(locations, rq, location, &loc_info);
 	if (!location.empty())
 	{
-		if (rq.get_body().size() > get_client_max_body_size())
+		// is body smaller than max?
+		if (rq.get_body().size() > loc_info.get_client_max_body_size())
 		{
 			Log::log("Error. Client body is too big.\n", STD_ERR | ERROR_FILE);
 			return (errcode = 413);
 		}
+		// is method allowed?
 		std::vector<std::string>::iterator end = loc_info.get_allowed_methods().end();
 		std::vector<std::string>::iterator begin = loc_info.get_allowed_methods().begin();
 		if(std::find(begin,	end, rq.get_method()) != end)
@@ -325,6 +327,16 @@ int		Server::process(Request& rq)
 			Log::log("Error. Method not allowed.\n", STD_ERR | ERROR_FILE);
 			return (errcode = 405);
 		}
+		// return handler
+		if (loc_info.get_return().empty() == 0)
+		{
+			location = loc_info.get_return();
+			errcode = 301;
+			return (errcode);
+		}
+		if (loc_info.get_name)
+
+
 
 		
 		

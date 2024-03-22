@@ -21,30 +21,30 @@ LocationInfo&	LocationInfo::operator=(const LocationInfo& rhs)
 {
 	if (this != &rhs)
 	{
-		path = rhs.path;
-		autoindex = rhs.autoindex;
+		_path = rhs._path;
+		_autoindex = rhs._autoindex;
 	}
 	return (*this);
 }
 
 std::string	LocationInfo::getPath() const
 {
-	return (path);
+	return (_path);
 }
 
 void	LocationInfo::setPath(std::string p)
 {
-	path = p;
+	_path = p;
 }
 
 bool	LocationInfo::getAutoindex() const
 {
-	return (autoindex);
+	return (_autoindex);
 }
 
 void	LocationInfo::setAutoindex(bool val)
 {
-	autoindex = val;
+	_autoindex = val;
 }
 
 std::vector <std::string>	LocationInfo::get_allowed_methods() const
@@ -75,4 +75,64 @@ std::string	LocationInfo::get_name() const
 void	LocationInfo::set_name(const std::string& name)
 {
 	_name = name;
+}
+
+std::string		LocationInfo::get_root() const
+{
+	return _root;
+}
+
+void	LocationInfo::set_root(const std::string& r)
+{
+	_root = r;
+}
+
+std::string		LocationInfo::get_return() const
+{
+	return _return;
+}
+
+void			LocationInfo::set_return(const std::string& r)
+{
+	_return = r;
+}
+
+void			LocationInfo::set_alias(const std::string& al)
+{
+	_alias = al;
+}
+
+std::string		LocationInfo::get_alias() const
+{
+	return _alias;
+}
+
+void			LocationInfo::set_cgi_path(std::vector<std::string> p)
+{
+	_cgi_path = p;
+}
+
+std::vector<std::string> LocationInfo::get_cgi_path() const
+{
+	return _cgi_path;
+}
+
+void			LocationInfo::set_cgi_extension(std::vector<std::string> e)
+{
+	_cgi_ext = e;
+}
+
+std::vector<std::string>	LocationInfo::get_cgi_extension() const
+{
+	return _cgi_ext;
+}
+
+void			LocationInfo::set_client_max_body_size(int mb)
+{
+	_client_max_body_size = mb;
+}
+
+int				LocationInfo::get_client_max_body_size() const
+{
+	return _client_max_body_size;
 }
