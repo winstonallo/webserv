@@ -173,7 +173,6 @@ int	Director::run_servers()
 	int ret;
 	fd_set readfds_backup;
 	fd_set writefds_backup;
-	char	remoteIP[INET6_ADDRSTRLEN];	
 	struct timeval timeout_time;
 	while (true)
 	{
@@ -223,20 +222,18 @@ int	Director::run_servers()
 					}
 				}
 
-				//timeout for clients
 			}
 		}
-
+/*
+		char	remoteIP[INET6_ADDRSTRLEN];	
+		//timeout for clients
 		time_t curr_time = time(NULL);
-		std::map<int, Node*>::iterator e = nodes.end();
-		std::map<int, Node*>::iterator it;
-		for (it = nodes.begin(); it != e; it++)
+		for (int i = 0; i < fdmax; i++)
 		{	
-			ClientInfo* client = dynamic_cast<ClientInfo *>(it->second);
-			int client_fd;
-			if (client)
-				client_fd = it->first;	
-			if (client && (curr_time - client->get_prev_time() > TIMEOUT_TIME))
+			ClientInfo* client;
+			if (nodes.find(i) != nodes.end() && nodes[i]->get_type() == CLIENT_NODE)
+				client = dynamic_cast<ClientInfo *>(nodes[i]);
+			if ((curr_time - client->get_prev_time()) > TIMEOUT_TIME)
 			{
 				std::stringstream ss2;
 
@@ -244,20 +241,22 @@ int	Director::run_servers()
 				ss2 << inet_ntop(client->get_addr().ss_family,
 					get_in_addr((struct sockaddr *)&client->get_addr()),
 					remoteIP, INET6_ADDRSTRLEN);
-				ss2 << " on socket " << client_fd << std::endl;
+				ss2 << " on socket " << i << std::endl;
 				Log::log(ss2.str(), ACCEPT_FILE | STD_OUT);
 
-				if (FD_ISSET(client_fd, &write_fds))
-					FD_CLR(client_fd, &write_fds);
-				if (FD_ISSET(client_fd, &read_fds))
-					FD_CLR(client_fd, &read_fds);
-				if (client_fd == fdmax)
+				if (FD_ISSET(i, &write_fds))
+					FD_CLR(i, &write_fds);
+				if (FD_ISSET(i, &read_fds))
+					FD_CLR(i, &read_fds);
+				if (i == fdmax)
 					fdmax--;
 				delete client;
-				nodes.erase(client_fd);
-				close(client_fd);
+				nodes.erase(i);
+				close(i);
 			}
+
 		}
+*/
 	}
 	return 0;
 }

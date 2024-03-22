@@ -244,7 +244,6 @@ std::string		Server::create_response(Request& rq)
 		}
 		catch(const std::exception& e)
 		{
-			errcode = 400;
 			failed = true;
 		}
 	}
@@ -289,14 +288,16 @@ std::string		Server::create_response(Request& rq)
 
 std::string		Server::get_body(Request& rq)
 {
-	throw std::runtime_error("error");
 	if (rq.get_method() == "GET" || rq.get_method() == "HEAD")
 	{
-		std::ifstream file("files/index.html");
+
+		std::ifstream file(rq.get_uri().c_str());
+		std::cout << rq.get_uri() << std::endl;
 		if (file.fail())
 		{
 			errcode = 400;
 			Log::log("Error reading request file", STD_ERR | ERROR_FILE); 
+			throw std::runtime_error("error");
 		}
 		std::ostringstream ss;
 		ss << file.rdbuf();
@@ -304,3 +305,56 @@ std::string		Server::get_body(Request& rq)
 	}
 	return "No get";
 }
+
+int		Server::process(Request& rq)
+{
+	std::string location;
+	LocationInfo loc_info;	
+	get_best_location_match(locations, rq, location, &loc_info);
+	if (!location.empty())
+	{
+		if (rq.get_body().size() > get_client_max_body_size())
+		{
+			Log::log("Error. Client body is too big.\n", STD_ERR | ERROR_FILE);
+			return (errcode = 413);
+		}
+		std::vector<std::string>::iterator end = loc_info.get_allowed_methods().end();
+		std::vector<std::string>::iterator begin = loc_info.get_allowed_methods().begin();
+		if(std::find(begin,	end, rq.get_method()) != end)
+		{
+			Log::log("Error. Method not allowed.\n", STD_ERR | ERROR_FILE);
+			return (errcode = 405);
+		}
+
+		
+		
+	}
+}
+
+void	Server::get_best_location_match(std::vector<LocationInfo*> locs, 
+										Request &rq,
+										std::string& best_match,
+										LocationInfo* locinfo)
+{
+	int max_len = 0;
+	std::vector<LocationInfo*>::iterator e = locs.end();
+	std::vector<LocationInfo*>::iterator it;
+	for (it = locs.begin(); it != e; it++)
+	{
+		if(rq.get_path().find((*it)->getPath()) == 0)
+		{
+			if ((*it)->getPath() == "/" ||  
+			(*it)->getPath().size() == rq.get_path().size()|| 
+			rq.get_path()[(*it)->getPath().size()] == '/')
+			{
+				if ((*it)->getPath().size() > max_len)
+				{
+					locinfo = *it;
+					best_match = (*it)->getPath();
+					max_len = (*it)->getPath().size();
+				}
+			}
+		}
+	}
+}
+

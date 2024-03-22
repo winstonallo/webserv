@@ -3,6 +3,7 @@
 
 #include <string> 
 #include <vector>
+#include <algorithm>
 #include <sys/types.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
@@ -77,6 +78,10 @@ class Server : public Node
 		void								init_status_strings();
 		void								init_content_types();
 		std::string							get_body(Request& rq);
+		int									process(Request &rq);
+		void								get_best_location_match(std::vector<LocationInfo*> locs, 
+														Request& rq, std::string& best_match, 
+														LocationInfo* locinfo);
 		std::map<int, std::string>			status_string;
 		std::map<std::string, std::string>	content_type;
 		int									errcode;
