@@ -1,9 +1,7 @@
 #include "Config.hpp"
-#include "CGI.hpp"
 #include "ConfigDispatcher.hpp"
 #include "ConfigParser.hpp"
 #include "LocationInfo.hpp"
-#include "Route.hpp"
 #include "Utils.hpp"
 #include <algorithm>
 #include <cstddef>
@@ -53,10 +51,7 @@ Config::Config(const std::string& config_path)
 
 	_error_pages = dispatcher.get_error_pages();
 	_error_status_codes = Utils::get_error_status_codes();
-	// initialize_standard_route_setters();
-	// initialize_cgi_setters();
 	initialize_location_setters();
-	// set_routes(routes);
 	set_servers(servers);
 }
 
@@ -95,18 +90,9 @@ void	Config::set_servers(std::map <int, std::map <std::string, std::vector <std:
 		}
 		catch (const std::exception& e)
 		{
-			delete new_server;
-			std::cout.flush();
 			Log::log(e.what(), STD_ERR | ERROR_FILE);
 
-			if (it == --raw_servers.end())
-			{
-				break ;
-			}
-			else
-			{
-				continue ;
-			}
+			continue ;
 		}
 	}
 }
@@ -226,6 +212,7 @@ void	Config::configure_locations(const _map& server, Server*& new_server)
 		_locations.push_back(new_location);
 	}
 	new_server->add_locations(_locations);
+	_locations.clear();
 }
 
 // void	Config::configure_cgi()
@@ -417,14 +404,6 @@ void	Config::initialize_location_setters()
 Config::~Config() 
 {
 	for (std::vector <Server *>::iterator it = _servers.begin(); it != _servers.end(); it++)
-	{
-		delete *it;
-	}
-	for (std::vector <Route *>::iterator it = _routes.begin(); it != _routes.end(); it++)
-	{
-		delete *it;
-	}
-	for (std::vector<CGI *>::iterator it = _cgi.begin(); it != _cgi.end(); it++)
 	{
 		delete *it;
 	}

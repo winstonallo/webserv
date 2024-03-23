@@ -13,7 +13,15 @@ Server::Server()
 	init_content_types(); 
 }
 
-Server::~Server() {}
+Server::~Server()
+{
+	std::vector<LocationInfo*>::iterator it;
+	for (it = locations.begin(); it != locations.end(); it++)
+	{
+		delete *it;
+	}
+	// locations.clear();
+}
 
 
 Server::Server(int tfd, struct sockaddr_storage ss, size_t taddr_len):
