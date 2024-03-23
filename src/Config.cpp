@@ -141,7 +141,7 @@ Config::location_setter_map::iterator	Config::initialize_location_iteration(cons
 		{
 			std::string cgi_prefix = "location /cgi-bin";
 			std::string cgi_name = key.substr(cgi_prefix.size() + 1);
-			cgi_name = cgi_name.substr(0, cgi_name.find_first_of(":"));
+			cgi_name =  "/" + cgi_name.substr(0, cgi_name.find_first_of(":"));
 			if (new_location != NULL)
 			{
 				if (cgi_name != new_location->get_name())
@@ -441,17 +441,17 @@ std::ostream &operator<<(std::ostream &out, const Config &config)
 		std::vector <LocationInfo *> locations = (*it)->get_locations();
 		for (std::vector <LocationInfo *>::iterator it = locations.begin(); it != locations.end(); it++)
 		{
-			std::cout << "\troot: " << (*it)->getPath() << std::endl;
 			std::cout << "\tname: " << (*it)->get_name() << std::endl;
+			std::cout << "\t\troot: " << (*it)->getPath() << std::endl;
 			if ((*it)->directory_listing_enabled() == true)
 			{
-				std::cout << "\tdirectory listing: enabled" << std::endl;
+				std::cout << "\t\tdirectory listing: enabled" << std::endl;
 			}
 			else
 			{
-				std::cout << "\tdirectory listing: disabled" << std::endl;
+				std::cout << "\t\tdirectory listing: disabled" << std::endl;
 			}
-			std::cout << "\tallowed_methods: ";
+			std::cout << "\t\tallowed_methods: ";
 			std::vector <std::string> allowed_methods = (*it)->get_allowed_methods();
 			for (std::vector <std::string>::iterator it = allowed_methods.begin(); it != allowed_methods.end(); it++)
 			{
@@ -460,8 +460,8 @@ std::ostream &operator<<(std::ostream &out, const Config &config)
 			std::cout << std::endl;
 			if ((*it)->is_cgi() == true)
 			{
-				std::cout << "\tcgi_path: " << (*it)->get_cgi_path() << std::endl;
-				std::cout << "\tcgi_extension: " << (*it)->get_cgi_extension() << std::endl;
+				std::cout << "\t\tcgi_path: " << (*it)->get_cgi_path() << std::endl;
+				std::cout << "\t\tcgi_extension: " << (*it)->get_cgi_extension() << std::endl;
 			}
 		}
 	}
