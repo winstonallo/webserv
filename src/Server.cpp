@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 #include "Director.hpp"
+#include <fstream>
+#include "Log.hpp"
 
 Server::Server() 
 {

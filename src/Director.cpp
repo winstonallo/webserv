@@ -1,4 +1,6 @@
 #include "Director.hpp"
+#include <string.h>
+#include "Log.hpp"
 
 Director::Director(const std::string& config_path):fdmax(-1), config(new Config(config_path))
 {
