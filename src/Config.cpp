@@ -124,7 +124,7 @@ std::string	Config::extract_location_name(const std::string& current_map_key)
 //		->	initialize a new location
 //
 //	->	return the setter for the current map key
-Config::location_setter_map::iterator	Config::initialize_location_iteration(const std::string& name, const std::string& key, LocationInfo*& new_location)
+Config::location_setter_map::iterator	Config::initialize_location(const std::string& name, const std::string& key, LocationInfo*& new_location)
 {
 	if (new_location == NULL || name != new_location->get_name())
 	{
@@ -139,26 +139,7 @@ Config::location_setter_map::iterator	Config::initialize_location_iteration(cons
 		}
 		else 
 		{
-			std::string cgi_prefix = "location /cgi-bin";
-			std::string cgi_name = key.substr(cgi_prefix.size() + 1);
-			cgi_name =  "/" + cgi_name.substr(0, cgi_name.find_first_of(":"));
-			if (new_location != NULL)
-			{
-				if (cgi_name != new_location->get_name())
-				{
-					_locations.push_back(new_location);
-					new_location = new LocationInfo;
-				}
-			}
-			else
-			{
-				new_location = new LocationInfo;
-			}
-			new_location->set_name(cgi_name);
-			new_location->set_is_cgi(true);
-			std::string current_key = key.substr(key.find_last_of(":") + 1);
-			location_setter_map::iterator setter = _location_setters.find(current_key);
-			return setter;
+			return configure_cgi(key, new_location);
 		}
 	}
 	std::string current_key = key.substr(key.find_first_of(":") + 1);
@@ -189,7 +170,7 @@ void	Config::configure_locations(const _map& server, Server*& new_server)
 			continue ;
 		}
 
-		location_setter_map::iterator setter = initialize_location_iteration(name, it->first, new_location);
+		location_setter_map::iterator setter = initialize_location(name, it->first, new_location);
 		
 		if (setter != _location_setters.end())
 		{
@@ -215,10 +196,37 @@ void	Config::configure_locations(const _map& server, Server*& new_server)
 	_locations.clear();
 }
 
-// void	Config::configure_cgi()
-// {
-// 	(void)server;
-// }
+// initializes the CGI before setting the values
+//
+// if:	the new_cgi is NULL or the name of the current map key is different from the new_cgi name
+//		->	initialize a new CGI
+//
+//	->	return the setter for the current map key
+Config::location_setter_map::iterator	Config::configure_cgi(std::string key, LocationInfo*& new_location)
+{
+	std::string cgi_prefix = "location /cgi-bin";
+	std::string cgi_name = key.substr(cgi_prefix.size() + 1);
+	cgi_name =  "/" + cgi_name.substr(0, cgi_name.find_first_of(":"));
+
+	if (new_location != NULL)
+	{
+		if (cgi_name != new_location->get_name())
+		{
+			_locations.push_back(new_location);
+			new_location = new LocationInfo;
+		}
+	}
+	else
+	{
+		new_location = new LocationInfo;
+	}
+	new_location->set_name(cgi_name);
+	new_location->set_is_cgi(true);
+
+	std::string current_key = key.substr(key.find_last_of(":") + 1);
+	
+	return _location_setters.find(current_key);
+}
 
 void	Config::configure_host(_map& server, Server*& new_server, std::vector <std::string>& new_unique_values)
 {

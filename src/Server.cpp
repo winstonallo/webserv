@@ -20,7 +20,6 @@ Server::~Server()
 	{
 		delete *it;
 	}
-	// locations.clear();
 }
 
 
