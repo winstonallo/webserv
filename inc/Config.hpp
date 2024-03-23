@@ -28,7 +28,6 @@ class Config
 		std::vector <CGI *>						get_cgi() const;
 		std::string								get_error_page(const int key);
 
-
 		void									set_servers(std::map <int, _map>& raw_servers);
 		void									set_error_pages(const std::map <int, std::string>& error_pages);
 		void									set_routes(const std::map <std::string, _map>& raw_routes);
@@ -48,9 +47,6 @@ class Config
 		void									configure_standard_route(const _map &route, const std::string& name);
 		void									configure_cgi(const _map &route);
 		Config::cgi_setter_map::iterator		initialize_cgi_iteration(const std::string& current_map_key, CGI* new_cgi);
-
-
-		std::string                             generate_default_error_page(const int status_code);
 
 		Config(const std::string& config_path="config_files/webserv.conf");
 		~Config();
