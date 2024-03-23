@@ -42,11 +42,11 @@ class Config
 		void									configure_access_log(_map& server, ServerInfo* new_server);
 		void									configure_client_max_body_size(_map& server, ServerInfo* new_server);
 		void									configure_locations(const _map& server, ServerInfo* new_server);
-		void									configure_location(const std::string& path, const std::string& key, LocationInfo*& new_location, const std::vector <std::string>& value);
+		location_setter_map::iterator			initialize_location_iteration(const std::string& name, const std::string& key, LocationInfo*& new_location);
 		std::string								extract_location_path(const std::string& current_map_key);
 		void									configure_standard_route(const _map &route, const std::string& name);
 		void									configure_cgi(const _map &route);
-		Config::cgi_setter_map::iterator		initialize_cgi_iteration(const std::string& current_map_key, CGI*& new_cgi);
+		cgi_setter_map::iterator				initialize_cgi_iteration(const std::string& current_map_key, CGI*& new_cgi);
 
 		Config(const std::string& config_path="config_files/webserv.conf");
 		~Config();

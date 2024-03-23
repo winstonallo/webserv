@@ -140,52 +140,54 @@ std::string	Config::extract_location_path(const std::string& current_map_key)
 //		
 //		 else:
 //					->	log error & skip the value
+
+Config::location_setter_map::iterator	Config::initialize_location_iteration(const std::string& name, const std::string& key, LocationInfo*& new_location)
+{
+	if (new_location == NULL || name != new_location->get_name())
+	{
+		if (new_location != NULL)
+		{
+			_locations.push_back(new_location);
+		}
+		new_location = new LocationInfo;
+		new_location->set_name(name);
+	}
+	
+	std::string current_key = key.substr(key.find_first_of(":") + 1);
+	location_setter_map::iterator setter = _location_setters.find(current_key);
+
+	return setter;
+}
+
 void	Config::configure_locations(const _map& server, ServerInfo* new_server)
 {
-	std::vector <LocationInfo *> 	locations;
 	LocationInfo*					new_location = NULL;
 
 	for (_map::const_iterator it = server.begin(); it != server.end(); it++)
 	{
-		std::string path = extract_location_path(it->first);
 
-		if (path.empty() == false)
-		{		
-			if (new_location == NULL || new_location->get_name() != path)
+		std::string name = extract_location_path(it->first);
+
+		location_setter_map::iterator setter = initialize_location_iteration(name, it->first, new_location);
+		
+		if (setter != _location_setters.end())
+		{
+			try 
 			{
-				if (new_location != NULL)
-				{
-					locations.push_back(new_location);
-				}
-				new_location = new LocationInfo;
-				new_location->set_name(path);
+				(new_location->*(setter->second))(it->second);
 			}
-
-			std::string key = it->first.substr(it->first.find_first_of(":") + 1);
-			location_setter_map::iterator setter = _location_setters.find(key);
-
-			if (setter != _location_setters.end())
+			catch (const std::exception& e)
 			{
-				try 
-				{
-					(new_location->*(setter->second))(it->second);
-				}
-				catch (const std::exception& e)
-				{
-					Log::log(e.what(), STD_ERR | ERROR_FILE);
-				}
-			}
-			else
-			{
-				Log::log("error: config value  at path " + it->first + "'" + it->second[0] + "' not recognized, will be ignored in server initialization\n");
+				Log::log(e.what(), STD_ERR | ERROR_FILE);
 			}
 		}
 	}
 	if (new_location != NULL)
 	{
-		locations.push_back(new_location);
+		_locations.push_back(new_location);
 	}
-	new_server->add_locations(locations);
+	new_server->add_locations(_locations);
+	_locations.clear();
 }
 
 // finds the host in the server map and performs some error handling on them 
