@@ -1,4 +1,5 @@
 #include "LocationInfo.hpp"
+#include <ostream>
 #include <string>
 #include <vector>
 
@@ -84,4 +85,24 @@ std::string	LocationInfo::get_name() const
 void	LocationInfo::set_name(const std::string& name)
 {
 	_name = name;
+}
+
+std::ostream& operator<<(std::ostream& os, const LocationInfo& rhs)
+{
+	os << "\troot: " << rhs.get_root() << std::endl;
+	os << "\tname: " << rhs.get_name() << std::endl;
+	if (rhs.directory_listing_enabled() == true)
+	{
+		os << "\tdirectory listing: enabled" << std::endl;
+	}
+	else
+	{
+		os << "\tdirectory listing: disabled" << std::endl;
+	}
+	os << "\tallowed methods: ";
+	for (size_t i = 0; i < rhs.get_allowed_methods().size(); i++)
+	{
+		os << "\t" << rhs.get_allowed_methods()[i] << " ";
+	}
+	return os;
 }

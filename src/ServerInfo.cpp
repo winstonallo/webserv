@@ -1,12 +1,13 @@
 #include "ServerInfo.hpp"
 #include "LocationInfo.hpp"
 #include <netinet/in.h>
+#include <ostream>
 #include <string>
 #include <vector>
 
-ServerInfo::ServerInfo() {}
+ServerInfo::ServerInfo() : port(0), _client_max_body_size(0), autoindex(false) {}
 
-ServerInfo::~ServerInfo() 
+ServerInfo::~ServerInfo()
 {
 	for (std::vector <LocationInfo *>::iterator it = locations.begin(); it != locations.end(); it++)
 	{
@@ -38,9 +39,19 @@ ServerInfo&	ServerInfo::operator=(const ServerInfo& rhs)
 	return (*this);
 }
 
+std::string	ServerInfo::get_root() const
+{
+	return (root);
+}
+
+void	ServerInfo::set_root(const std::string& rt)
+{
+	root = rt;
+}
+
 int	ServerInfo::get_port() const
 {
-	return (port);
+	return port;
 }
 
 void	ServerInfo::set_port(int prt)
@@ -116,4 +127,26 @@ void	ServerInfo::add_locations(std::vector <LocationInfo*> locations)
 std::vector <LocationInfo*>	ServerInfo::get_locations() const
 {
 	return locations;
+}
+
+std::ostream &operator<<(std::ostream& os, const ServerInfo& rhs)
+{
+	os << "\tport: " << rhs.get_port() << std::endl;
+	os << "\tserver_name: ";
+	for (size_t i = 0; i < rhs.get_server_name().size(); i++)
+	{
+		os << rhs.get_server_name()[i] << " ";
+	}
+	os << std::endl;
+	os << "\troot: " << rhs.get_root() << std::endl;
+	os << "\terror_log: " << rhs.get_error_log() << std::endl;
+	os << "\taccess_log: " << rhs.get_access_log() << std::endl;
+	os << "\thost_address: " << inet_ntoa(rhs.get_host_address()) << std::endl;
+	os << "\tclient_max_body_size: " << rhs.get_client_max_body_size() << std::endl;
+	os << "\tlocations: " << std::endl;
+	for (size_t i = 0; i < rhs.get_locations().size(); i++)
+	{
+		os << "\t" << *rhs.get_locations()[i] << std::endl;
+	}
+	return os;
 }

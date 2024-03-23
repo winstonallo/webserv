@@ -1,6 +1,7 @@
 #ifndef SERVERINFO_HPP
 #define SERVERINFO_HPP
 
+#include <ostream>
 #include <string> 
 #include <vector>
 #include <sys/types.h>
@@ -62,5 +63,7 @@ class ServerInfo : public Node
 		std::string							access_log;
 		std::vector <LocationInfo*>			locations;
 };
+
+std::ostream& operator<<(std::ostream& os, const ServerInfo& server_info);
 
 #endif

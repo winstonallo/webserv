@@ -7,6 +7,7 @@
 #include "CGI.hpp"
 #include <map>
 #include <netinet/in.h>
+#include <ostream>
 #include <string>
 #include <vector>
 
@@ -36,12 +37,12 @@ class Config
 		void									initialize_cgi_setters();
 		void									initialize_location_setters();
 
-		void									configure_port(_map& server, ServerInfo* new_server, std::vector <std::string>& new_unique_values);
-		void									configure_server_names(_map& server, ServerInfo* new_server, std::vector <std::string>& new_unique_values);
-		void									configure_host(_map& server, ServerInfo* new_server, std::vector <std::string>& new_unique_values);
-		void									configure_access_log(_map& server, ServerInfo* new_server);
-		void									configure_client_max_body_size(_map& server, ServerInfo* new_server);
-		void									configure_locations(const _map& server, ServerInfo* new_server);
+		void									configure_port(_map& server, ServerInfo*& new_server, std::vector <std::string>& new_unique_values);
+		void									configure_server_names(_map& server, ServerInfo*& new_server, std::vector <std::string>& new_unique_values);
+		void									configure_host(_map& server, ServerInfo*& new_server, std::vector <std::string>& new_unique_values);
+		void									configure_access_log(_map& server, ServerInfo*& new_server);
+		void									configure_client_max_body_size(_map& server, ServerInfo*& new_server);
+		void									configure_locations(const _map& server, ServerInfo*& new_server);
 		location_setter_map::iterator			initialize_location_iteration(const std::string& name, const std::string& key, LocationInfo*& new_location);
 		std::string								extract_location_name(const std::string& current_map_key);
 		void									configure_standard_route(const _map &route, const std::string& name);
@@ -71,9 +72,10 @@ class Config
 		Config &operator=(const Config& rhs);
 };
 
+std::ostream& operator<<(std::ostream& out, const Config& config);
+
 #define CLIENT_MAX_BODY_SIZE_DEFAULT 1000000
 #define CLIENT_MAX_BODY_SIZE_MAX 10000000
 #define ACCESS_LOG_DEFAULT "access.log"
-
 
 #endif

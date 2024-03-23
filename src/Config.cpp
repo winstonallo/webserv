@@ -10,6 +10,7 @@
 #include <cstddef>
 #include <exception>
 #include <netinet/in.h>
+#include <ostream>
 #include <stdexcept>
 #include <string>
 #include "Log.hpp"
@@ -17,6 +18,7 @@
 #include <sys/socket.h>
 #include <vector>
 #include <arpa/inet.h>
+#include <iterator>
 
 // full initialization of the config in one constructor
 // 
@@ -79,7 +81,8 @@ void	Config::set_servers(std::map <int, std::map <std::string, std::vector <std:
 	{
 		try
 		{	
-			new_server = new ServerInfo();
+			std::cout << "error: no servers initialized, exiting\n";
+			new_server = new ServerInfo;
 			std::vector <std::string>	new_unique_values;
 
 			configure_server_names(it->second, new_server, new_unique_values);
@@ -95,10 +98,17 @@ void	Config::set_servers(std::map <int, std::map <std::string, std::vector <std:
 		catch (const std::exception& e)
 		{
 			delete new_server;
-
+			std::cout.flush();
 			Log::log(e.what(), STD_ERR | ERROR_FILE);
 
-			continue ;
+			if (it == --raw_servers.end())
+			{
+				break ;
+			}
+			else
+			{
+				continue ;
+			}
 		}
 	}
 }
@@ -156,7 +166,7 @@ Config::location_setter_map::iterator	Config::initialize_location_iteration(cons
 //				-> add/update new location
 //			else:
 //				-> invalid config setting -> log error and continue
-void	Config::configure_locations(const _map& server, ServerInfo* new_server)
+void	Config::configure_locations(const _map& server, ServerInfo*& new_server)
 {
 	LocationInfo*					new_location = NULL;
 
@@ -209,7 +219,7 @@ void	Config::configure_locations(const _map& server, ServerInfo* new_server)
 //	else:	
 //			-> add host to vector of unique values
 //			-> set host of current ServerInfo object
-void	Config::configure_host(_map& server, ServerInfo* new_server, std::vector <std::string>& new_unique_values)
+void	Config::configure_host(_map& server, ServerInfo*& new_server, std::vector <std::string>& new_unique_values)
 {
 	if (server.find("host") == server.end() or server["host"].empty() == true)
 	{
@@ -249,7 +259,7 @@ void	Config::configure_host(_map& server, ServerInfo* new_server, std::vector <s
 //	else:	
 //			-> add server name(s) to vector of unique values
 //			-> set server name(s) of current ServerInfo object
-void	Config::configure_server_names(_map& server, ServerInfo* new_server, std::vector <std::string>& new_unique_values)
+void	Config::configure_server_names(_map& server, ServerInfo*& new_server, std::vector <std::string>& new_unique_values)
 {
 	if (server.find("server_name") == server.end() or server["server_name"].empty() == true)
 	{
@@ -282,7 +292,7 @@ void	Config::configure_server_names(_map& server, ServerInfo* new_server, std::v
 //	else:	
 //			-> add port to vector of unique values
 //			-> set port of current ServerInfo object
-void	Config::configure_port(_map& server, ServerInfo* new_server, std::vector <std::string>& new_unique_values)
+void	Config::configure_port(_map& server, ServerInfo*& new_server, std::vector <std::string>& new_unique_values)
 {
 	if (server.find("port") == server.end() or server["port"].empty() == true)
 	{
@@ -308,7 +318,7 @@ void	Config::configure_port(_map& server, ServerInfo* new_server, std::vector <s
 //
 // 	else:
 //			->	path invalid, log error & return default 
-void	Config::configure_access_log(_map& server, ServerInfo* new_server)
+void	Config::configure_access_log(_map& server, ServerInfo*& new_server)
 {
 	std::string access_log;
 
@@ -337,7 +347,7 @@ void	Config::configure_access_log(_map& server, ServerInfo* new_server)
 //
 // else if: the value is invalid
 //		->	log error & fall back to default
-void	Config::configure_client_max_body_size(_map& server, ServerInfo* new_server)
+void	Config::configure_client_max_body_size(_map& server, ServerInfo*& new_server)
 {
 	if (server.find("client_max_body_size") == server.end() or server["client_max_body_size"].empty() == true)
 	{
@@ -560,4 +570,27 @@ Config	&Config::operator=(const Config& rhs)
 		_error_pages = rhs._error_pages;
 	}
 	return *this;
+}
+
+std::ostream &operator<<(std::ostream &out, const Config &config)
+{
+	out << "servers:\n";
+	std::vector <ServerInfo *> servers = config.get_servers();
+	for (std::vector <ServerInfo *>::const_iterator it = servers.begin(); it != servers.end(); it++)
+	{
+		out << **it;
+	}
+	out << "routes:\n";
+	std::vector <Route *> routes = config.get_routes();
+	for (std::vector <Route *>::const_iterator it = routes.begin(); it != routes.end(); it++)
+	{
+		out << **it;
+	}
+	out << "CGIs:\n";
+	std::vector <CGI *> cgi = config.get_cgi();
+	for (std::vector <CGI *>::const_iterator it = cgi.begin(); it != cgi.end(); it++)
+	{
+		out << **it;
+	}
+	return out;
 }

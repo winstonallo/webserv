@@ -32,4 +32,6 @@ class LocationInfo
 		std::vector <std::string>	_allowed_methods;
 };
 
+std::ostream &operator<<(std::ostream& out, const LocationInfo& rhs);
+
 #endif

@@ -1,6 +1,7 @@
 #ifndef CGI_HPP
 #define CGI_HPP
 
+#include <ostream>
 #include <string>
 #include <vector>
 
@@ -30,5 +31,7 @@ class CGI
         CGI(const CGI& rhs);
         CGI &operator=(const CGI& rhs);
 };
+
+std::ostream  &operator<<(std::ostream& out, const CGI& rhs);
 
 #endif
