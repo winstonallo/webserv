@@ -22,13 +22,13 @@ LocationInfo&	LocationInfo::operator=(const LocationInfo& rhs)
 {
 	if (this != &rhs)
 	{
-		_root = rhs._root;
-		autoindex = rhs.autoindex;
+		_path = rhs._path;
+		_autoindex = rhs._autoindex;
 	}
 	return (*this);
 }
 
-std::string	LocationInfo::get_root() const
+std::string	LocationInfo::getPath() const
 {
 	return (_root);
 }
@@ -43,12 +43,12 @@ void	LocationInfo::set_root(const std::vector <std::string>& root)
 
 bool	LocationInfo::getAutoindex() const
 {
-	return (autoindex);
+	return (_autoindex);
 }
 
 void	LocationInfo::setAutoindex(bool val)
 {
-	autoindex = val;
+	_autoindex = val;
 }
 
 std::vector <std::string>	LocationInfo::get_allowed_methods() const
@@ -89,7 +89,7 @@ void	LocationInfo::set_name(const std::string& name)
 
 std::ostream& operator<<(std::ostream& os, const LocationInfo& rhs)
 {
-	os << "\troot: " << rhs.get_root() << std::endl;
+	os << "\troot: " << rhs.getPath() << std::endl;
 	os << "\tname: " << rhs.get_name() << std::endl;
 	if (rhs.directory_listing_enabled() == true)
 	{

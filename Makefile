@@ -11,15 +11,19 @@ TEST_DIR	= config_tests
 OBJS_DIR		= obj
 TEST_OBJS_DIR	= test_objs
 
-CXXFLAGS	= -Wall -Wextra -Werror -MP -MD -std=c++98 -g -Iinc
+CXXFLAGS	= -Wall -Wextra -Werror -MP -MD -std=c++98 -g -Iinc -I$(GTEST_DIR)/include
+
+
+TESTFLAGS	= -Wall -Wextra -Werror -MP -MD -g -Iinc -I$(GTEST_DIR)/include
 
 SRCS   	= \
 		$(SRCS_DIR)/Node.cpp \
-		$(SRCS_DIR)/Request.cpp \
 		$(SRCS_DIR)/ClientInfo.cpp \
 		$(SRCS_DIR)/LocationInfo.cpp \
 		$(SRCS_DIR)/Server.cpp \
 		$(SRCS_DIR)/Log.cpp \
+		$(SRCS_DIR)/Server.cpp \
+		$(SRCS_DIR)/Request.cpp \
 		$(SRCS_DIR)/Director.cpp \
         $(SRCS_DIR)/Config.cpp \
         $(SRCS_DIR)/ConfigParser.cpp \
@@ -38,8 +42,8 @@ TEST_OBJS	= $(TESTS:${TEST_DIR}/%.cpp=${TEST_OBJS_DIR}/%.o)
 
 DEPS	= $(OBJS:%.o=%.d)
 
-$(NAME): $(OBJS) $(TEST_OBJS)
-	$(CXX) $(CXXFLAGS) -o $(NAME) $(OBJS) $(TEST_OBJS)
+$(NAME): $(OBJS) 
+	$(CXX) $(CXXFLAGS) -o $(NAME) $(OBJS) 
 
 $(TEST_OBJS_DIR)/%.o: $(TEST_DIR)/%.cpp
 	mkdir -p $(TEST_OBJS_DIR)
@@ -52,8 +56,11 @@ $(OBJS_DIR)/%.o: $(SRCS_DIR)/%.cpp
 
 all		: $(NAME)
 
-run		: re
+run		: 
+	./webserv config_files/simple.conf
 
+debug	:
+	gdb --arg ./webserv config_files/simple.conf
 
 fclean	: clean
 		$(RM) $(NAME)

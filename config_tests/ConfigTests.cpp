@@ -55,7 +55,15 @@ void    ParsingTest::test_invalid_file_value()
 
             try
             {
+<<<<<<< HEAD
                 Config              config(*it);
+=======
+                ConfigParser        parser(*it);
+                ConfigDispatcher    dispatcher(parser.get_config());
+                Config              config(dispatcher.get_error_pages());
+                std::map <int, std::map <std::string, std::vector <std::string> > > servers = dispatcher.get_servers();
+                config->set_servers(servers);
+>>>>>>> origin/newServer
             }
             catch (const std::exception& e)
             {

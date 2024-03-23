@@ -17,6 +17,7 @@ namespace Utils
 	std::vector <std::string>						split(const std::string& str, const std::string& delimiters);
 	std::vector <std::string>						split_keep_quoted_words(const std::string& str, const std::string& delimiters);
 	std::vector <std::pair <std::string, int> > 	split_keep_delimiters(const std::string& str, const std::string& delimiters);
+	std::string 									get_file_extension(const std::string& file_path);
 	int												extract_numeric_value(const std::string& str);
 	int												parse_client_max_body_size(const std::string& client_max_body_size);
 	std::string										file_to_string(const std::string& path);

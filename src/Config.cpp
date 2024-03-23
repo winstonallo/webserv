@@ -80,7 +80,6 @@ void	Config::set_servers(std::map <int, std::map <std::string, std::vector <std:
 	{
 		try
 		{	
-			std::cout << "error: no servers initialized, exiting\n";
 			new_server = new Server;
 			std::vector <std::string>	new_unique_values;
 
@@ -202,22 +201,8 @@ void	Config::configure_locations(const _map& server, Server*& new_server)
 		_locations.push_back(new_location);
 	}
 	new_server->add_locations(_locations);
-
-	_locations.clear();
 }
 
-// finds the host in the server map and performs some error handling on them 
-// before storing them in the current Server
-//
-//	if:		no host in config
-//			-> skip server in initialization
-//
-//	if:		host already given to another server
-//			-> skip server in initialization
-//
-//	else:	
-//			-> add host to vector of unique values
-//			-> set host of current Server object
 void	Config::configure_host(_map& server, Server*& new_server, std::vector <std::string>& new_unique_values)
 {
 	if (server.find("host") == server.end() or server["host"].empty() == true)

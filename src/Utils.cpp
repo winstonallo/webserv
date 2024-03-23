@@ -216,6 +216,17 @@ namespace Utils
 		return oss.str();
 	}
 
+	//finds the extension of a file in path
+	std::string get_file_extension(const std::string& file_path)
+	{
+		size_t pos = file_path.rfind(".");
+		if (pos != std::string::npos && pos < file_path.size() - 1)
+		{
+			return file_path.substr(pos);
+		}
+		return std::string("");
+	}
+
 	int	extract_numeric_value(const std::string& str)
 	{
 		std::string numeric_value = str.substr(str.find_first_of("0123456789"), str.find_last_of("0123456789"));

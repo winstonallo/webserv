@@ -36,6 +36,8 @@ class Request
 		std::string 									get_path() const;
 		std::string 									get_query() const;
 		std::string 									get_fragment() const;
+		int												get_error() const;
+
 
 	protected:
 		std::string 					protocol;
@@ -49,6 +51,7 @@ class Request
         std::string 					path;
         std::string 					query;
         std::string 					fragment;
+		int								error;
 
 };
 std::ostream& operator<<(std::ostream& os, const Request& req);

@@ -12,6 +12,7 @@
 #include <vector>
 
 typedef std::map <std::string, std::vector <std::string> > _map;
+class Server;
 
 class Config
 {
