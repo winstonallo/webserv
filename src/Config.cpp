@@ -140,12 +140,12 @@ std::string	Config::extract_location_path(const std::string& current_map_key)
 //		
 //		 else:
 //					->	log error & skip the value
-void	Config::configure_locations(_map& server, ServerInfo* new_server)
+void	Config::configure_locations(const _map& server, ServerInfo* new_server)
 {
 	std::vector <LocationInfo *> 	locations;
 	LocationInfo*					new_location = NULL;
 
-	for (_map::iterator it = server.begin(); it != server.end(); it++)
+	for (_map::const_iterator it = server.begin(); it != server.end(); it++)
 	{
 		std::string path = extract_location_path(it->first);
 
@@ -360,13 +360,13 @@ void	Config::configure_client_max_body_size(_map& server, ServerInfo* new_server
 //
 // else:
 //		->	log error & skip the value
-void	Config::configure_standard_route(_map& route, const std::string& name)
+void	Config::configure_standard_route(const _map& route, const std::string& name)
 {
 	Route* new_route = new Route;
 
 	new_route->set_name(name);
 
-	for (_map::iterator current_route = route.begin(); current_route != route.end(); current_route++)
+	for (_map::const_iterator current_route = route.begin(); current_route != route.end(); current_route++)
 	{
 		if (_standard_route_setters.find(current_route->first) != _standard_route_setters.end())
 		{
@@ -393,11 +393,11 @@ void	Config::configure_standard_route(_map& route, const std::string& name)
 //		->	initialize a new cgi
 //
 //	->	return the setter for the current map key
-void Config::configure_cgi(_map& route) 
+void Config::configure_cgi(const _map& route) 
 {
     CGI* new_cgi = NULL;
 
-    for (_map::iterator it = route.begin(); it != route.end(); it++) 
+    for (_map::const_iterator it = route.begin(); it != route.end(); it++) 
 	{
         std::string cgi_name = it->first.substr(0, it->first.find_first_of(":"));
         std::string key = it->first.substr(it->first.find_first_of(":") + 1);
@@ -445,9 +445,9 @@ void Config::configure_cgi(_map& route)
 //
 // else:
 //		->	configure the standard route
-void	Config::set_routes(std::map <std::string, _map>& raw_routes)
+void	Config::set_routes(const std::map <std::string, _map>& raw_routes)
 {
-	for (std::map <std::string, _map>::iterator it = raw_routes.begin(); it != raw_routes.end(); it++)
+	for (std::map <std::string, _map>::const_iterator it = raw_routes.begin(); it != raw_routes.end(); it++)
 	{
 		std::string name = it->first;
 

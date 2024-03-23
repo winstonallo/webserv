@@ -29,9 +29,9 @@ class Config
 		std::string								get_error_page(const int key);
 
 
-		void									set_servers(std::map <int, std::map <std::string, std::vector <std::string> > >& raw_servers);
-		void									set_error_pages(std::map <int, std::string>& error_pages);
-		void									set_routes(std::map <std::string, _map>& raw_routes);
+		void									set_servers(std::map <int, _map>& raw_servers);
+		void									set_error_pages(const std::map <int, std::string>& error_pages);
+		void									set_routes(const std::map <std::string, _map>& raw_routes);
 
 		void									initialize_standard_route_setters();
 		void									initialize_cgi_setters();
@@ -42,11 +42,11 @@ class Config
 		void									configure_host(_map& server, ServerInfo* new_server, std::vector <std::string>& new_unique_values);
 		void									configure_access_log(_map& server, ServerInfo* new_server);
 		void									configure_client_max_body_size(_map& server, ServerInfo* new_server);
-		void									configure_locations(_map& server, ServerInfo* new_server);
+		void									configure_locations(const _map& server, ServerInfo* new_server);
 		void									configure_location(const std::string& path, const std::string& key, LocationInfo*& new_location, const std::vector <std::string>& value);
 		std::string								extract_location_path(const std::string& current_map_key);
-		void									configure_standard_route(_map &route, const std::string& name);
-		void									configure_cgi(_map &route);
+		void									configure_standard_route(const _map &route, const std::string& name);
+		void									configure_cgi(const _map &route);
 		Config::cgi_setter_map::iterator		initialize_cgi_iteration(const std::string& current_map_key, CGI* new_cgi);
 
 
