@@ -373,7 +373,7 @@ int	Director::read_from_client(int client_fd)
 		//std::cout << msg << std::endl;
 		try
 		{
-			Request	req(msg);
+			Request	req;
 			ci->get_server()->create_response(req); 
 			FD_CLR(client_fd, &read_fds);
 			if (client_fd == fdmax)	fdmax--;

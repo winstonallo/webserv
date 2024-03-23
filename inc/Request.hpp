@@ -5,6 +5,7 @@
 #include <map>
 #include <sstream>
 #include <algorithm>
+
 #include "Utils.hpp"
 
 
@@ -12,34 +13,32 @@ class Request
 {
 	public:
         // constructors and destructors
-									Request(std::string request);
-									~Request();
-									Request(const Request& rhs);
-		Request&					operator=(const Request& rhs);
+		Request();
+		~Request();
+		Request(const Request& rhs);
+		Request&		operator=(const Request& rhs);
 
-        // init and parse request
-        void                        parse(std::string request);
-        void                        validate_request(void);
-        void                        validate_uri(void);
-        void                        pct_decode(void);
+        // init request
+        void                        init(std::string request);
+        
 
         // setters and getters
-        std::string 				        			get_protocol() const;
-        std::string 				        			get_method() const;
-        std::string 				        			get_uri() const;
-        std::map <std::string, std::string>             get_headers() const;
-        std::string 									get_body() const;
-        std::string 									get_header(const std::string& key) const;
-        std::string 									get_userinfo() const;
-		std::string 									get_host() const;
-		std::string 									get_port() const;
-		std::string 									get_path() const;
-		std::string 									get_query() const;
-		std::string 									get_fragment() const;
-		int												get_error() const;
+        std::map <std::string, std::string> get_headers() const{ return this->headers;}
+        std::string get_method() const{ return this->method;}
+        std::string get_uri() const{ return this->uri;}
+        std::string get_protocol() const{ return this->protocol;}
+        std::string get_body() const{ return this->body;}
+        std::string get_userinfo() const{ return this->userinfo;}
+        std::string get_host() const{ return this->host;}
+        std::string get_port() const{ return this->port;}
+        std::string get_path() const{ return this->path;}
+        std::string get_query() const{ return this->query;}
+        std::string get_fragment() const{ return this->fragment;}
+        int get_errcode() const{ return this->errcode;}
+        std::string get_header(const std::string& key) const;
 
+	private:
 
-	protected:
 		std::string 					protocol;
         std::string 					method;
         std::string 					uri;
@@ -51,7 +50,12 @@ class Request
         std::string 					path;
         std::string 					query;
         std::string 					fragment;
-		int								error;
+        int                             errcode;
+		void                        parse(std::string request);
+        void                        validate_request(void);
+        void                        validate_uri(void);
+        void                        pct_decode(void);
+        void                        check_length(void);
 
 };
 std::ostream& operator<<(std::ostream& os, const Request& req);

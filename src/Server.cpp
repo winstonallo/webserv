@@ -251,7 +251,7 @@ std::string		Server::create_response(Request& rq)
 	std::string			body;
 	bool				failed = false;
 
-	if (rq.get_error() == 0)
+	if (rq.get_errcode() == 0)
 	{
 		try
 		{

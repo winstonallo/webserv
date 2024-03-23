@@ -1,22 +1,9 @@
-
-#include "Request.hpp"
 #include <iostream>
+#include "Utils.hpp"
+#include "Config.hpp"
+#include "Request.hpp"
 
 Request::~Request(){}
-
-
-std::string Request::get_protocol() const{ return this->protocol;}
-std::string Request::get_method() const{ return this->method;}
-std::string Request::get_uri() const{ return this->uri;}
-std::map <std::string, std::string> Request::get_headers() const{ return this->headers;}
-std::string Request::get_body() const{ return this->body;}
-std::string Request::get_userinfo() const{ return this->userinfo;}
-std::string Request::get_host() const{ return this->host;}
-std::string Request::get_port() const{ return this->port;}
-std::string Request::get_path() const{ return this->path;}
-std::string Request::get_query() const{ return this->query;}
-std::string Request::get_fragment() const{ return this->fragment;}
-int			Request::get_error() const { return error;}
 
 std::ostream& operator<<(std::ostream& os, const Request& req)
 {
@@ -62,6 +49,7 @@ void Request::parse(std::string request){
     //check that there are only 2 spaces in the line
     if (std::count(line.begin(), line.end(), ' ') != 2)
     {
+        this->errcode = 400;
         throw std::runtime_error("Invalid request: line does not contain 2 spaces between method, uri and protocol");
     }
     //check that there are now white spaces in the line except for the 2 spaces
@@ -69,6 +57,7 @@ void Request::parse(std::string request){
     {
         if (std::isspace(line[i]) != 0 && line[i] != ' ')
         {
+            this->errcode = 400;
             throw std::runtime_error("Invalid request: line contains white spaces except for the 2 spaces between method, uri and protocol");
         }
     }
@@ -76,6 +65,7 @@ void Request::parse(std::string request){
     //check that line ends with \r\n
     if (line[line.size() - 1] != '\r')
     {
+        this->errcode = 400;
         throw std::runtime_error("Invalid request: line does not end with \\r");
     }
     std::istringstream iss_line(line);
@@ -88,6 +78,7 @@ void Request::parse(std::string request){
     iss_line >> protocol;
     if (method.size() == 0 || uri.size() == 0 || protocol.size() == 0)
     {
+        this->errcode = 400;
         throw std::runtime_error("Invalid request: method, uri or protocol is empty");
     }
     this->method = method;
@@ -108,6 +99,7 @@ void Request::parse(std::string request){
         std::getline(iss_line, value);
         if (value.end()[-1] != '\r')
         {
+            this->errcode = 400;
             throw std::runtime_error("Invalid request: header does not end with \\r");
         }
         //key to upper
@@ -178,6 +170,7 @@ void Request::pct_decode()
     convert_pct(this->query)== false ||
     convert_pct(this->fragment)== false)
     {
+        this->errcode = 400;
         throw std::runtime_error("Invalid pct encoding");
     }
     //print results
@@ -207,7 +200,7 @@ void Request::validate_uri(void)
         }
         if (schema != "http")
         {
-			error = 400;
+            this->errcode = 400;
             throw std::runtime_error("Invalid schema: " + schema);
         }
         uri = uri.substr(pos + 1);
@@ -220,7 +213,7 @@ void Request::validate_uri(void)
         std::string fragment = uri.substr(pos + 1);
         if (!valid_token(fragment, FRAGMENT))
         {
-			error = 400;
+            this->errcode = 400;
             throw std::runtime_error("Invalid fragment: " + fragment);
         }
         this->fragment = fragment;
@@ -234,7 +227,7 @@ void Request::validate_uri(void)
         std::string query = uri.substr(pos + 1);
         if (!valid_token(query, QUERY))
         {
-			error = 400;
+            this->errcode = 400;
             throw std::runtime_error("Invalid query: " + query);
         }
         this->query = query;
@@ -252,7 +245,7 @@ void Request::validate_uri(void)
             std::string userinfo = uri.substr(0, pos);
             if (!valid_token(userinfo, USERINFO))
             {
-				error = 400;
+                this->errcode = 400;
                 throw std::runtime_error("Invalid userinfo: " + userinfo);
             }
             this->userinfo = userinfo;
@@ -265,7 +258,7 @@ void Request::validate_uri(void)
             std::string path = uri.substr(pos);
             if (!valid_token(path, PATH))
             {
-				error = 400;
+                this->errcode = 400;
                 throw std::runtime_error("Invalid path: " + path);
             }
             this->path = path;
@@ -278,7 +271,7 @@ void Request::validate_uri(void)
             std::string port = uri.substr(pos + 1);
             if (!valid_token(port, DIGIT))
             {
-				error = 400;
+                this->errcode = 400;
                 throw std::runtime_error("Invalid port: " + port);
             }
             this->port = port;
@@ -288,7 +281,7 @@ void Request::validate_uri(void)
         std::string host = uri;
         if (!valid_token(host, HOST))
         {
-			error = 400;
+            this->errcode = 400;
             throw std::runtime_error("Invalid host: " + host);
         }
         this->host = host;
@@ -297,7 +290,7 @@ void Request::validate_uri(void)
         std::string path = uri;
         if (!valid_token(path, PATH))
         {
-			error = 400;
+            this->errcode = 400;
             throw std::runtime_error("Invalid path: " + path);
         }
         this->path = path;
@@ -310,17 +303,17 @@ void Request::validate_uri(void)
     std::cout << "fragment: " <<    this->fragment << std::endl;
     std::cout << "port: " <<        this->port << std::endl << std::endl; */
 }
-// validate request
 
+// validate request
 void Request::validate_request()
 {
     if (this->get_method() != "GET" && this->get_method() != "POST" && this->get_method() != "DELETE")
     {
-		error = 501;
+        this->errcode = 405;
         throw std::runtime_error("Invalid method: " + this->get_method());
     }
     if (this->get_protocol() != "HTTP/1.1"){
-		error = 400;
+        this->errcode = 505;
         throw std::runtime_error("Invalid protocol: " + this->get_protocol());
     }
     // validate headers - field-names
@@ -328,12 +321,12 @@ void Request::validate_request()
     {
         if (it->first.size() == 0)
         {
-			error = 400;
+            this->errcode = 400;
             throw std::runtime_error("Invalid header: empty field-name");
         }
         if (!valid_token(it->first, TCHAR))
         {
-			error = 400;
+            this->errcode = 400;
             throw std::runtime_error("Invalid header: invalid field-name");
         }
     }
@@ -344,19 +337,37 @@ void Request::validate_request()
         {
             if (!std::isprint(it->second[i]))
             {
-				error = 400;
+                this->errcode = 400;
                 throw std::runtime_error("Invalid header: invalid field-value");
             }
         }
     }
-    // validate uri
 
 }
-// constructor
-Request::Request(std::string request)
+
+void Request::check_length()
 {
+    if (this->get_uri().size() > MAX_URL_LENGTH)
+    {
+        this->errcode = 414;
+        throw std::runtime_error("Request-URI Too Long");
+    }
+    //headers
+    if (this->get_headers().size() > MAX_HEADER_LENGTH)
+    {
+        this->errcode = 431;
+        throw std::runtime_error("Request Header Fields Too Large");
+    }
+
+}
+
+void Request::init(std::string request)
+{
+    this->errcode = 0;
     parse(request);
     validate_request();
     validate_uri();
     pct_decode();
+    check_length();
 }
+Request::Request(){}
