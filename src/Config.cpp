@@ -18,7 +18,6 @@
 #include <sys/socket.h>
 #include <vector>
 #include <arpa/inet.h>
-#include <iterator>
 
 // full initialization of the config in one constructor
 // 
