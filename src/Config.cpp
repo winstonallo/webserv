@@ -56,7 +56,7 @@ Config::Config(const std::string& config_path)
 	initialize_standard_route_setters();
 	initialize_cgi_setters();
 	initialize_location_setters();
-	set_routes(routes);
+	// set_routes(routes);
 	set_servers(servers);
 }
 
@@ -474,22 +474,19 @@ void Config::configure_cgi(const _map& route)
 //
 // else:
 //		->	configure the standard route
-void	Config::set_routes(const std::map <std::string, _map>& raw_routes)
-{
-	for (std::map <std::string, _map>::const_iterator it = raw_routes.begin(); it != raw_routes.end(); it++)
-	{
-		std::string name = it->first;
+// void	Config::set_routes(const std::map <std::string, _map>& raw_routes)
+// {
+// 	for (std::map <std::string, _map>::const_iterator it = raw_routes.begin(); it != raw_routes.end(); it++)
+// 	{
+// 		std::string name = it->first;
 
-		if (name == "/cgi-bin")
-		{
-			configure_cgi(it->second);
-		}
-		else 
-		{
-			configure_standard_route(it->second, name);
-		}
-	}
-}
+
+// 		else 
+// 		{
+// 			configure_standard_route(it->second, name);
+// 		}
+// 	}
+// }
 
 std::vector <ServerInfo *>	Config::get_servers() const
 {
