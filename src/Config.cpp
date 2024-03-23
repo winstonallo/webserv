@@ -110,7 +110,7 @@ void	Config::set_servers(std::map <int, std::map <std::string, std::vector <std:
 //
 // else:
 //			->	return empty string
-std::string	Config::extract_location_path(const std::string& current_map_key)
+std::string	Config::extract_location_name(const std::string& current_map_key)
 {
 	std::string location_key_prefix = "location";
     size_t found = current_map_key.find(location_key_prefix);
@@ -124,23 +124,12 @@ std::string	Config::extract_location_path(const std::string& current_map_key)
     return ""; 
 }
 
-// initializes the locations for a server
+// initializes the location before setting the values
 //
-// if:		the key is "location"
-//			->	initialize a new location:
+// if:	the new_location is NULL or the name of the current map key is different from the new_location name
+//		->	initialize a new location
 //
-//		 if: 		the key is "root"
-//					->	set the path for the new location
-//		
-//		 else if: the key is "directory_listing"
-//					->	set the directory listing for the location
-//		
-//		 else if: the key is "allowed_methods"
-//					->	set the allowed methods for the location
-//		
-//		 else:
-//					->	log error & skip the value
-
+//	->	return the setter for the current map key
 Config::location_setter_map::iterator	Config::initialize_location_iteration(const std::string& name, const std::string& key, LocationInfo*& new_location)
 {
 	if (new_location == NULL || name != new_location->get_name())
@@ -159,6 +148,14 @@ Config::location_setter_map::iterator	Config::initialize_location_iteration(cons
 	return setter;
 }
 
+// initializes the locations for a server
+//
+// if:		current server key contains the string "location":
+//			-> look for the value in the location setter function map
+//			if found:
+//				-> add/update new location
+//			else:
+//				-> invalid config setting -> log error and continue
 void	Config::configure_locations(const _map& server, ServerInfo* new_server)
 {
 	LocationInfo*					new_location = NULL;
@@ -166,7 +163,12 @@ void	Config::configure_locations(const _map& server, ServerInfo* new_server)
 	for (_map::const_iterator it = server.begin(); it != server.end(); it++)
 	{
 
-		std::string name = extract_location_path(it->first);
+		std::string name = extract_location_name(it->first);
+
+		if (name.empty() == true)
+		{
+			continue ;
+		}
 
 		location_setter_map::iterator setter = initialize_location_iteration(name, it->first, new_location);
 		
@@ -181,12 +183,17 @@ void	Config::configure_locations(const _map& server, ServerInfo* new_server)
 				Log::log(e.what(), STD_ERR | ERROR_FILE);
 			}
 		}
+		else
+		{
+			Log::log("error: '" + it->first.substr(it->first.find_last_of(":") + 1) + "' is not a valid location setting", STD_ERR | ERROR_FILE);
+		}
 	}
 	if (new_location != NULL)
 	{
 		_locations.push_back(new_location);
 	}
 	new_server->add_locations(_locations);
+
 	_locations.clear();
 }
 
