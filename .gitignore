@@ -5,3 +5,4 @@ obj
 *.log
 compile_flags.txt
 vgcore*
+.vscode

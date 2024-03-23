@@ -22,17 +22,19 @@ class LocationInfo
 
 		void						set_directory_listing(const std::vector <std::string>& directory_listing_enabled);
 		std::string					get_name() const;
-		void						set_return(const std::string& r);
+		void						set_return(const std::vector <std::string>& r);
 		std::string					get_return() const;
-		void						set_alias(const std::string& a);
+		void						set_alias(const std::vector <std::string>& a);
 		std::string					get_alias() const;
-		void						set_cgi_path(std::vector<std::string> p);	
-		std::vector<std::string>	get_cgi_path() const;
-		void						set_cgi_extension(std::vector<std::string> e);
-		std::vector<std::string>	get_cgi_extension() const;
+		void						set_cgi_path(const std::vector <std::string>& p);
+		std::string					get_cgi_path() const;
+		void						set_cgi_extension(const std::vector <std::string>& e);
+		std::string					get_cgi_extension() const;
 		void						set_name(const std::string& name);
 		int							get_client_max_body_size() const;
 		void						set_client_max_body_size(int n);
+		bool						is_cgi() const;
+		void						set_is_cgi(bool is_cgi);
 		
 		
 	private:
@@ -42,11 +44,12 @@ class LocationInfo
 		std::string					_return;
 		std::string					_alias;
 		std::string					_name;
-		std::vector<std::string>	_cgi_path;
-		std::vector<std::string>	_cgi_ext;
+		std::string					_cgi_path;
+		std::string					_cgi_ext;
 		std::vector <std::string>	_allowed_methods;
 		bool						_directory_listing_enabled;
 		int							_client_max_body_size;
+		bool						_is_cgi;
 };
 
 std::ostream &operator<<(std::ostream& out, const LocationInfo& rhs);

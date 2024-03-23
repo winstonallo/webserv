@@ -4,11 +4,11 @@
 #include "ConfigParser.hpp"
 #include "LocationInfo.hpp"
 #include "Route.hpp"
-#include "Server.hpp"
 #include "Utils.hpp"
 #include <algorithm>
 #include <cstddef>
 #include <exception>
+#include <iostream>
 #include <netinet/in.h>
 #include <ostream>
 #include <stdexcept>
@@ -53,8 +53,8 @@ Config::Config(const std::string& config_path)
 
 	_error_pages = dispatcher.get_error_pages();
 	_error_status_codes = Utils::get_error_status_codes();
-	initialize_standard_route_setters();
-	initialize_cgi_setters();
+	// initialize_standard_route_setters();
+	// initialize_cgi_setters();
 	initialize_location_setters();
 	// set_routes(routes);
 	set_servers(servers);
@@ -126,7 +126,7 @@ std::string	Config::extract_location_name(const std::string& current_map_key)
     if (found != std::string::npos) 
 	{
         size_t colon = current_map_key.find(":", found);
-        return current_map_key.substr(found + location_key_prefix.size(), colon - (found + location_key_prefix.size()));
+        return current_map_key.substr(found + location_key_prefix.size() + 1, colon - (found + location_key_prefix.size()) - 1);
     }
 
     return ""; 
@@ -142,14 +142,39 @@ Config::location_setter_map::iterator	Config::initialize_location_iteration(cons
 {
 	if (new_location == NULL || name != new_location->get_name())
 	{
-		if (new_location != NULL)
+		if (name != "/cgi-bin")
 		{
-			_locations.push_back(new_location);
+			if (new_location != NULL)
+			{
+				_locations.push_back(new_location);
+			}
+			new_location = new LocationInfo;
+			new_location->set_name(name);
 		}
-		new_location = new LocationInfo;
-		new_location->set_name(name);
+		else 
+		{
+			std::string cgi_prefix = "location /cgi-bin";
+			std::string cgi_name = key.substr(cgi_prefix.size() + 1);
+			cgi_name = cgi_name.substr(0, cgi_name.find_first_of(":"));
+			if (new_location != NULL)
+			{
+				if (cgi_name != new_location->get_name())
+				{
+					_locations.push_back(new_location);
+					new_location = new LocationInfo;
+				}
+			}
+			else
+			{
+				new_location = new LocationInfo;
+			}
+			new_location->set_name(cgi_name);
+			new_location->set_is_cgi(true);
+			std::string current_key = key.substr(key.find_last_of(":") + 1);
+			location_setter_map::iterator setter = _location_setters.find(current_key);
+			return setter;
+		}
 	}
-	
 	std::string current_key = key.substr(key.find_first_of(":") + 1);
 	location_setter_map::iterator setter = _location_setters.find(current_key);
 
@@ -193,7 +218,7 @@ void	Config::configure_locations(const _map& server, Server*& new_server)
 		}
 		else
 		{
-			Log::log("error: '" + it->first.substr(it->first.find_last_of(":") + 1) + "' is not a valid location setting", STD_ERR | ERROR_FILE);
+			Log::log("error: '" + it->first + "' is not a valid location setting\n", STD_ERR | ERROR_FILE);
 		}
 	}
 	if (new_location != NULL)
@@ -202,6 +227,11 @@ void	Config::configure_locations(const _map& server, Server*& new_server)
 	}
 	new_server->add_locations(_locations);
 }
+
+// void	Config::configure_cgi()
+// {
+// 	(void)server;
+// }
 
 void	Config::configure_host(_map& server, Server*& new_server, std::vector <std::string>& new_unique_values)
 {
@@ -356,136 +386,9 @@ void	Config::configure_client_max_body_size(_map& server, Server*& new_server)
 	new_server->set_client_max_body_size(size);
 }
 
-// configures standard route (aka != cgi)
-//
-// if:	the key is recognized
-//		->	call the setter for the route
-//
-// else:
-//		->	log error & skip the value
-void	Config::configure_standard_route(const _map& route, const std::string& name)
-{
-	Route* new_route = new Route;
-
-	new_route->set_name(name);
-
-	for (_map::const_iterator current_route = route.begin(); current_route != route.end(); current_route++)
-	{
-		if (_standard_route_setters.find(current_route->first) != _standard_route_setters.end())
-		{
-			try 
-			{
-				(new_route->*(_standard_route_setters[current_route->first]))(current_route->second);
-			}
-			catch (const std::exception& e)
-			{
-				Log::log(e.what(), STD_ERR | ERROR_FILE);
-			}
-		}
-		else
-		{
-			Log::log("error: config value '" + current_route->first + "' not recognized, will be ignored in route initialization\n", STD_ERR | ERROR_FILE);
-		}
-	}
-	_routes.push_back(new_route);
-}
-
-// initializes the cgi before setting the values
-//
-// if:	the new_cgi is NULL or the name of the current map key is different from the new_cgi name
-//		->	initialize a new cgi
-//
-//	->	return the setter for the current map key
-Config::cgi_setter_map::iterator	Config::initialize_cgi_iteration(const std::string& current_map_key, CGI*& new_cgi)
-{
-	std::string	cgi_name = current_map_key.substr(0, current_map_key.find_first_of(":"));
-	std::string	key = current_map_key.substr(current_map_key.find_first_of(":") + 1);
-
-	if (new_cgi == NULL || cgi_name != new_cgi->get_name())
-	{
-		if (new_cgi != NULL)
-		{
-			_cgi.push_back(new_cgi);
-		}
-		new_cgi = new CGI;
-		new_cgi->set_name(cgi_name);
-	}
-
-	cgi_setter_map::iterator setter = _cgi_route_setters.find(key);
-	
-	return setter;
-}
-
-// goes through the route sub-map with the key "/cgi-bin" and initializes all CGIs
-//
-// calls initialize_cgi_iteration(), which will return an iterator for the appropriate
-// setter function in cgi_setter_map, then calls it on the current CGI object
-void Config::configure_cgi(const _map& route) 
-{
-    CGI* new_cgi = NULL;
-
-    for (_map::const_iterator it = route.begin(); it != route.end(); it++) 
-	{
-       cgi_setter_map::iterator setter = initialize_cgi_iteration(it->first, new_cgi);
-		
-		if (setter != _cgi_route_setters.end()) 
-		{
-            try 
-			{
-                (new_cgi->*(setter->second))(it->second);
-            } 
-			catch (const std::exception& e) 
-			{
-                Log::log(e.what(), STD_ERR | ERROR_FILE);
-            }
-        } 
-		else 
-		{
-            Log::log("error: CGI config key " + it->first + " not recognized.\n", STD_ERR | ERROR_FILE);
-        }
-    }
-    if (new_cgi != NULL) 
-	{
-        _cgi.push_back(new_cgi);
-    }
-}
-
-
-// takes the parsed routes from the config dispatcher 
-// and initializes the routes one by one
-//
-// if:  the key is "/cgi-bin"
-//		->	configure the cgi
-//
-// else:
-//		->	configure the standard route
-// void	Config::set_routes(const std::map <std::string, _map>& raw_routes)
-// {
-// 	for (std::map <std::string, _map>::const_iterator it = raw_routes.begin(); it != raw_routes.end(); it++)
-// 	{
-// 		std::string name = it->first;
-
-
-// 		else 
-// 		{
-// 			configure_standard_route(it->second, name);
-// 		}
-// 	}
-// }
-
 std::vector <Server *>	Config::get_servers() const
 {
 	return _servers;
-}
-
-std::vector <Route *>	Config::get_routes() const
-{
-	return _routes;
-}
-
-std::vector <CGI *>		Config::get_cgi() const
-{
-	return _cgi;
 }
 
 std::string	Config::get_error_page(const int key)
@@ -500,29 +403,15 @@ std::string	Config::get_error_page(const int key)
 	}
 }
 
-void	Config::initialize_cgi_setters()
-{
-	_cgi_route_setters["extension"] = &CGI::set_extension;
-	_cgi_route_setters["handler"] = &CGI::set_handler;
-	_cgi_route_setters["allowed_methods"] = &CGI::set_allowed_methods;
-}
-
-void	Config::initialize_standard_route_setters()
-{
-	_standard_route_setters["allowed_methods"] = &Route::set_allowed_methods;
-	_standard_route_setters["default_file"] = &Route::set_default_file;
-	_standard_route_setters["root"] = &Route::set_root;
-	_standard_route_setters["upload_directory"] = &Route::set_upload_directory;
-	_standard_route_setters["http_redirect"] = &Route::set_http_redirect;
-	_standard_route_setters["accept_file_upload"] = &Route::set_accept_file_upload;
-	_standard_route_setters["directory_listing"] = &Route::set_directory_listing;
-}
-
 void	Config::initialize_location_setters()
 {
 	_location_setters["root"] = &LocationInfo::set_root;
 	_location_setters["directory_listing"] = &LocationInfo::set_directory_listing;
 	_location_setters["allowed_methods"] = &LocationInfo::set_allowed_methods;
+	_location_setters["return"] = &LocationInfo::set_return;
+	_location_setters["alias"] = &LocationInfo::set_alias;
+	_location_setters["handler"] = &LocationInfo::set_cgi_path;
+	_location_setters["extension"] = &LocationInfo::set_cgi_extension;
 }
 
 Config::~Config() 
@@ -555,23 +444,47 @@ Config	&Config::operator=(const Config& rhs)
 
 std::ostream &operator<<(std::ostream &out, const Config &config)
 {
-	out << "servers:\n";
 	std::vector <Server *> servers = config.get_servers();
-	for (std::vector <Server *>::const_iterator it = servers.begin(); it != servers.end(); it++)
+	for (std::vector <Server *>::iterator it = servers.begin(); it != servers.end(); it++)
 	{
-		out << **it;
-	}
-	out << "routes:\n";
-	std::vector <Route *> routes = config.get_routes();
-	for (std::vector <Route *>::const_iterator it = routes.begin(); it != routes.end(); it++)
-	{
-		out << **it;
-	}
-	out << "CGIs:\n";
-	std::vector <CGI *> cgi = config.get_cgi();
-	for (std::vector <CGI *>::const_iterator it = cgi.begin(); it != cgi.end(); it++)
-	{
-		out << **it;
+		std::cout << "host: " << inet_ntoa((*it)->get_host_address()) << std::endl;
+		std::cout << "port: " << (*it)->get_port() << std::endl;
+		std::cout << "server_name: ";
+		std::vector <std::string> server_name = (*it)->get_server_name();
+		for (std::vector <std::string>::iterator it = server_name.begin(); it != server_name.end(); it++)
+		{
+			std::cout << *it << " ";
+		}
+		std::cout << std::endl;
+		std::cout << "access_log: " << (*it)->get_access_log() << std::endl;
+		std::cout << "client_max_body_size: " << (*it)->get_client_max_body_size() << std::endl;
+		std::cout << "locations: " << std::endl;
+		std::vector <LocationInfo *> locations = (*it)->get_locations();
+		for (std::vector <LocationInfo *>::iterator it = locations.begin(); it != locations.end(); it++)
+		{
+			std::cout << "\troot: " << (*it)->getPath() << std::endl;
+			std::cout << "\tname: " << (*it)->get_name() << std::endl;
+			if ((*it)->directory_listing_enabled() == true)
+			{
+				std::cout << "\tdirectory listing: enabled" << std::endl;
+			}
+			else
+			{
+				std::cout << "\tdirectory listing: disabled" << std::endl;
+			}
+			std::cout << "\tallowed_methods: ";
+			std::vector <std::string> allowed_methods = (*it)->get_allowed_methods();
+			for (std::vector <std::string>::iterator it = allowed_methods.begin(); it != allowed_methods.end(); it++)
+			{
+				std::cout << *it << " ";
+			}
+			std::cout << std::endl;
+			if ((*it)->is_cgi() == true)
+			{
+				std::cout << "\tcgi_path: " << (*it)->get_cgi_path() << std::endl;
+				std::cout << "\tcgi_extension: " << (*it)->get_cgi_extension() << std::endl;
+			}
+		}
 	}
 	return out;
 }

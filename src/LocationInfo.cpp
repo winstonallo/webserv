@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-LocationInfo::LocationInfo() : _directory_listing_enabled(false)
+LocationInfo::LocationInfo() : _directory_listing_enabled(false), _is_cgi(false)
 {
 
 }
@@ -85,6 +85,78 @@ std::string	LocationInfo::get_name() const
 void	LocationInfo::set_name(const std::string& name)
 {
 	_name = name;
+}
+
+std::string LocationInfo::get_return() const
+{
+	return _return;
+}
+
+void	LocationInfo::set_return(const std::vector <std::string>& r)
+{
+	if (r.empty() == false)
+	{
+		_return = r[0];
+	}
+}
+
+std::string	LocationInfo::get_alias() const
+{
+	return _alias;
+}
+
+void	LocationInfo::set_alias(const std::vector <std::string>& a)
+{
+	if (a.empty() == false)
+	{
+		_alias = a[0];
+	}
+}
+
+void	LocationInfo::set_cgi_path(const std::vector <std::string>& p)
+{
+	if (p.empty() == false)
+	{
+		_cgi_path = p[0];
+	}
+}
+
+std::string	LocationInfo::get_cgi_path() const
+{
+	return _cgi_path;
+}
+
+void	LocationInfo::set_cgi_extension(const std::vector <std::string>& e)
+{
+	if (e.empty() == false)
+	{
+		_cgi_ext = e[0];
+	}
+}
+
+std::string	LocationInfo::get_cgi_extension() const
+{
+	return _cgi_ext;
+}
+
+int	LocationInfo::get_client_max_body_size() const
+{
+	return _client_max_body_size;
+}
+
+void	LocationInfo::set_client_max_body_size(int n)
+{
+	_client_max_body_size = n;
+}
+
+bool	LocationInfo::is_cgi() const
+{
+	return _is_cgi;
+}
+
+void	LocationInfo::set_is_cgi(bool is_cgi)
+{
+	_is_cgi = is_cgi;
 }
 
 std::ostream& operator<<(std::ostream& os, const LocationInfo& rhs)

@@ -117,6 +117,11 @@ void	Server::add_locations(std::vector <LocationInfo*> locations)
 	this->locations = locations;
 }
 
+std::vector <LocationInfo*>	Server::get_locations() const
+{
+	return locations;
+}
+
 std::string Server::respond(Request& rq)
 {
 	if (rq.get_method() == "GET" || rq.get_method() == "HEAD")
