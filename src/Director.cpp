@@ -20,8 +20,8 @@ Director&	Director::operator=(const Director& rhs)
 
 // purpose:	adds si to the vector of server informations
 //
-// argument: is -> the ServerInfo to be added 
-void	Director::add_server_info(ServerInfo si)
+// argument: is -> the Server to be added 
+void	Director::add_server_info(Server si)
 {
 	server_infos.push_back(si);
 }
@@ -39,16 +39,16 @@ void*	Director::get_in_addr(struct sockaddr *sa)
 	return &(((struct sockaddr_in6 *)sa)->sin6_addr);
 }
 
-// purpose: Initializes the Server that is passed in with ServerInfo*.
+// purpose: Initializes the Server that is passed in with Server*.
 // 			We loop through the addreses of the Server and create for the first one 
 //			a listener socket, which we set to be port-reusable and bind it to a port.
-// 			we also save information to the ServerInfo (file descriptor, address)
+// 			we also save information to the Server (file descriptor, address)
 //
 // argument: si -> pointer to the Server information which we 
 // 			 got from config parsing.
 //
 // return: int -> -1 if there was an error 0 if successfull
-int	Director::init_server(ServerInfo *si)
+int	Director::init_server(Server *si)
 {
 	struct addrinfo hints, *ai, *p;
 	int listener;
@@ -106,7 +106,7 @@ int	Director::init_server(ServerInfo *si)
 }
 
 
-// purpose: Take the ServerInfos which we got from Config parsing
+// purpose: Take the Servers which we got from Config parsing
 // 			and Initializes each one of them, set them so they don't block
 // 			and makes them listen. The sockets are but in the read set for 
 // 			the select method. We also add the server to the map of nodes 
@@ -117,8 +117,8 @@ int	Director::init_servers()
 {
 	FD_ZERO(&read_fds);
 	FD_ZERO(&write_fds);
-	std::vector<ServerInfo>::iterator e = server_infos.end();
-	std::vector<ServerInfo>::iterator it ;
+	std::vector<Server>::iterator e = server_infos.end();
+	std::vector<Server>::iterator it ;
 	for (it = server_infos.begin() ; it != e; it++)
 	{
 		if (init_server(&(*it)) < 0)

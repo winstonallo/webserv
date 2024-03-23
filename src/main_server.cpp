@@ -1,4 +1,4 @@
-#include "ServerInfo.hpp"
+#include "Server.hpp"
 #include "Director.hpp"
 
 int main(int argc, char **argv)
@@ -11,7 +11,7 @@ int main(int argc, char **argv)
 	// 	std::cerr << "Usage: " << argv[0] << " [config file <.conf>]" << std::endl;
 	// 	return 1;
 	// }
-	ServerInfo server_info;
+	Server server_info;
 	server_info.set_port(8080);
 	server_info.set_type(SERVER_NODE);
 

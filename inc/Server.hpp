@@ -1,5 +1,5 @@
-#ifndef SERVERINFO_HPP
-#define SERVERINFO_HPP
+#ifndef SERVER_HPP
+#define SERVER_HPP
 
 #include <ostream>
 #include <string> 
@@ -16,15 +16,15 @@ class LocationInfo;
 //purpose:	Data class for the parsed values (from the config file)
 //			It is used for the initialization and the running of the servers.
 
-class ServerInfo : public Node
+class Server : public Node
 {
 	public:
 
-											ServerInfo();
-											~ServerInfo();
-											ServerInfo(const ServerInfo& rhs);
-											ServerInfo(int tfd, struct sockaddr_storage ss, size_t addr_len);
-		ServerInfo&							operator=(const ServerInfo& rhs);
+											Server();
+											~Server();
+											Server(const Server& rhs);
+											Server(int tfd, struct sockaddr_storage ss, size_t addr_len);
+		Server&							operator=(const Server& rhs);
 
 		// getters and setters
 		int									get_port() const;
@@ -64,6 +64,6 @@ class ServerInfo : public Node
 		std::vector <LocationInfo*>			locations;
 };
 
-std::ostream& operator<<(std::ostream& os, const ServerInfo& server_info);
+std::ostream& operator<<(std::ostream& os, const Server& server_info);
 
 #endif

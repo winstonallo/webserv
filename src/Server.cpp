@@ -1,13 +1,13 @@
-#include "ServerInfo.hpp"
+#include "Server.hpp"
 #include "LocationInfo.hpp"
 #include <netinet/in.h>
 #include <ostream>
 #include <string>
 #include <vector>
 
-ServerInfo::ServerInfo() : port(0), _client_max_body_size(0), autoindex(false) {}
+Server::Server() : port(0), _client_max_body_size(0), autoindex(false) {}
 
-ServerInfo::~ServerInfo()
+Server::~Server()
 {
 	for (std::vector <LocationInfo *>::iterator it = locations.begin(); it != locations.end(); it++)
 	{
@@ -16,14 +16,14 @@ ServerInfo::~ServerInfo()
 }
 
 
-ServerInfo::ServerInfo(int tfd, struct sockaddr_storage ss, size_t taddr_len):
+Server::Server(int tfd, struct sockaddr_storage ss, size_t taddr_len):
 	Node(tfd, ss, taddr_len, SERVER_NODE)
 {}
 
-ServerInfo::ServerInfo(const ServerInfo& rhs) : Node()
+Server::Server(const Server& rhs) : Node()
 {*this = rhs;}
 
-ServerInfo&	ServerInfo::operator=(const ServerInfo& rhs)
+Server&	Server::operator=(const Server& rhs)
 {
 	if (this != &rhs)
 	{
@@ -39,97 +39,97 @@ ServerInfo&	ServerInfo::operator=(const ServerInfo& rhs)
 	return (*this);
 }
 
-std::string	ServerInfo::get_root() const
+std::string	Server::get_root() const
 {
 	return (root);
 }
 
-void	ServerInfo::set_root(const std::string& rt)
+void	Server::set_root(const std::string& rt)
 {
 	root = rt;
 }
 
-int	ServerInfo::get_port() const
+int	Server::get_port() const
 {
 	return port;
 }
 
-void	ServerInfo::set_port(int prt)
+void	Server::set_port(int prt)
 {
 	port = prt;
 }
 
-void	ServerInfo::set_server_name(const std::vector <std::string>& tserver_name)
+void	Server::set_server_name(const std::vector <std::string>& tserver_name)
 {
 	server_name = tserver_name;
 }
 
-std::vector <std::string>	ServerInfo::get_server_name() const
+std::vector <std::string>	Server::get_server_name() const
 {
 	return server_name;
 }
 
-bool	ServerInfo::get_auto_index() const
+bool	Server::get_auto_index() const
 {
 	return (autoindex); 
 }
 
-void	ServerInfo::set_auto_index(bool t)
+void	Server::set_auto_index(bool t)
 {
 	autoindex = t;
 }
 
-std::string	ServerInfo::get_error_log() const
+std::string	Server::get_error_log() const
 {
 	return (error_log);
 }
 
-void	ServerInfo::set_error_log(const std::string& log)
+void	Server::set_error_log(const std::string& log)
 {
 	error_log = log;
 }
 
-std::string	ServerInfo::get_access_log() const
+std::string	Server::get_access_log() const
 {
 	return (access_log);
 }
 
-void	ServerInfo::set_access_log(const std::string& log)
+void	Server::set_access_log(const std::string& log)
 {
 	access_log = log;
 }
 
-struct in_addr		ServerInfo::get_host_address() const
+struct in_addr		Server::get_host_address() const
 {
 	return _host_address;
 }
 
-void	ServerInfo::set_host_address(struct in_addr& host)
+void	Server::set_host_address(struct in_addr& host)
 {
 	_host_address = host;
 }
 
-int	ServerInfo::get_client_max_body_size() const
+int	Server::get_client_max_body_size() const
 {
 	return _client_max_body_size;
 }
 
-void	ServerInfo::set_client_max_body_size(const int client_max_body_size)
+void	Server::set_client_max_body_size(const int client_max_body_size)
 {
 	_client_max_body_size= client_max_body_size;
 }
 
-void	ServerInfo::add_locations(std::vector <LocationInfo*> locations)
+void	Server::add_locations(std::vector <LocationInfo*> locations)
 {
 	this->locations = locations;
 }
 
-std::vector <LocationInfo*>	ServerInfo::get_locations() const
+std::vector <LocationInfo*>	Server::get_locations() const
 {
 	return locations;
 }
 
-std::ostream &operator<<(std::ostream& os, const ServerInfo& rhs)
+std::ostream &operator<<(std::ostream& os, const Server& rhs)
 {
 	os << "\tport: " << rhs.get_port() << std::endl;
 	os << "\tserver_name: ";
