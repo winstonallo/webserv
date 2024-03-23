@@ -393,26 +393,37 @@ void	Config::configure_standard_route(const _map& route, const std::string& name
 //		->	initialize a new cgi
 //
 //	->	return the setter for the current map key
+Config::cgi_setter_map::iterator	Config::initialize_cgi_iteration(const std::string& current_map_key, CGI*& new_cgi)
+{
+	std::string	cgi_name = current_map_key.substr(0, current_map_key.find_first_of(":"));
+	std::string	key = current_map_key.substr(current_map_key.find_first_of(":") + 1);
+
+	if (new_cgi == NULL || cgi_name != new_cgi->get_name())
+	{
+		if (new_cgi != NULL)
+		{
+			_cgi.push_back(new_cgi);
+		}
+		new_cgi = new CGI;
+		new_cgi->set_name(cgi_name);
+	}
+
+	cgi_setter_map::iterator setter = _cgi_route_setters.find(key);
+	
+	return setter;
+}
+
+// goes through the route sub-map with the key "/cgi-bin" and initializes all CGIs
+//
+// calls initialize_cgi_iteration(), which will return an iterator for the appropriate
+// setter function in cgi_setter_map, then calls it on the current CGI object
 void Config::configure_cgi(const _map& route) 
 {
     CGI* new_cgi = NULL;
 
     for (_map::const_iterator it = route.begin(); it != route.end(); it++) 
 	{
-        std::string cgi_name = it->first.substr(0, it->first.find_first_of(":"));
-        std::string key = it->first.substr(it->first.find_first_of(":") + 1);
-
-        if (new_cgi == NULL || cgi_name != new_cgi->get_name()) 
-		{
-            if (new_cgi != NULL) 
-			{
-                _cgi.push_back(new_cgi);
-            }
-            new_cgi = new CGI;
-            new_cgi->set_name(cgi_name);
-        }
-
-        cgi_setter_map::iterator setter = _cgi_route_setters.find(key);
+       cgi_setter_map::iterator setter = initialize_cgi_iteration(it->first, new_cgi);
 		
 		if (setter != _cgi_route_setters.end()) 
 		{
@@ -427,7 +438,7 @@ void Config::configure_cgi(const _map& route)
         } 
 		else 
 		{
-            Log::log("error: CGI config key '" + key + "' not recognized.\n", STD_ERR | ERROR_FILE);
+            Log::log("error: CGI config key " + it->first + " not recognized.\n", STD_ERR | ERROR_FILE);
         }
     }
     if (new_cgi != NULL) 

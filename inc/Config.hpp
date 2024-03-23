@@ -46,7 +46,7 @@ class Config
 		std::string								extract_location_path(const std::string& current_map_key);
 		void									configure_standard_route(const _map &route, const std::string& name);
 		void									configure_cgi(const _map &route);
-		Config::cgi_setter_map::iterator		initialize_cgi_iteration(const std::string& current_map_key, CGI* new_cgi);
+		Config::cgi_setter_map::iterator		initialize_cgi_iteration(const std::string& current_map_key, CGI*& new_cgi);
 
 		Config(const std::string& config_path="config_files/webserv.conf");
 		~Config();
