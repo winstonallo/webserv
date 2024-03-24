@@ -5,6 +5,7 @@
 #include <map>
 #include <sstream>
 #include <algorithm>
+
 #include "Utils.hpp"
 
 
@@ -12,20 +13,17 @@ class Request
 {
 	public:
         // constructors and destructors
-									Request();
-									~Request();
-									Request(const Request& rhs);
-		Request&					operator=(const Request& rhs);
+		Request();
+		~Request();
+		Request(const Request& rhs);
+		Request&		operator=(const Request& rhs);
 
-        // init and parse request
-        void                        parse(std::string request);
-        void                        validate_request(void);
-        void                        validate_uri(void);
-        void                        pct_decode(void);
+        // init request
         void                        init(std::string request);
+        
 
         // setters and getters
-        std::map <std::string, std::string> Request::get_headers() const{ return this->headers;}
+        std::map <std::string, std::string> get_headers() const{ return this->headers;}
         std::string get_method() const{ return this->method;}
         std::string get_uri() const{ return this->uri;}
         std::string get_protocol() const{ return this->protocol;}
@@ -39,7 +37,7 @@ class Request
         int get_errcode() const{ return this->errcode;}
         std::string get_header(const std::string& key) const;
 
-	protected:
+	private:
 
 		std::string 					protocol;
         std::string 					method;
@@ -53,6 +51,11 @@ class Request
         std::string 					query;
         std::string 					fragment;
         int                             errcode;
+		void                        parse(std::string request);
+        void                        validate_request(void);
+        void                        validate_uri(void);
+        void                        pct_decode(void);
+        void                        check_length(void);
 
 };
 std::ostream& operator<<(std::ostream& os, const Request& req);

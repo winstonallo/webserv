@@ -1,5 +1,5 @@
 // class responsible for the validation & loading of parsed values into their corresponding object
-// eg: ServerInfo, LocationInfo, etc
+// eg: Server, LocationInfo, etc
 
 #ifndef CONFIGDISPATCHER_HPP
 #define CONFIGDISPATCHER_HPP
@@ -18,15 +18,9 @@ class ConfigDispatcher
 		void																			handle_server(const std::string& key);
 		void																			handle_route(const std::string& key);
 
-
-
-		std::map <int, std::map <std::string, std::vector <std::string> > >				get_servers();
-		std::map <int, std::string>                                      				get_error_pages();
-
-		// debugging funcs
-		void	print_error_pages();
-		void	print_servers();
-		void	print_routes();
+		std::map <int, std::string>                                      				get_error_pages() const;
+		std::map <int, std::map <std::string, std::vector <std::string> > >				get_servers() const;
+		std::map <std::string, std::map <std::string, std::vector <std::string> > >		get_routes() const;
 
         ConfigDispatcher(const std::map <std::string, std::vector <std::string> >& raw_config);
         ~ConfigDispatcher();

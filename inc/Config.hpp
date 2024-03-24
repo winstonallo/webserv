@@ -1,58 +1,72 @@
 #ifndef CONFIG_HPP
 #define CONFIG_HPP
 
-#include "ServerInfo.hpp"
+#include "LocationInfo.hpp"
+#include "Server.hpp"
 #include <map>
 #include <netinet/in.h>
+#include <ostream>
 #include <string>
+#include <vector>
 
-typedef std::map <std::string, std::vector <std::string> > server_map;
+class Server;
 
+// Config class
+//
+// this class is responsible for the final configuration of the server
+// 
+// it uses the parsed configuration file to create the ServerInfo &
+// LocationInfo objects, fill them, and to set the error pages
 class Config
 {
 	public:
 
-		std::vector <ServerInfo *>				get_servers();
+		typedef std::map <std::string, std::vector <std::string> > _map;
+		typedef void (LocationInfo::*location_setter)(const std::vector <std::string>&);
+		typedef std::map <std::string, location_setter> location_setter_map;
+
 		std::string								get_error_page(const int key);
-	
-
-
-		void									set_servers(std::map <int, std::map <std::string, std::vector <std::string> > >& raw_servers);
-		void									set_error_pages(std::map <int, std::string>& error_pages);
-		void									set_routes(std::map <std::string, std::map <std::string, std::vector <std::string> > >& raw_routes);
-
-
-		void									handle_port(server_map& server, ServerInfo* new_server, std::vector <std::string>& new_unique_values);
-		void									handle_server_names(server_map& server, ServerInfo* new_server, std::vector <std::string>& new_unique_values);
-		void									handle_host(server_map& server, ServerInfo* new_server, std::vector <std::string>& new_unique_values);
-		void									handle_access_log(server_map& server, ServerInfo* new_server);
-		void									handle_client_max_body_size(server_map& server, ServerInfo* new_server);
-		void									handle_locations(server_map& server, ServerInfo* new_server);
-
-		std::string                             generate_default_error_page(const int status_code);
+		std::vector <Server *>					get_servers() const;
 
 		Config(const std::string& config_path="config_files/webserv.conf");
 		~Config();
 	
 	private:
 
-		std::vector <ServerInfo *>				_servers;
+		void									set_servers(std::map <int, _map>& raw_servers);
+		void									set_error_pages(const std::map <int, std::string>& error_pages);
+
+		void									configure_port(_map& server, Server*& new_server, std::vector <std::string>& new_unique_values);
+		void									configure_server_names(_map& server, Server*& new_server, std::vector <std::string>& new_unique_values);
+		void									configure_host(_map& server, Server*& new_server, std::vector <std::string>& new_unique_values);
+		void									configure_access_log(_map& server, Server*& new_server);
+		void									configure_client_max_body_size(_map& server, Server*& new_server);
+		void									configure_locations(const _map& server, Server*& new_server);
+		location_setter_map::iterator			configure_cgi(std::string key, LocationInfo*& new_location);
+		location_setter_map::iterator			initialize_location(const std::string& name, const std::string& key, LocationInfo*& new_location);
+
+		void									initialize_location_setters();
+		std::string								extract_location_name(const std::string& location);
+
+		std::vector <Server *>					_servers;
 		std::map <int, std::string>				_error_pages;
-
+		
+		std::vector <LocationInfo *>			_locations;
 		std::map <int, std::string>             _error_status_codes;
-
 		std::vector <std::string>				_unique_values;
-		std::vector <int>						_ports;
-		std::vector <std::string>				_server_names;
-		std::vector <std::string>				_hosts;
+
+		location_setter_map						_location_setters;
 
 		Config(const Config& rhs);
 		Config &operator=(const Config& rhs);
 };
 
+std::ostream& operator<<(std::ostream& out, const Config& config);
+
 #define CLIENT_MAX_BODY_SIZE_DEFAULT 1000000
 #define CLIENT_MAX_BODY_SIZE_MAX 10000000
+#define MAX_URL_LENGTH 1024
+#define MAX_HEADER_LENGTH 4096
 #define ACCESS_LOG_DEFAULT "access.log"
-#define DEFAULT_ERROR_PAGE "files/error_pages/400.html"
 
 #endif

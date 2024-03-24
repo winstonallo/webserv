@@ -250,23 +250,6 @@ std::string	ConfigParser::error_on_line(const std::string& issue, int line_count
 	return oss.str();
 }
 
-// output operator overload for debugging
-std::ostream& operator<<(std::ostream& os, const ConfigParser& config) 
-{
-	std::map <std::string, std::vector <std::string> > map = config.get_config();
-
-	for (std::map <std::string, std::vector <std::string> >::iterator it = map.begin(); it != map.end(); it++)
-	{
-		std::cout << BOLD << it->first << RESET << std::endl;
-
-		for (std::vector <std::string>::iterator its = it->second.begin(); its != it->second.end(); its++)
-		{
-			std::cout << "\t" << (*its) << std::endl; 
-		}
-	}
-	return os;
-}
-
 ConfigParser::~ConfigParser() {}
 
 ConfigParser::ConfigParser(const ConfigParser& rhs) {*this = rhs;}

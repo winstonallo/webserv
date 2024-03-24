@@ -1,6 +1,4 @@
 #include "ConfigTests.hpp"
-#include "ConfigParser.hpp"
-#include "ConfigDispatcher.hpp"
 #include "Config.hpp"
 #include <exception>
 #include <iostream>
@@ -35,7 +33,7 @@ void    ParsingTest::test_invalid_file_structure()
     {
         try 
         {
-            ConfigParser parser(*it);
+            Config config(*it);
             print_result(*it + BOLD + ": failed to throw exception" + RESET, FAILURE);
         }
         catch (const std::exception& e) 
@@ -57,11 +55,15 @@ void    ParsingTest::test_invalid_file_value()
 
             try
             {
+<<<<<<< HEAD
+                Config              config(*it);
+=======
                 ConfigParser        parser(*it);
                 ConfigDispatcher    dispatcher(parser.get_config());
                 Config              config(dispatcher.get_error_pages());
                 std::map <int, std::map <std::string, std::vector <std::string> > > servers = dispatcher.get_servers();
-                config.set_servers(servers);
+                config->set_servers(servers);
+>>>>>>> origin/newServer
             }
             catch (const std::exception& e)
             {
