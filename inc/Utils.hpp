@@ -23,6 +23,7 @@ namespace Utils
 	std::string										file_to_string(const std::string& path);
 	std::map <int, std::string>						get_error_status_codes();
 	std::string										generate_default_error_page(const int status_code);
+	std::map <std::string, std::string>				get_environment_map(char **env);
 };
 
 #define UNCLOSED_QUOTE "unclosed quote sequence"

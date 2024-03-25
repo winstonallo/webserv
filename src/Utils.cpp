@@ -342,4 +342,15 @@ namespace Utils
 		oss << default_html;
 		return new_html_path;
 	}
+
+	std::map <std::string, std::string>		get_environment_map(char **env)
+	{
+		std::map <std::string, std::string>	env_map;
+		for (int i = 0; env[i]; i++)
+		{
+			std::string line = std::string(env[i]);
+			env_map[line.substr(0, line.find_first_of("="))] = line.substr(line.find_first_of("=") + 1);
+		}
+		return env_map;
+	}
 }

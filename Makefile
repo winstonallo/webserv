@@ -28,6 +28,8 @@ SRCS   	= \
         $(SRCS_DIR)/ConfigParser.cpp \
         $(SRCS_DIR)/ConfigDispatcher.cpp \
         $(SRCS_DIR)/Utils.cpp \
+		$(SRCS_DIR)/CGI.cpp \
+		$(SRCS_DIR)/cgi_tests.cpp \
 
 TESTS	= \
 
