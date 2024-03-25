@@ -365,17 +365,17 @@ void	Server::get_best_location_match(std::vector<LocationInfo*> locs,
 	std::vector<LocationInfo*>::iterator it;
 	for (it = locs.begin(); it != e; it++)
 	{
-		if(rq.get_path().find((*it)->getPath()) == 0)
+		if(rq.get_path().find((*it)->get_path()) == 0)
 		{
-			if ((*it)->getPath() == "/" ||  
-			(*it)->getPath().size() == rq.get_path().size()|| 
-			rq.get_path()[(*it)->getPath().size()] == '/')
+			if ((*it)->get_path() == "/" ||  
+			(*it)->get_path().size() == rq.get_path().size()|| 
+			rq.get_path()[(*it)->get_path().size()] == '/')
 			{
-				if ((int)(*it)->getPath().size() > max_len)
+				if ((int)(*it)->get_path().size() > max_len)
 				{
 					locinfo = *it;
-					best_match = (*it)->getPath();
-					max_len = (*it)->getPath().size();
+					best_match = (*it)->get_path();
+					max_len = (*it)->get_path().size();
 				}
 			}
 		}

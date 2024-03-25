@@ -14,9 +14,11 @@ class CGI
     
     private:
 
-        LocationInfo*       _location;
-        std::string         _response_body;
-        std::string         _request_body;
+        LocationInfo*                           _location;
+        std::string                             _response_body;
+        std::string                             _request_body;
+        std::map <std::string, std::string>     _env_map;
+        char**                                  _env;
 
 };
 

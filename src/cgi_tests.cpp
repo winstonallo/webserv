@@ -20,8 +20,10 @@ int main(int argc, char **argv, char **env)
         std::vector <LocationInfo *> locations = (*server)->get_locations();
         for (std::vector <LocationInfo *>::iterator location = locations.begin(); location != locations.end(); location++)
         {
-            if ((*location)->get_
+            if ((*location)->is_cgi() == true)
+            {
+                CGI cgi = CGI(env_map, "hello", (*location));
+            }
         }
     }
-    CGI cgi = CGI(env_map, "hello", new LocationInfo);
 }

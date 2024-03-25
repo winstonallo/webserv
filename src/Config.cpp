@@ -126,7 +126,7 @@ std::string	Config::extract_location_name(const std::string& current_map_key)
 //	->	return the setter for the current map key
 Config::location_setter_map::iterator	Config::initialize_location(const std::string& name, const std::string& key, LocationInfo*& new_location)
 {
-	if (new_location == NULL || name != new_location->get_name())
+	if (new_location == NULL || name != new_location->get_path())
 	{
 		if (name != "/cgi-bin")
 		{
@@ -135,7 +135,7 @@ Config::location_setter_map::iterator	Config::initialize_location(const std::str
 				_locations.push_back(new_location);
 			}
 			new_location = new LocationInfo;
-			new_location->set_name(name);
+			new_location->set_path(name);
 		}
 		else 
 		{
@@ -210,7 +210,7 @@ Config::location_setter_map::iterator	Config::configure_cgi(std::string key, Loc
 
 	if (new_location != NULL)
 	{
-		if (cgi_name != new_location->get_name())
+		if (cgi_name != new_location->get_path())
 		{
 			_locations.push_back(new_location);
 			new_location = new LocationInfo;
@@ -220,7 +220,7 @@ Config::location_setter_map::iterator	Config::configure_cgi(std::string key, Loc
 	{
 		new_location = new LocationInfo;
 	}
-	new_location->set_name(cgi_name);
+	new_location->set_path(cgi_name);
 	new_location->set_is_cgi(true);
 
 	std::string current_key = key.substr(key.find_last_of(":") + 1);
@@ -407,6 +407,7 @@ void	Config::initialize_location_setters()
 	_location_setters["alias"] = &LocationInfo::set_alias;
 	_location_setters["handler"] = &LocationInfo::set_cgi_path;
 	_location_setters["extension"] = &LocationInfo::set_cgi_extension;
+	_location_setters["autoindex"] = &LocationInfo::set_autoindex;
 }
 
 Config::~Config() 
@@ -449,8 +450,8 @@ std::ostream &operator<<(std::ostream &out, const Config &config)
 		std::vector <LocationInfo *> locations = (*it)->get_locations();
 		for (std::vector <LocationInfo *>::iterator it = locations.begin(); it != locations.end(); it++)
 		{
-			std::cout << "\tname: " << (*it)->get_name() << std::endl;
-			std::cout << "\t\troot: " << (*it)->getPath() << std::endl;
+			std::cout << "\tname: " << (*it)->get_path() << std::endl;
+			std::cout << "\t\troot: " << (*it)->get_path() << std::endl;
 			if ((*it)->directory_listing_enabled() == true)
 			{
 				std::cout << "\t\tdirectory listing: enabled" << std::endl;
@@ -458,6 +459,14 @@ std::ostream &operator<<(std::ostream &out, const Config &config)
 			else
 			{
 				std::cout << "\t\tdirectory listing: disabled" << std::endl;
+			}
+			if ((*it)->autoindex_enabled() == true)
+			{
+				std::cout << "\t\tautoindex: enabled" << std::endl;
+			}
+			else
+			{
+				std::cout << "\t\tautoindex: disabled" << std::endl;
 			}
 			std::cout << "\t\tallowed_methods: ";
 			std::vector <std::string> allowed_methods = (*it)->get_allowed_methods();

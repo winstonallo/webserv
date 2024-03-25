@@ -30,8 +30,8 @@ SRCS   	= \
         $(SRCS_DIR)/Utils.cpp \
 		$(SRCS_DIR)/CGI.cpp \
 		$(SRCS_DIR)/cgi_tests.cpp \
-
-TESTS	= \
+		
+TESTS	= \		
 
 OBJS		= $(SRCS:${SRCS_DIR}/%.cpp=${OBJS_DIR}/%.o)
 TEST_OBJS	= $(TESTS:${TEST_DIR}/%.cpp=${TEST_OBJS_DIR}/%.o)
