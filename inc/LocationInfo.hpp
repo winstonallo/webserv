@@ -11,8 +11,8 @@ class LocationInfo
 									~LocationInfo();
 									LocationInfo(const LocationInfo& rhs);
 		LocationInfo&				operator=(const LocationInfo& rhs);
-		bool						getAutoindex() const;
-		void						setAutoindex(bool b);
+		bool						autoindex_enabled() const;
+		void						set_autoindex(const std::vector <std::string>& autoindex);
 		std::string					get_root() const;
 		void						set_root(const std::vector <std::string>& root);
 		std::vector <std::string>	get_allowed_methods() const;

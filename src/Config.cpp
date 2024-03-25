@@ -407,6 +407,7 @@ void	Config::initialize_location_setters()
 	_location_setters["alias"] = &LocationInfo::set_alias;
 	_location_setters["handler"] = &LocationInfo::set_cgi_path;
 	_location_setters["extension"] = &LocationInfo::set_cgi_extension;
+	_location_setters["autoindex"] = &LocationInfo::set_autoindex;
 }
 
 Config::~Config() 
@@ -458,6 +459,14 @@ std::ostream &operator<<(std::ostream &out, const Config &config)
 			else
 			{
 				std::cout << "\t\tdirectory listing: disabled" << std::endl;
+			}
+			if ((*it)->autoindex_enabled() == true)
+			{
+				std::cout << "\t\tautoindex: enabled" << std::endl;
+			}
+			else
+			{
+				std::cout << "\t\tautoindex: disabled" << std::endl;
 			}
 			std::cout << "\t\tallowed_methods: ";
 			std::vector <std::string> allowed_methods = (*it)->get_allowed_methods();

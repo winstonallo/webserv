@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-LocationInfo::LocationInfo() : _directory_listing_enabled(false), _is_cgi(false)
+LocationInfo::LocationInfo() : _autoindex(false), _directory_listing_enabled(false), _is_cgi(false)
 {
 
 }
@@ -41,14 +41,20 @@ void	LocationInfo::set_root(const std::vector <std::string>& root)
 	}
 }
 
-bool	LocationInfo::getAutoindex() const
+bool	LocationInfo::autoindex_enabled() const
 {
 	return (_autoindex);
 }
 
-void	LocationInfo::setAutoindex(bool val)
+void	LocationInfo::set_autoindex(const std::vector <std::string>& autoindex)
 {
-	_autoindex = val;
+	if (autoindex.empty() == false)
+	{
+		if (autoindex[0] == "enabled")
+		{
+			_autoindex = true;
+		}
+	}
 }
 
 std::vector <std::string>	LocationInfo::get_allowed_methods() const
@@ -170,6 +176,14 @@ std::ostream& operator<<(std::ostream& os, const LocationInfo& rhs)
 	else
 	{
 		os << "\tdirectory listing: disabled" << std::endl;
+	}
+	if (rhs.autoindex_enabled() == true)
+	{
+		os << "\tautoindex: enabled" << std::endl;
+	}
+	else
+	{
+		os << "\tautoindex: disabled" << std::endl;
 	}
 	os << "\tallowed methods: ";
 	for (size_t i = 0; i < rhs.get_allowed_methods().size(); i++)
