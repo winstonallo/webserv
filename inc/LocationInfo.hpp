@@ -13,15 +13,14 @@ class LocationInfo
 		LocationInfo&				operator=(const LocationInfo& rhs);
 		bool						getAutoindex() const;
 		void						setAutoindex(bool b);
-		std::string					getPath() const;
+		std::string					get_root() const;
 		void						set_root(const std::vector <std::string>& root);
 		std::vector <std::string>	get_allowed_methods() const;
 		void						set_allowed_methods(const std::vector <std::string>& allowed_methods);
+		std::string					get_path() const;
+		void						set_path(const std::string& name);
 		bool						directory_listing_enabled() const;
-		void						set_directory_listing(bool directory_listing_enabled);
-
 		void						set_directory_listing(const std::vector <std::string>& directory_listing_enabled);
-		std::string					get_name() const;
 		void						set_return(const std::vector <std::string>& r);
 		std::string					get_return() const;
 		void						set_alias(const std::vector <std::string>& a);
@@ -30,7 +29,6 @@ class LocationInfo
 		std::string					get_cgi_path() const;
 		void						set_cgi_extension(const std::vector <std::string>& e);
 		std::string					get_cgi_extension() const;
-		void						set_name(const std::string& name);
 		int							get_client_max_body_size() const;
 		void						set_client_max_body_size(int n);
 		bool						is_cgi() const;

@@ -28,9 +28,9 @@ LocationInfo&	LocationInfo::operator=(const LocationInfo& rhs)
 	return (*this);
 }
 
-std::string	LocationInfo::getPath() const
+std::string	LocationInfo::get_root() const
 {
-	return (_root);
+	return _root;
 }
 
 void	LocationInfo::set_root(const std::vector <std::string>& root)
@@ -77,12 +77,12 @@ void	LocationInfo::set_directory_listing(const std::vector <std::string>& direct
 	}
 }
 
-std::string	LocationInfo::get_name() const
+std::string	LocationInfo::get_path() const
 {
 	return _name;
 }
 
-void	LocationInfo::set_name(const std::string& name)
+void	LocationInfo::set_path(const std::string& name)
 {
 	_name = name;
 }
@@ -161,8 +161,8 @@ void	LocationInfo::set_is_cgi(bool is_cgi)
 
 std::ostream& operator<<(std::ostream& os, const LocationInfo& rhs)
 {
-	os << "\troot: " << rhs.getPath() << std::endl;
-	os << "\tname: " << rhs.get_name() << std::endl;
+	os << "\troot: " << rhs.get_path() << std::endl;
+	os << "\tname: " << rhs.get_path() << std::endl;
 	if (rhs.directory_listing_enabled() == true)
 	{
 		os << "\tdirectory listing: enabled" << std::endl;

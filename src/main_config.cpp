@@ -7,7 +7,7 @@ int main()
 	try
 	{
 		Config conf;
-		std::cout << conf << std::endl;
+		// std::cout << conf << std::endl;
 	}
 	catch (const std::exception &e)
 	{
