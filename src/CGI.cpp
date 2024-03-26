@@ -59,6 +59,21 @@ void    CGI::set_pipes(int request_fd[2], int response_fd[2])
     }
 }
 
+void    CGI::execute_script(int request_fd[2], int response_fd[2], char** arguments)
+{
+    close_pipes(2, response_fd[0], request_fd[1]);
+
+    if (dup2(response_fd[1], STDOUT_FILENO) == -1 || dup2(request_fd[0], STDIN_FILENO) == -1)
+    {
+        _exit(errno);
+    }
+    close_pipes(2, response_fd[1], request_fd[0]);
+
+    execve(arguments[0], arguments, _env);
+    delete_char_array(arguments);
+    _exit(errno);
+}
+
 std::string CGI::execute(const std::string& script)
 {
     char**      arguments = set_arguments(script);
@@ -72,16 +87,7 @@ std::string CGI::execute(const std::string& script)
     }
     else if (pid == 0)
     {
-        close_pipes(2, response_fd[0], request_fd[1]);
-        if (dup2(response_fd[1], STDOUT_FILENO) == -1 || dup2(request_fd[0], STDIN_FILENO) == -1)
-        {
-            _exit(errno);
-        }
-        close_pipes(2, response_fd[1], request_fd[0]);
-
-        execve(arguments[0], arguments, _env);
-        delete_char_array(arguments);
-        _exit(errno);
+        execute_script(request_fd, response_fd, arguments);
     }
     else
     {

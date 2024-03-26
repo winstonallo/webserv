@@ -13,6 +13,7 @@ class CGI
         std::string                             execute(const std::string& script);
         void                                    set_pipes(int request_fd[2], int response_fd[2]);
         void                                    delete_char_array(char** arguments);
+        void                                    execute_script(int request_fd[2], int response_fd[2], char** arguments);
 
         CGI(const std::map<std::string, std::string>& env, LocationInfo* location);
         ~CGI();
