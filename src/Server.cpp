@@ -424,10 +424,13 @@ int		Server::_process(Request& rq, std::string& ret_file)
 		// handle alias || create loc_path path
 		if (loc_info.get_alias().empty() == false) 
 			ret_file = Utils::pathconcat(loc_info.get_alias(), rq.get_path().substr(loc_info.get_path().size()));
-		else 
-			ret_file = Utils::pathconcat(get_root(), rq.get_path());
-
-
+		else
+		{
+			if (loc_info.get_root().empty())
+				ret_file = Utils::pathconcat(get_root(), rq.get_path());
+			else
+				ret_file = Utils::pathconcat(loc_info.get_root(), rq.get_path());
+		} 
 		std::cout << ret_file << std::endl;
 		std::cout << _errcode << std::endl;
 		// handle cgi
