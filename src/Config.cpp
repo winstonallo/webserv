@@ -101,7 +101,7 @@ void	Config::set_servers(std::map <int, std::map <std::string, std::vector <std:
 		catch (const std::exception& e)
 		{
 			Log::log(e.what(), STD_ERR | ERROR_FILE);
-
+			delete new_server;
 			continue ;
 		}
 	}

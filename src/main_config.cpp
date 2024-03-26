@@ -4,11 +4,17 @@
 #include "Config.hpp"
 #include "Server.hpp"
 
-int main()
+int main(int argc, char **argv)
 {
 	try
 	{
 		Config conf;
+		(void)argv;
+		if (argc == 2)
+		{
+			Config conf(argv[1]);
+			return 1;
+		}
 		std::cout << conf;
 		// for (std::vector<Server *>::iterator it = servers.begin(); it != servers.end(); ++it)
 		// {
