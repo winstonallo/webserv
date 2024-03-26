@@ -12,7 +12,10 @@ CGI::CGI(const std::map<std::string, std::string>& env_map, const std::string& b
 
     for (std::map <std::string, std::string>::iterator it = _environment_map.begin(); it != _environment_map.end(); it++)
     {
-        _env[i++] = strdup((it->first + "=" + it->second).c_str());
+        std::string line = it->first + "=" + it->second;
+        _env[i] = new char[line.size() + 1];
+        std::strncpy(_env[i], line.c_str(), line.size());
+        i++;
     }
 }
 
@@ -30,7 +33,7 @@ CGI::~CGI()
 {
     for (int i = 0; _env[i]; i++)
     {
-        delete _env[i];
+        delete[] _env[i];
     }
     delete[] _env;
 }
