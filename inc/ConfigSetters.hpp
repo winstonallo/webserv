@@ -16,11 +16,11 @@ namespace Setters
     void	                                set_cgi_extension(const std::vector <std::string>& cgi_extension, LocationInfo*& new_location);
     void	                                set_autoindex(const std::vector <std::string>& autoindex, LocationInfo*& new_location);
     void	                                set_index(const std::vector <std::string>& index, LocationInfo*& new_location);
-    void	                                configure_access_log(Config::_map& server, Server*& new_server);
-    void	                                configure_index(Config::_map& server, Server*& new_server);
-    void	                                configure_autoindex(Config::_map& server, Server*& new_server);
-    void	                                configure_root(Config::_map& server, Server*& new_server);
-    void	                                configure_client_max_body_size(Config::_map& server, Server*& new_server);
+    void	                                configure_access_log(const std::vector <std::string>& server, Server*& new_server);
+    void	                                configure_index(const std::vector <std::string>& server, Server*& new_server);
+    void	                                configure_autoindex(const std::vector <std::string>& server, Server*& new_server);
+    void	                                configure_root(const std::vector <std::string>& server, Server*& new_server);
+    void	                                configure_client_max_body_size(const std::vector <std::string>& server, Server*& new_server);
 }
 
 #endif

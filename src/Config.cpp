@@ -2,6 +2,7 @@
 #include "ConfigDispatcher.hpp"
 #include "ConfigParser.hpp"
 #include "LocationInfo.hpp"
+#include "Server.hpp"
 #include "Utils.hpp"
 #include <algorithm>
 #include <cstddef>
@@ -53,6 +54,7 @@ Config::Config(const std::string& config_path)
 	_error_pages = dispatcher.get_error_pages();
 	_error_status_codes = Utils::get_error_status_codes();
 	initialize_location_setters();
+	initialize_server_setters();
 	set_servers(servers);
 }
 
@@ -68,6 +70,11 @@ Config::Config(const std::string& config_path)
 //		->	initialize the server
 //		->	add the server to the list of servers
 //		->	add the unique values to the list of unique values
+		// Setters::configure_access_log(it->second["access_log"], new_server);
+		// 	Setters::configure_index(it->second["index"], new_server);
+		// 	Setters::configure_autoindex(it->second["autoindex"], new_server);
+		// 	Setters::configure_root(it->second["root"], new_server);
+		// 	Setters::configure_client_max_body_size(it->second["client_max_body_size"], new_server);
 void	Config::set_servers(std::map <int, std::map <std::string, std::vector <std::string> > >& raw_servers)
 {
 	Server* new_server;
@@ -82,13 +89,16 @@ void	Config::set_servers(std::map <int, std::map <std::string, std::vector <std:
 			configure_server_names(it->second, new_server, new_unique_values);
 			configure_port(it->second, new_server, new_unique_values);
 			configure_host(it->second, new_server, new_unique_values);
-			Setters::configure_access_log(it->second, new_server);
-			Setters::configure_client_max_body_size(it->second, new_server);
-			Setters::configure_autoindex(it->second, new_server);
-			Setters::configure_root(it->second, new_server);
-			Setters::configure_index(it->second, new_server);
-			
 			configure_locations(it->second, new_server);
+
+			for (_map::iterator itt = it->second.begin(); itt != it->second.end(); itt++)
+			{
+				if (_server_setters.find(itt->first) == _server_setters.end())
+				{
+					continue ;
+				}
+				(_server_setters[itt->first])(itt->second, new_server);
+			}
 
 			_servers.push_back(new_server);
 			_unique_values.insert(_unique_values.end(), new_unique_values.begin(), new_unique_values.end());
@@ -331,6 +341,15 @@ std::string	Config::get_error_page(const int key)
 	}
 }
 
+void	Config::initialize_server_setters()
+{
+	_server_setters["access_log"] = &Setters::configure_access_log;
+	_server_setters["client_max_body_size"] = &Setters::configure_client_max_body_size;
+	_server_setters["autoindex"] = &Setters::configure_autoindex;
+	_server_setters["root"] = &Setters::configure_root;
+	_server_setters["index"] = &Setters::configure_index;
+}
+
 void	Config::initialize_location_setters()
 {
 	_location_setters["root"] = &Setters::set_root;
@@ -371,7 +390,7 @@ std::ostream &operator<<(std::ostream &out, const Config &config)
 	{
 		std::cout << "host: " << inet_ntoa((*it)->get_host_address()) << std::endl;
 		std::cout << "port: " << (*it)->get_port() << std::endl;
-		std::cout << "server_name: ";
+		std::cout << "server_name: " << (*it)->get_server_name()[0] << std::endl;
 		std::cout << "root: " << (*it)->get_root() << std::endl;
 		std::cout << "index: " << (*it)->get_index_path() << std::endl;
 		std::cout << "autoindex: " << (*it)->get_auto_index() << std::endl;

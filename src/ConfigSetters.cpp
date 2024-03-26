@@ -96,13 +96,13 @@ namespace Setters
     //
     // 	else:
     //			->	path invalid, log error & return default 
-    void	configure_access_log(Config::_map& server, Server*& new_server)
+    void	configure_access_log(const std::vector <std::string>& access_log_vector, Server*& new_server)
     {
         std::string access_log;
 
-        if (server.find("access_log") != server.end() && server["access_log"].empty() == false)
+        if (access_log_vector.empty() == false)
         {
-            access_log = server["access_log"][0];
+            access_log = access_log_vector[0];
 
             if (Utils::file_exists(access_log) == false or Utils::write_access(access_log) == true)
             {
@@ -115,13 +115,13 @@ namespace Setters
         new_server->set_access_log(ACCESS_LOG_DEFAULT);
     }
 
-    void	configure_index(Config::_map& server, Server*& new_server)
+    void	configure_index(const std::vector <std::string>& index_vector, Server*& new_server)
     {
         std::string index;
 
-        if (server.find("index") != server.end() && server["index"].empty() == false)
+        if (index.empty() == false)
         {
-            index = server["index"][0];
+            index = index_vector[0];
 
             if (Utils::file_exists(index) == false or Utils::write_access(index) == true)
             {
@@ -133,22 +133,22 @@ namespace Setters
         new_server->set_index_path("index.html");
     }
 
-    void	configure_autoindex(Config::_map& server, Server*& new_server)
+    void	configure_autoindex(const std::vector <std::string>& autoindex_vector, Server*& new_server)
     {
-        if (server.find("autoindex") != server.end() && server["autoindex"].empty() == false)
+        if (autoindex_vector.empty() == false)
         {
-            if (server["autoindex"][0] == "enabled")
+            if (autoindex_vector[0] == "enabled")
             {
                 new_server->set_auto_index(true);
             }
         }
     }
 
-    void	configure_root(Config::_map& server, Server*& new_server)
+    void	configure_root(const std::vector <std::string>& root_vector, Server*& new_server)
     {
-        if (server.find("root") != server.end() && server["root"].empty() == false)
+        if (root_vector.empty() == false)
         {
-            new_server->set_root(server["root"][0]);
+            new_server->set_root(root_vector[0]);
         }
     }
 
@@ -162,16 +162,16 @@ namespace Setters
     //
     // else if: the value is invalid
     //		->	log error & fall back to default
-    void	configure_client_max_body_size(Config::_map& server, Server*& new_server)
+    void	configure_client_max_body_size(const std::vector <std::string>& body_size_vector, Server*& new_server)
     {
-        if (server.find("client_max_body_size") == server.end() or server["client_max_body_size"].empty() == true)
+        if (body_size_vector.empty() == true)
         {
             Log::log("no client max body size config in server '" + new_server->get_server_name()[0] + "', falling back to default (1M)\n", STD_ERR | ERROR_FILE);
             new_server->set_client_max_body_size(CLIENT_MAX_BODY_SIZE_DEFAULT);
             return ;
         }
 
-        std::string client_max_body_size = server["client_max_body_size"][0];
+        std::string client_max_body_size = body_size_vector[0];
         int	size = Utils::parse_client_max_body_size(client_max_body_size);
 
         if (size > CLIENT_MAX_BODY_SIZE_MAX)
@@ -179,7 +179,7 @@ namespace Setters
             Log::log("error: " + client_max_body_size + ": client max body size too high, capping to 10M\n", STD_ERR | ERROR_FILE);
             size = CLIENT_MAX_BODY_SIZE_MAX;
         }
-        else if (size == -1)
+        else if (size < 0)
         {
             Log::log("error: client max body size '" + client_max_body_size + "' is not valid, falling back to default (1M)\n", STD_ERR | ERROR_FILE);
             size = CLIENT_MAX_BODY_SIZE_DEFAULT;
