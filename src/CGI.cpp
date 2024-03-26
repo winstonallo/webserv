@@ -7,6 +7,7 @@ CGI::CGI(const std::map<std::string, std::string>& env_map, const std::string& b
     _request_body = body;
     _location = location;
     _env = new char*[_environment_map.size() + 1];
+
     _env[_environment_map.size()] = NULL;
     int i = 0;
 
@@ -21,12 +22,17 @@ CGI::CGI(const std::map<std::string, std::string>& env_map, const std::string& b
 
 std::string    CGI::get_cmd()
 {
-    return ""; // TODO: implement this
+    return "";
 }
 
 void    CGI::set_arguments(const std::string& args)
 {
     (void)args; // TODO: implement this
+}
+
+std::string CGI::execute(const std::string& args)
+{
+    
 }
 
 CGI::~CGI()
