@@ -391,10 +391,11 @@ std::string		Server::_get_body(Request& rq)
 	return "";
 }
 
-int		Server::_process(Request& rq, std::string& loc_path)
+int		Server::_process(Request& rq, std::string& ret_file)
 {
-	std::string ret_file;
+	//std::string ret_file;
 	LocationInfo loc_info;
+	std::string loc_path;
 
 	_get_best_location_match(_locations, rq, loc_path, &loc_info);
 	if (!loc_path.empty())
@@ -424,8 +425,11 @@ int		Server::_process(Request& rq, std::string& loc_path)
 		if (loc_info.get_alias().empty() == false) 
 			ret_file = Utils::pathconcat(loc_info.get_alias(), rq.get_path().substr(loc_info.get_path().size()));
 		else 
-			ret_file = Utils::pathconcat(loc_info.get_root(), rq.get_path());
+			ret_file = Utils::pathconcat(get_root(), rq.get_path());
 
+
+		std::cout << ret_file << std::endl;
+		std::cout << _errcode << std::endl;
 		// handle cgi
 		// if (loc_info.get_name().find("cgi-bin") != std::string::npos)
 		// {
@@ -483,7 +487,7 @@ int		Server::_process(Request& rq, std::string& loc_path)
 		if (stat(loc_path.c_str(), &fst) != 0)
 		{
 			_errcode = 400;
-			Log::log("Stat function failed.\n", STD_ERR | ERROR_FILE);
+			Log::log("Stat function on failed.\n", STD_ERR | ERROR_FILE);
 			return (_errcode);
 		}
 		if (S_ISDIR(fst.st_mode))
