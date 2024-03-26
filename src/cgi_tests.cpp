@@ -20,12 +20,13 @@ int main(int argc, char **argv, char **env)
         for (std::vector <Server *>::iterator server = servers.begin(); server != servers.end(); server++)
         {
             std::vector <LocationInfo *> locations = (*server)->get_locations();
+            std::string cgi_script = "files/cgi/hello.py";
             for (std::vector <LocationInfo *>::iterator location = locations.begin(); location != locations.end(); location++)
             {
                 if ((*location)->get_cgi_extension() == ".py")
                 {
-                    CGI cgi = CGI(env_map, "hello", (*location));
-                    std::string output = cgi.execute();
+                    CGI cgi = CGI(env_map, *location);
+                    std::string output = cgi.execute(cgi_script);
                     std::cout << output << std::endl;
                 }
             }

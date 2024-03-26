@@ -10,9 +10,9 @@ class CGI
     public:
 
         std::string                             get_cmd();
-        std::string                             execute();
+        std::string                             execute(const std::string& script);
 
-        CGI(const std::map<std::string, std::string>& env, const std::string& body, LocationInfo* location);
+        CGI(const std::map<std::string, std::string>& env, LocationInfo* location);
         ~CGI();
 
     private:

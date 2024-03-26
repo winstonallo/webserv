@@ -6,10 +6,9 @@
 #include <cerrno>
 #include <sys/wait.h>
 
-CGI::CGI(const std::map<std::string, std::string>& env_map, const std::string& body, LocationInfo* location)
+CGI::CGI(const std::map<std::string, std::string>& env_map, LocationInfo* location)
 {
     _env_map = env_map;
-    _request_body = body;
     _response_body = "";
     _location = location;
     _env = new char*[_env_map.size() + 1];
@@ -35,7 +34,7 @@ char**    CGI::set_arguments(const std::string& command)
 {
     char** arguments = new char*[3];
 
-    std::string interpreter = "/home/codespace/.python/current/bin/python3";
+    std::string interpreter = _location->get_cgi_path();
     arguments[0] = new char[interpreter.size() + 1];
     std::strncpy(arguments[0], interpreter.c_str(), interpreter.size() + 1);
     arguments[1] = new char[command.size() + 1];
@@ -46,10 +45,9 @@ char**    CGI::set_arguments(const std::string& command)
     return arguments;
 }
 
-std::string CGI::execute()
+std::string CGI::execute(const std::string& script)
 {
-    std::string command = "files/cgi/hello.py";
-    char**      arguments = set_arguments(command);
+    char**      arguments = set_arguments(script);
     int         pipe_request[2], pipe_response[2];
     (void)arguments;
 
@@ -82,7 +80,7 @@ std::string CGI::execute()
         close(pipe_response[1]);
         close(pipe_request[0]);
 
-        execve("/home/codespace/.python/current/bin/python3", arguments, _env);
+        execve(arguments[0], arguments, _env);
         for (int i = 0; arguments[i]; i++)
         {
             delete[] arguments[i];
