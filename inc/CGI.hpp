@@ -9,11 +9,7 @@ class CGI
 {
     public:
 
-        std::string                             get_cmd();
         std::string                             execute(const std::string& script);
-        void                                    set_pipes(int request_fd[2], int response_fd[2]);
-        void                                    delete_char_array(char** arguments);
-        void                                    execute_script(int request_fd[2], int response_fd[2], char** arguments);
 
         CGI(const std::map<std::string, std::string>& env, LocationInfo* location);
         ~CGI();
@@ -28,6 +24,10 @@ class CGI
         std::string                             _response_body;
         std::map <std::string, std::string>     _env_map;
 
+        std::string                             get_cmd();
+        void                                    set_pipes(int request_fd[2], int response_fd[2]);
+        void                                    delete_char_array(char** arguments);
+        void                                    execute_script(int request_fd[2], int response_fd[2], char** arguments);
         void                                    close_pipes(int count, ...);
         char**                                  set_arguments(const std::string& args);
 };

@@ -6,6 +6,8 @@
 #include <cerrno>
 #include <sys/wait.h>
 #include <cstdarg>
+#include "Log.hpp"
+#include "Utils.hpp"
 
 CGI::CGI(const std::map<std::string, std::string>& env_map, LocationInfo* location)
 {
@@ -98,11 +100,19 @@ std::string CGI::execute(const std::string& script)
 
         int status;
         waitpid(pid, &status, 0);
+        if (WIFEXITED(status) == true)
+        {
+            int exit_status = WEXITSTATUS(status);
+            if (exit_status != 0)
+            {
+                Log::log("error: child process exited with status " + Utils::itoa(exit_status) + ": " + strerror(exit_status));
+            }
+        }
         char buffer[1024];
         int ret = 0;
         do 
         {
-            ::memset(buffer, 0, 1024);
+            std::memset(buffer, 0, 1024);
             ret = read(response_fd[0], buffer, 1024);
             _response_body.append(buffer, ret);
         }
