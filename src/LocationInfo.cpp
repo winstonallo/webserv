@@ -108,7 +108,7 @@ std::string	LocationInfo::get_alias() const
 	return _alias;
 }
 
-void	LocationInfo::set_alias(const std::vector <std::string>& a)
+void	LocationInfo::set_alias(const std::string &a)
 {
 	if (a.empty() == false)
 	{

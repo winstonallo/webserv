@@ -1,155 +1,115 @@
 #include "ConfigSetters.hpp"
 #include "Log.hpp"
 #include "Config.hpp"
+#include "Server.hpp"
 
 namespace Setters
 {
+    template <typename T>
+    void	set_string_value(const std::vector <std::string>& value, T* target, void (T::*setter)(const std::string&))
+    {
+        if (value.empty() == false)
+        {
+            (target->*setter)(value[0]);
+        }
+    }
+
+    template <typename T>
+    void    set_bool_value(const std::vector <std::string>& value, T* target, void (T::*setter)(bool))
+    {
+        if (value.empty() == false)
+        {
+            if (value[0] == "enabled")
+            {
+                (target->*setter)(true);
+            }
+        }
+    }
+
+    template <typename T>
+    void    set_vector_value(const std::vector <std::string>& value, T* target, void (T::*setter)(const std::vector<std::string>))
+    {
+        if (value.empty() == false)
+        {
+            (target->*setter)(value);
+        }
+    }
+
+    template <typename T>
+    void    set_string_check_path(const std::vector <std::string>& value, T* target, void (T::*setter)(const std::string&))
+    {
+        if (value.empty() == false)
+        {
+            if (Utils::file_exists(value[0]) == true)
+            {
+                (target->*setter)(value[0]);
+            }
+        }
+    }
+
     void	set_root(const std::vector <std::string>& root, LocationInfo*& new_location)
     {
-        if (root.empty() == false)
-        {
-            new_location->set_root(root[0]);
-        }
+        set_string_value(root, new_location, &LocationInfo::set_root);
     }
 
     void	set_directory_listing(const std::vector <std::string>& directory_listing, LocationInfo*& new_location)
     {
-        if (directory_listing.empty() == false)
-        {
-            if (directory_listing[0] == "enabled")
-            {
-                new_location->set_directory_listing(true);
-            }
-        }
+        set_bool_value(directory_listing, new_location, &LocationInfo::set_directory_listing);
     }
 
     void	set_allowed_methods(const std::vector <std::string>& allowed_methods, LocationInfo*& new_location)
     {
-        if (allowed_methods.empty() == false)
-        {
-            new_location->set_allowed_methods(allowed_methods);
-        }
-        else 
-        {
-            std::vector <std::string> foo;
-            foo.push_back("none");
-            new_location->set_allowed_methods(allowed_methods);
-        }
+        set_vector_value(allowed_methods, new_location, &LocationInfo::set_allowed_methods);
     }
 
     void	set_return(const std::vector <std::string>& rtrn, LocationInfo*& new_location)
     {
-        if (rtrn.empty() == false)
-        {
-            new_location->set_return(rtrn[0]);
-        }
+        set_string_value(rtrn, new_location, &LocationInfo::set_return);
     }
 
     void	set_alias(const std::vector <std::string>& alias, LocationInfo*& new_location)
     {
-        if (alias.empty() == false)
-        {
-            new_location->set_alias(alias);
-        }
+        set_string_value(alias, new_location, &LocationInfo::set_alias);
     }
 
     void	set_cgi_path(const std::vector <std::string>& cgi_path, LocationInfo*& new_location)
     {
-        if (cgi_path.empty() == false)
-        {
-            new_location->set_cgi_path(cgi_path[0]);
-        }
+        set_string_value(cgi_path, new_location, &LocationInfo::set_cgi_path);
     }
-
 
     void	set_cgi_extension(const std::vector <std::string>& extension, LocationInfo*& new_location)
     {
-        if (extension.empty() == false)
-        {
-            new_location->set_cgi_extensions(extension);
-        }
+        set_vector_value(extension, new_location, &LocationInfo::set_cgi_extensions);
     }
 
     void	set_autoindex(const std::vector <std::string>& autoindex, LocationInfo*& new_location)
     {
-        if (autoindex.empty() == false)
-        {
-            if (autoindex[0] == "enabled")
-            {
-                new_location->set_autoindex(true);
-            }
-        }
+        set_bool_value(autoindex, new_location, &LocationInfo::set_autoindex);
     }
 
     void	set_index(const std::vector <std::string>& index, LocationInfo*& new_location)
     {
-        if (index.empty() == false)
-        {
-            new_location->set_index_path(index[0]);
-        }
+        set_string_value(index, new_location, &LocationInfo::set_index_path);
     }
-    // validates access log from config
-    //
-    // 	if:		the file does not exist (meaning we can just create it)
-    // 	or:		it exists and we have write access to it
-    //			->	config valid, return the filename
-    //
-    // 	else:
-    //			->	path invalid, log error & return default 
+
     void	configure_access_log(const std::vector <std::string>& access_log_vector, Server*& new_server)
     {
-        std::string access_log;
-
-        if (access_log_vector.empty() == false)
-        {
-            access_log = access_log_vector[0];
-
-            if (Utils::file_exists(access_log) == false or Utils::write_access(access_log) == true)
-            {
-                new_server->set_access_log(access_log);
-                return ;
-            }
-        }
-        Log::log("error: access log '" + access_log + "' could not be opened, falling back to 'access.log'\n", STD_ERR | ERROR_FILE);
-
-        new_server->set_access_log(ACCESS_LOG_DEFAULT);
+        set_string_check_path(access_log_vector, new_server, &Server::set_access_log);
     }
 
     void	configure_index(const std::vector <std::string>& index_vector, Server*& new_server)
     {
-        std::string index;
-
-        if (index.empty() == false)
-        {
-            index = index_vector[0];
-
-            if (Utils::file_exists(index) == false or Utils::write_access(index) == true)
-            {
-                new_server->set_index_path(index);
-                return ;
-            }
-        }
-        Log::log("error: access log '" + index + "' could not be opened, falling back to 'access.log'\n", STD_ERR | ERROR_FILE);
-        new_server->set_index_path("index.html");
+        set_string_value(index_vector, new_server, &Server::set_index_path);
     }
 
     void	configure_autoindex(const std::vector <std::string>& autoindex_vector, Server*& new_server)
     {
-        if (autoindex_vector.empty() == false)
-        {
-            if (autoindex_vector[0] == "enabled")
-            {
-                new_server->set_auto_index(true);
-            }
-        }
+        set_bool_value(autoindex_vector, new_server, &Server::set_auto_index);
     }
 
     void	configure_root(const std::vector <std::string>& root_vector, Server*& new_server)
     {
-        if (root_vector.empty() == false)
-        {
-            new_server->set_root(root_vector[0]);
-        }
+        set_string_value(root_vector, new_server, &Server::set_root);
     }
 
     // validates client max body size from config

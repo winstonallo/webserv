@@ -24,7 +24,7 @@ class LocationInfo
 		void						set_path(const std::string& p);
 		void						set_return(const std::string& r);
 		std::string					get_return() const;
-		void						set_alias(const std::vector <std::string>& a);
+		void						set_alias(const std::string &a);
 		std::string					get_alias() const;
 		bool						get_cgi() const;
 		void						set_cgi(bool cg);
