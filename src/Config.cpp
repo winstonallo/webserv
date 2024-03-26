@@ -83,6 +83,9 @@ void	Config::set_servers(std::map <int, std::map <std::string, std::vector <std:
 			configure_access_log(it->second, new_server);
 			configure_host(it->second, new_server, new_unique_values);
 			configure_client_max_body_size(it->second, new_server);
+			configure_autoindex(it->second, new_server);
+			configure_root(it->second, new_server);
+			configure_index(it->second, new_server);
 			configure_locations(it->second, new_server);
 
 			_servers.push_back(new_server);
@@ -346,6 +349,43 @@ void	Config::configure_access_log(_map& server, Server*& new_server)
 	new_server->set_access_log(ACCESS_LOG_DEFAULT);
 }
 
+void	Config::configure_index(_map& server, Server*& new_server)
+{
+	std::string index;
+
+	if (server.find("index") != server.end() && server["index"].empty() == false)
+	{
+		index = server["index"][0];
+
+		if (Utils::file_exists(index) == false or Utils::write_access(index) == true)
+		{
+			new_server->set_index_path(index);
+			return ;
+		}
+	}
+	Log::log("error: access log '" + index + "' could not be opened, falling back to 'access.log'\n", STD_ERR | ERROR_FILE);
+	new_server->set_index_path("index.html");
+}
+
+void	Config::configure_autoindex(_map& server, Server*& new_server)
+{
+	if (server.find("autoindex") != server.end() && server["autoindex"].empty() == false)
+	{
+		if (server["autoindex"][0] == "enabled")
+		{
+			new_server->set_auto_index(true);
+		}
+	}
+}
+
+void	Config::configure_root(_map& server, Server*& new_server)
+{
+	if (server.find("root") != server.end() && server["root"].empty() == false)
+	{
+		new_server->set_root(server["root"][0]);
+	}
+}
+
 // validates client max body size from config
 //
 // if:	the value is missing or empty
@@ -475,6 +515,14 @@ void	set_autoindex(const std::vector <std::string>& autoindex, LocationInfo*& ne
 	}
 }
 
+void	set_index(const std::vector <std::string>& index, LocationInfo*& new_location)
+{
+	if (index.empty() == false)
+	{
+		new_location->set_index_path(index[0]);
+	}
+}
+
 void	Config::initialize_location_setters()
 {
 	_location_setters["root"] = &set_root;
@@ -485,6 +533,7 @@ void	Config::initialize_location_setters()
 	_location_setters["handler"] = set_cgi_path;
 	_location_setters["extension"] = set_cgi_extension;
 	_location_setters["autoindex"] = set_autoindex;
+	_location_setters["index"] = set_index;
 }
 
 Config::~Config() 
@@ -515,6 +564,9 @@ std::ostream &operator<<(std::ostream &out, const Config &config)
 		std::cout << "host: " << inet_ntoa((*it)->get_host_address()) << std::endl;
 		std::cout << "port: " << (*it)->get_port() << std::endl;
 		std::cout << "server_name: ";
+		std::cout << "root: " << (*it)->get_root() << std::endl;
+		std::cout << "index: " << (*it)->get_index_path() << std::endl;
+		std::cout << "autoindex: " << (*it)->get_auto_index() << std::endl;
 		std::vector <std::string> server_name = (*it)->get_server_name();
 		for (std::vector <std::string>::iterator it = server_name.begin(); it != server_name.end(); it++)
 		{

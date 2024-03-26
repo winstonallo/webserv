@@ -44,6 +44,9 @@ class Config
 		void									configure_locations(const _map& server, Server*& new_server);
 		location_setter_map::iterator			configure_cgi(std::string key, LocationInfo*& new_location);
 		location_setter_map::iterator			initialize_location(const std::string& name, const std::string& key, LocationInfo*& new_location);
+		void									configure_index(_map& server, Server*& new_server);
+		void									configure_autoindex(_map& server, Server*& new_server);
+		void									configure_root(_map& server, Server*& new_server);
 
 		void									initialize_location_setters();
 		std::string								extract_location_name(const std::string& location);
