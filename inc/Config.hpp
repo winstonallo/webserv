@@ -11,6 +11,7 @@
 
 class Server;
 
+
 // Config class
 //
 // this class is responsible for the final configuration of the server
@@ -49,7 +50,6 @@ class Config
 		void									configure_root(_map& server, Server*& new_server);
 
 		void									initialize_location_setters();
-		std::string								extract_location_name(const std::string& location);
 
 		std::vector <Server *>					_servers;
 		std::map <int, std::string>				_error_pages;
