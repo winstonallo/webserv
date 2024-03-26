@@ -70,11 +70,6 @@ Config::Config(const std::string& config_path)
 //		->	initialize the server
 //		->	add the server to the list of servers
 //		->	add the unique values to the list of unique values
-		// Setters::configure_access_log(it->second["access_log"], new_server);
-		// 	Setters::configure_index(it->second["index"], new_server);
-		// 	Setters::configure_autoindex(it->second["autoindex"], new_server);
-		// 	Setters::configure_root(it->second["root"], new_server);
-		// 	Setters::configure_client_max_body_size(it->second["client_max_body_size"], new_server);
 void	Config::set_servers(std::map <int, std::map <std::string, std::vector <std::string> > >& raw_servers)
 {
 	Server* new_server;
