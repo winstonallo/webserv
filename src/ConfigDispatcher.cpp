@@ -1,7 +1,6 @@
 #include "ConfigDispatcher.hpp"
 #include <cstdlib>
 #include <cstddef>
-#include <ostream>
 #include <string>
 #include <utility>
 #include "Utils.hpp"
@@ -128,54 +127,19 @@ void ConfigDispatcher::handle_error_page(const std::pair<std::string, std::vecto
     }
 }
 
-std::map <int, std::string>		ConfigDispatcher::get_error_pages()
+std::map <int, std::string>		ConfigDispatcher::get_error_pages() const
 {
 	return _error_pages;
 }
 
-std::map <int, std::map <std::string, std::vector <std::string> > >		ConfigDispatcher::get_servers()
+std::map <int, std::map <std::string, std::vector <std::string> > >		ConfigDispatcher::get_servers() const
 {
 	return _servers;
 }
 
-void	ConfigDispatcher::print_error_pages()
+std::map <std::string, std::map <std::string, std::vector <std::string> > > ConfigDispatcher::get_routes() const
 {
-	for (std::map <int, std::string>::iterator it = _error_pages.begin(); it != _error_pages.end(); it++)
-	{
-		std::cout << it->first << ": " << std::endl << "\t" << it->second << std::endl;
-	}
-}
-
-void	ConfigDispatcher::print_servers()
-{
-	for (std::map <int, std::map <std::string, std::vector <std::string> > >::iterator it = _servers.begin(); it != _servers.end(); it++)
-	{
-		std::cout << it->first << ": " << std::endl;
-		for (std::map <std::string, std::vector <std::string> >::iterator itt = it->second.begin(); itt != it->second.end(); itt++)
-		{
-			std::cout << "\t" << itt->first << ":" << std::endl;
-			for (size_t i = 0; i < itt->second.size(); i++)
-			{
-				std::cout << "\t\t" << itt->second[i] << std::endl;
-			}
-		}
-	}
-}
-
-void	ConfigDispatcher::print_routes()
-{
-	for (std::map <std::string, std::map <std::string, std::vector <std::string> > >::iterator it = _routes.begin(); it != _routes.end(); it++)
-	{
-		std::cout << it->first << ": " << std::endl;
-		for (std::map <std::string, std::vector <std::string> >::iterator itt = it->second.begin(); itt != it->second.end(); itt++)
-		{
-			std::cout << "\t" << itt->first << ":" << std::endl;
-			for (size_t i = 0; i < itt->second.size(); i++)
-			{
-				std::cout << "\t\t" << itt->second[i] << std::endl;
-			}
-		}
-	}
+	return _routes;
 }
 
 ConfigDispatcher::~ConfigDispatcher() {}

@@ -6,7 +6,6 @@
 #include <netdb.h>
 #include <ctime>
 #include "Node.hpp"
-#include "Request.hpp"
 #include "Server.hpp"
 
 //purpose:	data filled from the request parsing for and used for 

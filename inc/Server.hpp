@@ -1,9 +1,9 @@
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
+#include <ostream>
 #include <string> 
 #include <vector>
-#include <algorithm>
 #include <sys/types.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
@@ -11,17 +11,14 @@
 #include <sys/stat.h>
 #include <dirent.h>
 #include "Node.hpp"
-#include "Server.hpp"
 #include "Request.hpp"
-#include "Utils.hpp"
-#include "Log.hpp"
 #include "LocationInfo.hpp"
-#include "Director.hpp"
 
 class LocationInfo;
 class Director;
 //purpose:	Data class for the parsed values (from the config file)
 //			It is used fjor the initialization and the running of the servers.
+
 class Server : public Node
 {
 	public:
@@ -55,6 +52,7 @@ class Server : public Node
 		Director*							get_director() const;
 		LocationInfo&						get_location(int);
 		void								add_locations(std::vector <LocationInfo *> locations);
+		std::vector <LocationInfo *>		get_locations() const;
 		bool								is_fd_in_clients(int fd) const;
 		std::string							get_index_path() const;
 		void								set_index_path(const std::string& loc);
@@ -95,5 +93,7 @@ class Server : public Node
 		int									_errcode;
 		Director*							_director;
 };
+
+std::ostream& operator<<(std::ostream& os, const Server& server_info);
 
 #endif

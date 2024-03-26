@@ -4,6 +4,7 @@
 #include <sstream>
 #include <cstdlib>
 #include <algorithm>
+#include "Log.hpp"
 
 namespace Utils
 {
@@ -298,6 +299,48 @@ namespace Utils
 		error_status_codes[511] = "network authentication required";
 
 		return error_status_codes;
+	}
+
+	// returns the error page for a given status code
+	//
+	// if:	the status code is not found in the error pages from the config
+	//		->	generate a default error page
+
+	// generates a default error page for a given status code
+	//
+	// cat DEFAULT_ERROR_PAGE | sed 's/400/XXX/g' | sed 's/bad request/new message/g' > new_html_path
+	std::string	generate_default_error_page(const int status_code)
+	{
+		std::string default_error_code = "400", default_error_message = "bad request", default_html = DEFAULT_ERROR_PAGE;
+		std::string	new_error_code = Utils::itoa(status_code), new_error_message = get_error_status_codes()[status_code];
+
+		size_t pos_code = default_html.find(default_error_code), pos_message = default_html.find(default_error_message);
+
+		while (pos_code != std::string::npos || pos_message != std::string::npos)
+		{
+			if (pos_code != std::string::npos)
+			{
+				default_html.replace(pos_code, default_error_code.size(), new_error_code);
+				pos_code = default_html.find(default_error_code, pos_code + new_error_code.size());
+			}
+			if (pos_message != std::string::npos)
+			{
+				default_html.replace(pos_message, default_error_message.size(), new_error_message);
+				pos_message = default_html.find(default_error_message, pos_message + new_error_message.size());
+			}
+		}
+		std::string new_html_path = "/tmp/" + Utils::itoa(status_code) + ".html";
+
+		std::ofstream	oss(new_html_path.c_str());
+
+		if (oss == false)
+		{
+			Log::log("error: could not create default error page, falling back to 400: bad_request\n", STD_ERR | ERROR_FILE);
+			return DEFAULT_ERROR_PAGE;
+		}
+
+		oss << default_html;
+		return new_html_path;
 	}
 
 	std::string pathconcat(std::string s1, std::string s2)

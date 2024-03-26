@@ -2,14 +2,11 @@
 #define DIRECTOR_HPP
 
 #include <map>
-#include <vector>
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <netdb.h>
 #include <sys/time.h>
-#include <cerrno>
 #include <string>
-#include <fstream>
 #include <fcntl.h>
 #include <sys/select.h>
 #include <sys/types.h>
@@ -17,14 +14,10 @@
 #include <unistd.h>
 #include <sys/time.h>
 #include "Node.hpp"
-#include "Request.hpp"
-#include "Server.hpp"
 #include "Server.hpp"
 #include "ClientInfo.hpp"
-#include "ConfigParser.hpp"
+#include "Request.hpp"
 #include "Config.hpp"
-#include "Log.hpp"
-#include "LocationInfo.hpp"
 
 #define MSG_SIZE 50000
 #define TIMEOUT_TIME 30

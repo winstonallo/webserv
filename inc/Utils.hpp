@@ -23,8 +23,30 @@ namespace Utils
 	std::string										file_to_string(const std::string& path);
 	std::map <int, std::string>						get_error_status_codes();
 	std::string										pathconcat(std::string s1, std::string s2);
+	std::string										generate_default_error_page(const int status_code);
 };
 
 #define UNCLOSED_QUOTE "unclosed quote sequence"
+#define DEFAULT_ERROR_PAGE "<!DOCTYPE html>\n\
+<html lang=\"en\">\n\
+<head>\n\
+<meta charset=\"UTF-8\">\n\
+<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n\
+<title>400</title>\n\
+<link href=\"error.css\" rel=\"stylesheet\">\n\
+</head>\n\
+<body>\n\
+<div class=\"container bsod\">\n\
+  <div class=\"neg\">\n\
+    <h1 class=\"bg title\">error 400</h1>\n\
+    <p>bad request</p>\n\
+  </div>\n\
+  <div class=\"nav\">\n\
+    <a href=\"/\" class=\"link\">go home</a>\n\
+    <a href=\"/contact\" class=\"link\">contact us</a>\n\
+  </div>\n\
+</div>\n\
+</body>\n\
+</html>"
 
 #endif

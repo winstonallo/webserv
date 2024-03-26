@@ -1,4 +1,6 @@
 #include "Director.hpp"
+#include <string.h>
+#include "Log.hpp"
 
 Director::Director(const std::string& config_path):fdmax(-1), config(new Config(config_path))
 {
@@ -118,7 +120,7 @@ int	Director::init_server(Server *si)
 }
 
 
-// purpose: Take the ServerInfos which we got from Config parsing
+// purpose: Take the Servers which we got from Config parsing
 // 			and Initializes each one of them, set them so they don't block
 // 			and makes them listen. The sockets are but in the read set for 
 // 			the select method. We also add the server to the map of nodes 
@@ -378,7 +380,8 @@ int	Director::read_from_client(int client_fd)
 		ci->set_time();
 		try
 		{
-			Request	req(msg);
+			Request	req;
+			req.init(msg);
 			memset(msg, 0, sizeof(msg));
 			ci->get_server()->create_response(req); 
 			FD_CLR(client_fd, &read_fds);

@@ -3,6 +3,9 @@
 #include <netinet/in.h>
 #include <string>
 #include <vector>
+#include "Director.hpp"
+#include <fstream>
+#include "Log.hpp"
 
 Server::Server() 
 {
@@ -12,7 +15,14 @@ Server::Server()
 	_autoindex = false;
 }
 
-Server::~Server() {}
+Server::~Server()
+{
+	std::vector<LocationInfo*>::iterator it;
+	for (it = _locations.begin(); it != _locations.end(); it++)
+	{
+		delete *it;
+	}
+}
 
 
 Server::Server(int tfd, struct sockaddr_storage ss, size_t taddr_len):
@@ -133,6 +143,11 @@ std::string	Server::get_root() const
 void	Server::set_root(const std::string& rt)
 {
 	_root = rt;
+}
+
+std::vector <LocationInfo*>	Server::get_locations() const
+{
+	return _locations;
 }
 
 std::string Server::respond(Request& rq)
@@ -266,9 +281,9 @@ void	Server::create_response(Request& rq)
 	std::string 		ex;
 	char				buf[100];
 	std::string			body;
-	bool				failed;
+	bool				failed = false;
 
-	if ((_errcode = rq.get_error()) == 0)
+	if ((_errcode = rq.get_errcode()) == 0)
 	{
 		try
 		{
@@ -391,8 +406,9 @@ int		Server::_process(Request& rq, std::string& loc_path)
 			return (_errcode = 413);
 		}
 		// is method allowed?
-		std::vector<std::string>::iterator end = loc_info.get_allowed_methods().end();
-		std::vector<std::string>::iterator begin = loc_info.get_allowed_methods().begin();
+		std::vector<std::string> vec = loc_info.get_allowed_methods();
+		std::vector<std::string>::iterator end = vec.end();
+		std::vector<std::string>::iterator begin = vec.begin();
 		if(std::find(begin,	end, rq.get_method()) != end)
 		{
 			Log::log("Error. Method not allowed.\n", STD_ERR | ERROR_FILE);
@@ -486,6 +502,7 @@ void	Server::_get_best_location_match(std::vector<LocationInfo*> locs,
 										std::string& best_match,
 										LocationInfo* locinfo)
 {
+	(void)locinfo;
 	int max_len = 0;
 	std::vector<LocationInfo*>::iterator e = locs.end();
 	std::vector<LocationInfo*>::iterator it;
