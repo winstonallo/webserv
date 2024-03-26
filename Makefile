@@ -30,6 +30,7 @@ SRCS   	= \
         $(SRCS_DIR)/Utils.cpp \
 		$(SRCS_DIR)/CGI.cpp \
 		$(SRCS_DIR)/cgi_tests.cpp \
+		$(SRCS_DIR)/ConfigSetters.cpp \
 		
 TESTS	= \		
 

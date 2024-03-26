@@ -3,6 +3,7 @@
 #include "ConfigParser.hpp"
 #include "LocationInfo.hpp"
 #include "Utils.hpp"
+#include "ConfigSetters.hpp"
 #include <algorithm>
 #include <cstddef>
 #include <exception>
@@ -176,7 +177,7 @@ void	Config::configure_locations(const _map& server, Server*& new_server)
 		{
 			try 
 			{
-				(new_location->*(setter->second))(it->second);
+				(setter->second)(it->second, new_location);
 			}
 			catch (const std::exception& e)
 			{
@@ -221,7 +222,7 @@ Config::location_setter_map::iterator	Config::configure_cgi(std::string key, Loc
 		new_location = new LocationInfo;
 	}
 	new_location->set_path(cgi_name);
-	new_location->set_is_cgi(true);
+	new_location->set_cgi(true);
 
 	std::string current_key = key.substr(key.find_last_of(":") + 1);
 	
@@ -400,14 +401,14 @@ std::string	Config::get_error_page(const int key)
 
 void	Config::initialize_location_setters()
 {
-	_location_setters["root"] = &LocationInfo::set_root;
-	_location_setters["directory_listing"] = &LocationInfo::set_directory_listing;
-	_location_setters["allowed_methods"] = &LocationInfo::set_allowed_methods;
-	_location_setters["return"] = &LocationInfo::set_return;
-	_location_setters["alias"] = &LocationInfo::set_alias;
-	_location_setters["handler"] = &LocationInfo::set_cgi_path;
-	_location_setters["extension"] = &LocationInfo::set_cgi_extension;
-	_location_setters["autoindex"] = &LocationInfo::set_autoindex;
+	_location_setters["root"] = &Setters::set_root;
+	_location_setters["directory_listing"] = &Setters::set_directory_listing;
+	_location_setters["allowed_methods"] = &Setters::set_allowed_methods;
+	_location_setters["return"] = &Setters::set_return;
+	_location_setters["alias"] = &Setters::set_alias;
+	_location_setters["handler"] = &Setters::set_cgi_path;
+	_location_setters["extension"] = &Setters::set_cgi_extension;
+	_location_setters["autoindex"] = &Setters::set_autoindex;
 }
 
 Config::~Config() 
@@ -460,7 +461,7 @@ std::ostream &operator<<(std::ostream &out, const Config &config)
 			{
 				std::cout << "\t\tdirectory listing: disabled" << std::endl;
 			}
-			if ((*it)->autoindex_enabled() == true)
+			if ((*it)->get_autoindex() == true)
 			{
 				std::cout << "\t\tautoindex: enabled" << std::endl;
 			}
@@ -475,10 +476,10 @@ std::ostream &operator<<(std::ostream &out, const Config &config)
 				std::cout << *it << " ";
 			}
 			std::cout << std::endl;
-			if ((*it)->is_cgi() == true)
+			if ((*it)->get_cgi() == true)
 			{
 				std::cout << "\t\tcgi_path: " << (*it)->get_cgi_path() << std::endl;
-				std::cout << "\t\tcgi_extension: " << (*it)->get_cgi_extension() << std::endl;
+				std::cout << "\t\tcgi_extension: " << (*it)->get_cgi_extensions()[0] << std::endl;
 			}
 		}
 	}

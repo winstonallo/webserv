@@ -353,4 +353,16 @@ namespace Utils
 		}
 		return env_map;
 	}
+
+	std::string pathconcat(std::string s1, std::string s2)
+	{
+		if (s2 == "")
+			return s1; 
+		int l1 = s1.size();
+		if (s1[l1-1] != '/' && s2[0] != '/')
+			s1.append("/");
+		if (s1[l1-1] == '/' && s2[0] == '/')
+			s1.erase(l1-1);
+		return (s1 + s2);	
+	}
 }
