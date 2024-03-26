@@ -23,26 +23,36 @@ LocationInfo&	LocationInfo::operator=(const LocationInfo& rhs)
 	{
 		_path = rhs._path;
 		_autoindex = rhs._autoindex;
+		_root = rhs._root;
+		_index = rhs._index;
+		_autoindex = rhs._autoindex;
+		_return = rhs._return;
+		_alias = rhs._alias;
+		_cgi_path = rhs._cgi_path;
+		_cgi_ext = rhs._cgi_ext;
+		_allowed_methods = rhs._allowed_methods;
+		_directory_listing_enabled = rhs._directory_listing_enabled;
+		_client_max_body_size = rhs._client_max_body_size;
 	}
 	return (*this);
 }
 
-std::string	LocationInfo::getPath() const
+std::string	LocationInfo::get_path() const
 {
 	return (_path);
 }
 
-void	LocationInfo::setPath(std::string p)
+void	LocationInfo::set_path(const std::string& p)
 {
 	_path = p;
 }
 
-bool	LocationInfo::getAutoindex() const
+bool	LocationInfo::get_autoindex() const
 {
 	return (_autoindex);
 }
 
-void	LocationInfo::setAutoindex(bool val)
+void	LocationInfo::set_autoindex(bool val)
 {
 	_autoindex = val;
 }
@@ -67,14 +77,9 @@ void	LocationInfo::set_directory_listing(bool directory_listing_enabled)
 	_directory_listing_enabled = directory_listing_enabled;
 }
 
-std::string	LocationInfo::get_name() const
+bool	LocationInfo::get_directory_listing() const
 {
-	return _name;
-}
-
-void	LocationInfo::set_name(const std::string& name)
-{
-	_name = name;
+	return _directory_listing_enabled;
 }
 
 std::string		LocationInfo::get_root() const
@@ -135,4 +140,14 @@ void			LocationInfo::set_client_max_body_size(int mb)
 int				LocationInfo::get_client_max_body_size() const
 {
 	return _client_max_body_size;
+}
+
+void			LocationInfo::set_index_path(const std::string& loc)
+{
+	_index = loc;
+}
+
+std::string		LocationInfo::get_index_path() const
+{
+	return _index;
 }

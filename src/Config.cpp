@@ -63,17 +63,15 @@ void	Config::handle_locations(server_map& server, Server* new_server)
 			size_t	colon = it->first.find(":", found);
 			std::string	path = it->first.substr(found + location_key_prefix.size(), colon - (found + location_key_prefix.size()));
 			
-			if (new_location == NULL || new_location->get_name() != path)
+			if (new_location == NULL || new_location->get_path() != path)
 			{
 				locations.push_back(new_location);
 				new_location = new LocationInfo();
 			}
-
-			new_location->set_name(path);
-
+			new_location->set_path(path);
 			if (it->first.find("root") != std::string::npos && it->second.empty() == false)
 			{
-				new_location->setPath(it->second[0]);
+				new_location->set_path(it->second[0]);
 			}
 			else if (it->first.find("directory_listing") != std::string::npos)
 			{
