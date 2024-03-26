@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <cerrno>
 #include <sys/wait.h>
+#include <cstdarg>
 
 CGI::CGI(const std::map<std::string, std::string>& env_map, LocationInfo* location)
 {
@@ -45,23 +46,25 @@ char**    CGI::set_arguments(const std::string& command)
     return arguments;
 }
 
+void    CGI::set_pipes(int request_fd[2], int response_fd[2])
+{
+    if (pipe(request_fd) == -1)
+    {
+        throw std::runtime_error("pipe() failure");
+    }
+    if (pipe(response_fd) == -1)
+    {
+        close_pipes(2, request_fd[0], request_fd[0]);
+        throw std::runtime_error("pipe() failure");
+    }
+}
+
 std::string CGI::execute(const std::string& script)
 {
     char**      arguments = set_arguments(script);
-    int         pipe_request[2], pipe_response[2];
-    (void)arguments;
+    int         request_fd[2], response_fd[2];
 
-    if (pipe(pipe_request) == -1)
-    {
-        throw std::runtime_error("pipe() failure");
-    }
-    if (pipe(pipe_response) == -1)
-    {
-        close(pipe_request[0]);
-        close(pipe_request[1]);
-        throw std::runtime_error("pipe() failure");
-    }
-
+    set_pipes(request_fd, response_fd);
     pid_t pid = fork();
     if (pid == -1)
     {
@@ -69,36 +72,23 @@ std::string CGI::execute(const std::string& script)
     }
     else if (pid == 0)
     {
-        close(pipe_response[0]);
-        close(pipe_request[1]);
-
-        if (dup2(pipe_response[1], STDOUT_FILENO) == -1 || dup2(pipe_request[0], STDIN_FILENO) == -1)
+        close_pipes(2, response_fd[0], request_fd[1]);
+        if (dup2(response_fd[1], STDOUT_FILENO) == -1 || dup2(request_fd[0], STDIN_FILENO) == -1)
         {
             _exit(errno);
         }
-
-        close(pipe_response[1]);
-        close(pipe_request[0]);
+        close_pipes(2, response_fd[1], request_fd[0]);
 
         execve(arguments[0], arguments, _env);
-        for (int i = 0; arguments[i]; i++)
-        {
-            delete[] arguments[i];
-        }
-        delete[] arguments;
+        delete_char_array(arguments);
         _exit(errno);
     }
     else
     {
-        for (int i = 0; arguments[i]; i++)
-        {
-            delete[] arguments[i];
-        }
-        delete[] arguments;
-        close(pipe_request[0]);
-        write(pipe_request[1], _request_body.c_str(), _request_body.size());
-        close(pipe_request[1]);
-        close(pipe_response[1]);
+        delete_char_array(arguments);
+        close_pipes(1, request_fd[0]);
+        write(request_fd[1], _request_body.c_str(), _request_body.size());
+        close_pipes(2, request_fd[1], response_fd[1]);
 
         int status;
         waitpid(pid, &status, 0);
@@ -107,21 +97,41 @@ std::string CGI::execute(const std::string& script)
         do 
         {
             ::memset(buffer, 0, 1024);
-            ret = read(pipe_response[0], buffer, 1024);
+            ret = read(response_fd[0], buffer, 1024);
             _response_body.append(buffer, ret);
         }
         while(ret > 0);
 
-        close(pipe_response[0]);
+        close_pipes(1, response_fd[0]);
     }
     return _response_body;
 }
 
+// variadic function to close pipes to avoid
+// inflating the code with closes
+void    CGI::close_pipes(int count, ...)
+{
+    va_list args;
+    va_start(args, count);
+
+    for (int i = 0; i < count; i++)
+    {
+        int pipe = va_arg(args, int);
+        close(pipe);
+    }
+    va_end(args);
+}
+
+void    CGI::delete_char_array(char** arr)
+{
+    for (int i = 0; arr[i]; i++)
+    {
+        delete[] arr[i];
+    }
+    delete[] arr;
+}
+
 CGI::~CGI()
 {
-    for (int i = 0; _env[i]; i++)
-    {
-        delete[] _env[i];
-    }
-    delete[] _env;
+    delete_char_array(_env);
 }
