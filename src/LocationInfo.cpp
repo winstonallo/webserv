@@ -156,6 +156,16 @@ void	LocationInfo::set_client_max_body_size(int n)
 	_client_max_body_size = n;
 }
 
+std::string	LocationInfo::get_path() const
+{
+	return _path;
+}
+
+void	LocationInfo::set_path(const std::string& path)
+{
+	_path = path;
+}
+
 std::ostream& operator<<(std::ostream& os, const LocationInfo& rhs)
 {
 	os << "\troot: " << rhs.get_path() << std::endl;

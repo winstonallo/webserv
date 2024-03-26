@@ -176,7 +176,7 @@ void	Config::configure_locations(const _map& server, Server*& new_server)
 		{
 			try 
 			{
-				(new_location->*(setter->second))(it->second);
+				(setter->second)(it->second, new_location);
 			}
 			catch (const std::exception& e)
 			{
@@ -398,16 +398,93 @@ std::string	Config::get_error_page(const int key)
 	}
 }
 
+void	set_root(const std::vector <std::string>& root, LocationInfo*& new_location)
+{
+	if (root.empty() == false)
+	{
+		new_location->set_root(root[0]);
+	}
+}
+
+void	set_directory_listing(const std::vector <std::string>& directory_listing, LocationInfo*& new_location)
+{
+	if (directory_listing.empty() == false)
+	{
+		if (directory_listing[0] == "enabled")
+		{
+			new_location->set_directory_listing(true);
+		}
+	}
+}
+
+void	set_allowed_methods(const std::vector <std::string>& allowed_methods, LocationInfo*& new_location)
+{
+	if (allowed_methods.empty() == false)
+	{
+		new_location->set_allowed_methods(allowed_methods);
+	}
+	else 
+	{
+		std::vector <std::string> foo;
+		foo.push_back("none");
+		new_location->set_allowed_methods(allowed_methods);
+	}
+}
+
+void	set_return(const std::vector <std::string>& rtrn, LocationInfo*& new_location)
+{
+	if (rtrn.empty() == false)
+	{
+		new_location->set_return(rtrn[0]);
+	}
+}
+
+void	set_alias(const std::vector <std::string>& alias, LocationInfo*& new_location)
+{
+	if (alias.empty() == false)
+	{
+		new_location->set_alias(alias);
+	}
+}
+
+void	set_cgi_path(const std::vector <std::string>& cgi_path, LocationInfo*& new_location)
+{
+	if (cgi_path.empty() == false)
+	{
+		new_location->set_cgi_path(cgi_path[0]);
+	}
+}
+
+
+void	set_cgi_extension(const std::vector <std::string>& extension, LocationInfo*& new_location)
+{
+	if (extension.empty() == false)
+	{
+		new_location->set_cgi_extensions(extension);
+	}
+}
+
+void	set_autoindex(const std::vector <std::string>& autoindex, LocationInfo*& new_location)
+{
+	if (autoindex.empty() == false)
+	{
+		if (autoindex[0] == "enabled")
+		{
+			new_location->set_autoindex(true);
+		}
+	}
+}
+
 void	Config::initialize_location_setters()
 {
-	_location_setters["root"] = &LocationInfo::set_root;
-	_location_setters["directory_listing"] = &LocationInfo::set_directory_listing;
-	_location_setters["allowed_methods"] = &LocationInfo::set_allowed_methods;
-	_location_setters["return"] = &LocationInfo::set_return;
-	_location_setters["alias"] = &LocationInfo::set_alias;
-	_location_setters["handler"] = &LocationInfo::set_cgi_path;
-	_location_setters["extension"] = &LocationInfo::set_cgi_extension;
-	_location_setters["autoindex"] = &LocationInfo::set_autoindex;
+	_location_setters["root"] = &set_root;
+	_location_setters["directory_listing"] = set_directory_listing;
+	_location_setters["allowed_methods"] = set_allowed_methods;
+	_location_setters["return"] = set_return;
+	_location_setters["alias"] = set_alias;
+	_location_setters["handler"] = set_cgi_path;
+	_location_setters["extension"] = set_cgi_extension;
+	_location_setters["autoindex"] = set_autoindex;
 }
 
 Config::~Config() 
@@ -460,7 +537,7 @@ std::ostream &operator<<(std::ostream &out, const Config &config)
 			{
 				std::cout << "\t\tdirectory listing: disabled" << std::endl;
 			}
-			if ((*it)->autoindex_enabled() == true)
+			if ((*it)->get_autoindex() == true)
 			{
 				std::cout << "\t\tautoindex: enabled" << std::endl;
 			}
@@ -475,10 +552,10 @@ std::ostream &operator<<(std::ostream &out, const Config &config)
 				std::cout << *it << " ";
 			}
 			std::cout << std::endl;
-			if ((*it)->is_cgi() == true)
+			if ((*it)->get_cgi() == true)
 			{
 				std::cout << "\t\tcgi_path: " << (*it)->get_cgi_path() << std::endl;
-				std::cout << "\t\tcgi_extension: " << (*it)->get_cgi_extension() << std::endl;
+				std::cout << "\t\tcgi_extension: " << (*it)->get_cgi_extensions()[0] << std::endl;
 			}
 		}
 	}

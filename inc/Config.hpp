@@ -22,7 +22,7 @@ class Config
 	public:
 
 		typedef std::map <std::string, std::vector <std::string> > _map;
-		typedef void (LocationInfo::*location_setter)(const std::vector <std::string>&);
+		typedef void (*location_setter)(const std::vector <std::string>&, LocationInfo*&);
 		typedef std::map <std::string, location_setter> location_setter_map;
 
 		std::string								get_error_page(const int key);
