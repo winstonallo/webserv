@@ -11,8 +11,20 @@ Server::Server()
 {
 	_init_status_strings();
 	_init_content_types();
+	_autoindex = false;
 	_errcode = 0;
 	_autoindex = false;
+	_index = "";
+	_root = "";
+	_port = 0;
+	_client_max_body_size = 4098;
+	_server_name = std::vector<std::string>();
+	struct in_addr lo= {0};
+	_host_address = lo;
+	_error_log = "";
+	_access_log = "";
+	_error_pages = std::map<int, std::string>();
+	_locations = std::vector<LocationInfo *>();
 }
 
 Server::~Server()
