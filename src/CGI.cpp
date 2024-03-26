@@ -1,19 +1,21 @@
 #include "CGI.hpp"
 #include <cstring>
 #include <cstdlib>
+#include <sched.h>
 #include <unistd.h>
 #include <stdexcept>
 #include <cerrno>
 #include <sys/wait.h>
 #include <cstdarg>
+#include "LocationInfo.hpp"
 #include "Log.hpp"
 #include "Utils.hpp"
 
-CGI::CGI(const std::map<std::string, std::string>& env_map, LocationInfo* location)
+CGI::CGI(const std::map<std::string, std::string>& env_map, std::vector <LocationInfo*> location)
 {
     _env_map = env_map;
     _response_body = "";
-    _location = location;
+    _locations = location;
     _env = new char*[_env_map.size() + 1];
 
     _env[_env_map.size()] = NULL;
@@ -33,11 +35,11 @@ std::string    CGI::get_cmd()
     return ""; // TODO: implement this
 }
 
-char**    CGI::set_arguments(const std::string& command)
+char**    CGI::set_arguments(const std::string& command, LocationInfo*& location)
 {
     char** arguments = new char*[3];
 
-    std::string interpreter = _location->get_cgi_path();
+    std::string interpreter = location->get_cgi_path();
     arguments[0] = new char[interpreter.size() + 1];
     std::strncpy(arguments[0], interpreter.c_str(), interpreter.size() + 1);
     arguments[1] = new char[command.size() + 1];
@@ -76,23 +78,8 @@ void    CGI::execute_script(int request_fd[2], int response_fd[2], char** argume
     _exit(errno);
 }
 
-std::string CGI::execute(const std::string& script)
+void    CGI::parent(pid_t pid, int request_fd[2], int response_fd[2], char** arguments)
 {
-    char**      arguments = set_arguments(script);
-    int         request_fd[2], response_fd[2];
-
-    set_pipes(request_fd, response_fd);
-    pid_t pid = fork();
-    if (pid == -1)
-    {
-        throw std::runtime_error("fork() failure");
-    }
-    else if (pid == 0)
-    {
-        execute_script(request_fd, response_fd, arguments);
-    }
-    else
-    {
         delete_char_array(arguments);
         close_pipes(1, request_fd[0]);
         write(request_fd[1], _request_body.c_str(), _request_body.size());
@@ -119,6 +106,42 @@ std::string CGI::execute(const std::string& script)
         while(ret > 0);
 
         close_pipes(1, response_fd[0]);
+}
+
+LocationInfo*    CGI::get_location(const std::string& script)
+{
+    std::string extension = script.substr(script.find_last_of("."));
+
+    for (std::vector <LocationInfo *>::iterator it = _locations.begin(); it != _locations.end(); it++)
+    {
+        std::cout << extension << std::endl;
+        if ((*it)->get_cgi() == true && (*it)->get_cgi_extensions()[0] == extension)
+        {
+            return *it;
+        }
+    }
+    throw std::runtime_error("no valid cgi found for " + script);
+}
+
+std::string CGI::execute(const std::string& script)
+{
+    LocationInfo *location = get_location(script);
+    int          request_fd[2], response_fd[2];
+    char**       arguments = set_arguments(script, location);
+
+    set_pipes(request_fd, response_fd);
+    pid_t pid = fork();
+    if (pid == -1)
+    {
+        throw std::runtime_error("fork() failure");
+    }
+    else if (pid == 0)
+    {
+        execute_script(request_fd, response_fd, arguments);
+    }
+    else
+    {
+        parent(pid, request_fd, response_fd, arguments);
     }
     return _response_body;
 }

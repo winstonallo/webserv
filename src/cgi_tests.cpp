@@ -21,15 +21,9 @@ int main(int argc, char **argv, char **env)
         {
             std::vector <LocationInfo *> locations = (*server)->get_locations();
             std::string cgi_script = "files/cgi/hello.py";
-            for (std::vector <LocationInfo *>::iterator location = locations.begin(); location != locations.end(); location++)
-            {
-                if ((*location)->get_cgi() == true && (*location)->get_cgi_extensions()[0] == ".py")
-                {
-                    CGI cgi = CGI(env_map, *location);
-                    std::string output = cgi.execute(cgi_script);
-                    std::cout << output << std::endl;
-                }
-            }
+            CGI cgi = CGI(env_map, locations);
+            std::string output = cgi.execute(cgi_script);
+            std::cout << output << std::endl;
         }
     }
     catch (const std::exception& e)
