@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-LocationInfo::LocationInfo() : _directory_listing_enabled(false), _is_cgi(false)
+LocationInfo::LocationInfo() : _autoindex(false), _directory_listing_enabled(false), _is_cgi(false)
 {
 
 }
@@ -28,9 +28,9 @@ LocationInfo&	LocationInfo::operator=(const LocationInfo& rhs)
 	return (*this);
 }
 
-std::string	LocationInfo::getPath() const
+std::string	LocationInfo::get_root() const
 {
-	return (_root);
+	return _root;
 }
 
 void	LocationInfo::set_root(const std::vector <std::string>& root)
@@ -41,14 +41,20 @@ void	LocationInfo::set_root(const std::vector <std::string>& root)
 	}
 }
 
-bool	LocationInfo::getAutoindex() const
+bool	LocationInfo::autoindex_enabled() const
 {
 	return (_autoindex);
 }
 
-void	LocationInfo::setAutoindex(bool val)
+void	LocationInfo::set_autoindex(const std::vector <std::string>& autoindex)
 {
-	_autoindex = val;
+	if (autoindex.empty() == false)
+	{
+		if (autoindex[0] == "enabled")
+		{
+			_autoindex = true;
+		}
+	}
 }
 
 std::vector <std::string>	LocationInfo::get_allowed_methods() const
@@ -77,12 +83,12 @@ void	LocationInfo::set_directory_listing(const std::vector <std::string>& direct
 	}
 }
 
-std::string	LocationInfo::get_name() const
+std::string	LocationInfo::get_path() const
 {
 	return _name;
 }
 
-void	LocationInfo::set_name(const std::string& name)
+void	LocationInfo::set_path(const std::string& name)
 {
 	_name = name;
 }
@@ -161,8 +167,8 @@ void	LocationInfo::set_is_cgi(bool is_cgi)
 
 std::ostream& operator<<(std::ostream& os, const LocationInfo& rhs)
 {
-	os << "\troot: " << rhs.getPath() << std::endl;
-	os << "\tname: " << rhs.get_name() << std::endl;
+	os << "\troot: " << rhs.get_path() << std::endl;
+	os << "\tname: " << rhs.get_path() << std::endl;
 	if (rhs.directory_listing_enabled() == true)
 	{
 		os << "\tdirectory listing: enabled" << std::endl;
@@ -170,6 +176,14 @@ std::ostream& operator<<(std::ostream& os, const LocationInfo& rhs)
 	else
 	{
 		os << "\tdirectory listing: disabled" << std::endl;
+	}
+	if (rhs.autoindex_enabled() == true)
+	{
+		os << "\tautoindex: enabled" << std::endl;
+	}
+	else
+	{
+		os << "\tautoindex: disabled" << std::endl;
 	}
 	os << "\tallowed methods: ";
 	for (size_t i = 0; i < rhs.get_allowed_methods().size(); i++)
