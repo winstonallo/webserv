@@ -365,4 +365,18 @@ namespace Utils
 			s1.erase(l1-1);
 		return (s1 + s2);	
 	}
+
+	std::string	extract_location_name(const std::string& current_map_key)
+	{
+		std::string location_key_prefix = "location";
+		size_t found = current_map_key.find(location_key_prefix);
+
+		if (found != std::string::npos) 
+		{
+			size_t colon = current_map_key.find(":", found);
+			return current_map_key.substr(found + location_key_prefix.size() + 1, colon - (found + location_key_prefix.size()) - 1);
+		}
+
+		return ""; 
+	}
 }

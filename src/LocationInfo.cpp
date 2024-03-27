@@ -3,9 +3,20 @@
 #include <string>
 #include <vector>
 
-LocationInfo::LocationInfo() : _autoindex(false), _directory_listing_enabled(false), _cgi(false)
+LocationInfo::LocationInfo() 
 {
-
+	_path = "";
+	_autoindex = false; 
+	_root = "";
+	_index = "";
+	_return = "";
+	_alias = "";
+	_cgi_path = "";
+	_cgi_ext = std::vector<std::string>();
+	_allowed_methods = std::vector<std::string>(); 
+	_directory_listing_enabled = false;
+	_client_max_body_size = 4098;
+	_cgi = false;
 }
 
 LocationInfo::~LocationInfo()
@@ -36,7 +47,6 @@ LocationInfo&	LocationInfo::operator=(const LocationInfo& rhs)
 		_autoindex = rhs._autoindex;
 		_root = rhs._root;
 		_index = rhs._index;
-		_autoindex = rhs._autoindex;
 		_return = rhs._return;
 		_alias = rhs._alias;
 		_cgi_path = rhs._cgi_path;
@@ -108,7 +118,7 @@ std::string	LocationInfo::get_alias() const
 	return _alias;
 }
 
-void	LocationInfo::set_alias(const std::vector <std::string>& a)
+void	LocationInfo::set_alias(const std::string &a)
 {
 	if (a.empty() == false)
 	{
