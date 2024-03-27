@@ -39,12 +39,16 @@ char**    CGI::set_arguments(const std::string& command, LocationInfo*& location
 {
     char** arguments = new char*[3];
 
-    std::string interpreter = location->get_cgi_path();
-    arguments[0] = new char[interpreter.size() + 1];
-    std::strncpy(arguments[0], interpreter.c_str(), interpreter.size() + 1);
-    arguments[1] = new char[command.size() + 1];
-    std::strncpy(arguments[1], command.c_str(), command.size() + 1);
-    arguments[2] = NULL;
+    (void)location;
+    arguments[0] = new char[command.size() + 1];
+    std::strncpy(arguments[0], command.c_str(), command.size() + 1);
+    arguments[1] = NULL;
+    // std::string interpreter = location->get_cgi_path();
+    // arguments[0] = new char[interpreter.size() + 1];
+    // std::strncpy(arguments[0], interpreter.c_str(), interpreter.size() + 1);
+    // arguments[1] = new char[command.size() + 1];
+    // std::strncpy(arguments[1], command.c_str(), command.size() + 1);
+    // arguments[2] = NULL;
     
     
     return arguments;
@@ -90,6 +94,7 @@ void    CGI::parent(pid_t pid, int request_fd[2], int response_fd[2], char** arg
         if (WIFEXITED(status) == true)
         {
             int exit_status = WEXITSTATUS(status);
+            std::cout << "exit status: " << exit_status << std::endl;
             if (exit_status != 0)
             {
                 Log::log("error: child process exited with status " + Utils::itoa(exit_status) + ": " + strerror(exit_status));
@@ -114,7 +119,6 @@ LocationInfo*    CGI::get_location(const std::string& script)
 
     for (std::vector <LocationInfo *>::iterator it = _locations.begin(); it != _locations.end(); it++)
     {
-        std::cout << extension << std::endl;
         if ((*it)->get_cgi() == true && (*it)->get_cgi_extensions()[0] == extension)
         {
             return *it;

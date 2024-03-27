@@ -1,0 +1,7 @@
+#include <iostream>
+
+int main()
+{
+    int* p = NULL;
+    *p = 10;
+}

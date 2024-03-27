@@ -25,6 +25,7 @@ namespace Utils
 	std::string										pathconcat(std::string s1, std::string s2);
 	std::string										generate_default_error_page(const int status_code);
 	std::string										extract_location_name(const std::string& location);
+	std::map <std::string, std::string>				get_environment_map(char **env);
 };
 
 #define UNCLOSED_QUOTE "unclosed quote sequence"
