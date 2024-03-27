@@ -443,8 +443,8 @@ int		Server::_process(Request& rq, std::string& ret_file)
 			else
 				ret_file = Utils::pathconcat(loc_info.get_root(), rq.get_path());
 		} 
-		std::cout << ret_file << std::endl;
-		std::cout << _errcode << std::endl;
+		// std::cout << ret_file << std::endl;
+		// std::cout << _errcode << std::endl;
 		// handle cgi
 		// if (loc_info.get_name().find("cgi-bin") != std::string::npos)
 		// {
@@ -463,8 +463,9 @@ int		Server::_process(Request& rq, std::string& ret_file)
 		{
 			if (ret_file[ret_file.size() -1 ] != '/')
 			{
-				loc_path = rq.get_path() + "/";
-				return (_errcode = 301);
+				// loc_path = rq.get_path() + "/";
+				ret_file = ret_file + "/";
+				// return (_errcode = 301);
 			}
 			if (loc_info.get_index_path().empty() == false)
 				ret_file += loc_info.get_index_path();
