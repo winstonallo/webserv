@@ -1,4 +1,6 @@
 #include "Server.hpp"
+#include <cstring>
+#include <cerrno>
 #include "LocationInfo.hpp"
 #include <netinet/in.h>
 #include <string>
@@ -333,7 +335,7 @@ void	Server::create_response(Request& rq)
 
 	ss << "Server: Awesome SAD Server/1.0" << "\r\n";
 
-	ss << "Content Length: " << body.length() << "\r\n";
+	ss << "Content Length: " << body.length()<< "\r\n";
 
 	ex = Utils::get_file_extension(rq.get_path()); 
 	if (_errcode != 200 || ex == "")
@@ -344,6 +346,7 @@ void	Server::create_response(Request& rq)
 	ss << "\r\n";
 	ss << body;
 	_response = ss.str();
+	std::cout << _response << std::endl;
 }
 
 std::string		Server::_get_body(Request& rq)
@@ -366,6 +369,7 @@ std::string		Server::_get_body(Request& rq)
 		}
 		std::ostringstream ss;
 		ss << file.rdbuf();
+		_errcode = 200;
 		return ss.str();
 	}
 	else if (rq.get_method() == "PUT" || rq.get_method() == "POST")
@@ -399,7 +403,6 @@ std::string		Server::_get_body(Request& rq)
 			throw std::runtime_error("error");
 		}
 	}
-	_errcode = 200;
 	return "";
 }
 
@@ -443,8 +446,8 @@ int		Server::_process(Request& rq, std::string& ret_file)
 			else
 				ret_file = Utils::pathconcat(loc_info.get_root(), rq.get_path());
 		} 
-		// std::cout << ret_file << std::endl;
-		// std::cout << _errcode << std::endl;
+		 //std::cout << ret_file << std::endl;
+		 //std::cout << _errcode << std::endl;
 		// handle cgi
 		// if (loc_info.get_name().find("cgi-bin") != std::string::npos)
 		// {
@@ -456,7 +459,9 @@ int		Server::_process(Request& rq, std::string& ret_file)
 		if (stat(ret_file.c_str(), &fst) != 0)
 		{
 			_errcode = 400;
-			Log::log("Stat function failed.\n", STD_ERR | ERROR_FILE);
+			std::stringstream ss;
+			ss << "Stat function for: " << ret_file << " failed. " << strerror(errno) << "\n";
+			Log::log(ss.str(), STD_ERR | ERROR_FILE);
 			return (_errcode);
 		}
 		if (S_ISDIR(fst.st_mode))
