@@ -88,10 +88,12 @@ class Server : public Node
 		void								_get_best_location_match(std::vector<LocationInfo*> locs, 
 														Request& rq, std::string& best_match, 
 														LocationInfo* locinfo);
+		int									_get_directory_list(std::string &path, std::string& body);
 		std::map<int, std::string>			_status_string;
 		std::map<std::string, std::string>	_content_type;
 		int									_errcode;
 		Director*							_director;
+		bool								_listing;
 };
 
 std::ostream& operator<<(std::ostream& os, const Server& server_info);

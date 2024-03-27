@@ -27,6 +27,7 @@ Server::Server()
 	_access_log = "";
 	_error_pages = std::map<int, std::string>();
 	_locations = std::vector<LocationInfo *>();
+	_listing = false;
 }
 
 Server::~Server()
@@ -60,6 +61,7 @@ Server&	Server::operator=(const Server& rhs)
 		_error_log = rhs._error_log;
 		_access_log = rhs._access_log;
 		_locations = rhs._locations;
+		_listing = rhs._listing;
 	}
 	return (*this);
 }
@@ -350,6 +352,7 @@ void	Server::create_response(Request& rq)
 std::string		Server::_get_body(Request& rq)
 {	
 	std::string	loc_path;
+	std::string listing_body;
 
 	_errcode = _process(rq, loc_path);
 	if (_errcode)
@@ -358,6 +361,19 @@ std::string		Server::_get_body(Request& rq)
 	}
 	if (rq.get_method() == "GET" || rq.get_method() == "HEAD")
 	{
+		// std::cout << "listing: " <<_listing << std::endl;
+		if (_listing)
+		{
+			if (_get_directory_list(loc_path, listing_body) < 0)
+			{
+				_errcode = 400;
+				Log::log("Error couldn't create directory listing", STD_ERR | ERROR_FILE);
+				throw std::runtime_error("error");
+			}
+			_errcode = 200;
+			_listing = false;
+			return listing_body;	
+		}
 		std::ifstream file(loc_path.c_str());
 		if (file.fail())
 		{
@@ -424,8 +440,10 @@ int		Server::_process(Request& rq, std::string& ret_file)
 		std::vector<std::string>::iterator end = vec.end();
 		std::vector<std::string>::iterator begin = vec.begin();
 		if(std::find(begin,	end, rq.get_method()) != end)
-		{
-			Log::log("Error. Method not allowed.\n", STD_ERR | ERROR_FILE);
+		{	
+			std::stringstream ss;
+			ss << "Error. Method \"" << rq.get_method() << "\" not allowed.\n";
+			Log::log(ss.str(), STD_ERR | ERROR_FILE);
 			return (_errcode = 405);
 		}
 		// return handler
@@ -464,22 +482,24 @@ int		Server::_process(Request& rq, std::string& ret_file)
 		}
 		if (S_ISDIR(fst.st_mode))
 		{
-			if (ret_file[ret_file.size() -1 ] != '/')
+			std::cout << ret_file << " is a directory." << std::endl;
+			std::cout << loc_info.get_directory_listing() << std::endl;
+			if (ret_file[ret_file.size() - 1] != '/')
 			{
 				// loc_path = rq.get_path() + "/";
 				ret_file = ret_file + "/";
 				// return (_errcode = 301);
 			}
-			if (loc_info.get_index_path().empty() == false)
+			if (!loc_info.get_index_path().empty())
 				ret_file += loc_info.get_index_path();
 			else
 				ret_file += get_index_path();
 			if (Utils::file_exists(ret_file) == false)
 			{
-				if (loc_info.get_directory_listing())
+				if (true)//loc_info.get_directory_listing())
 				{
 					ret_file.erase(ret_file.find_last_of('/') + 1);
-					_autoindex = true;
+					_listing = true;
 					return 0;
 				}
 				else 
@@ -548,7 +568,7 @@ void	Server::_get_best_location_match(std::vector<LocationInfo*> locs,
 	}
 }
 
-int	get_directory_list(std::string &path, std::string& body)
+int	Server::_get_directory_list(std::string &path, std::string& body)
 {
 	std::stringstream ss;	
 
@@ -556,7 +576,7 @@ int	get_directory_list(std::string &path, std::string& body)
 	dir = opendir(path.c_str());
 	if (dir == NULL)
 	{
-		Log::log("Error oppening directory.\n", STD_ERR | ERROR_FILE);
+		Log::log("Error oppening directory for directory listing.\n", STD_ERR | ERROR_FILE);
 		return -1;
 	}
 	ss << "<html>\n";
@@ -580,7 +600,7 @@ int	get_directory_list(std::string &path, std::string& body)
 		f_path = path + dir_entry->d_name;
 		stat(f_path.c_str(), &fst);
 		ss << "<tr>\n<td>\n";
-        ss << "<a href=\"" << dir_entry->d_name;
+        ss << "<a href=\"" << dir_entry->d_name; 
         if (S_ISDIR(fst.st_mode))
             ss << "/";
         ss << "\">";
