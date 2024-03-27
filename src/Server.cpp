@@ -335,18 +335,16 @@ void	Server::create_response(Request& rq)
 
 	ss << "Server: Awesome SAD Server/1.0" << "\r\n";
 
-	ss << "Content Length: " << body.length()<< "\r\n";
+	ss << "Content-Length: " << body.length()<< "\r\n";
 
 	ex = Utils::get_file_extension(rq.get_path()); 
 	if (_errcode != 200 || ex == "")
 		ex = "default";
 	ss << "Content-Type: " << _content_type[ex] << "\r\n";
-
 	ss << "Connection: " << rq.get_header("CONNECTION") << "\r\n";
 	ss << "\r\n";
-	ss << body;
+	ss << body; 
 	_response = ss.str();
-	std::cout << _response << std::endl;
 }
 
 std::string		Server::_get_body(Request& rq)
