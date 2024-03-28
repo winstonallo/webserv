@@ -23,6 +23,14 @@ namespace Setters
             {
                 (target->*setter)(true);
             }
+            else if (value[0] == "disabled")
+            {
+                (target->*setter)(false);
+            }
+            else 
+            {
+                Log::log("error: invalid value for boolean config, use enabled/disabled\n", STD_ERR | ERROR_FILE);
+            }
         }
     }
 
