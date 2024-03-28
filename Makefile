@@ -29,7 +29,7 @@ SRCS   	= \
         $(SRCS_DIR)/ConfigSetters.cpp \
         $(SRCS_DIR)/ConfigDispatcher.cpp \
         $(SRCS_DIR)/Utils.cpp \
-		$(SRCS_DIR)/main_server.cpp
+		$(SRCS_DIR)/main_config.cpp
 TESTS	= \
 		
 
