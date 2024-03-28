@@ -19,6 +19,7 @@ Server::Server()
 	_index = "";
 	_root = "";
 	_port = 0;
+	_reloc = "";
 	_client_max_body_size = 4098;
 	_server_name = std::vector<std::string>();
 	struct in_addr lo= {0};
@@ -215,6 +216,16 @@ void	Server::set_response(const std::string& rs)
 	_response = rs;
 }
 
+std::string Server::get_relocation() const
+{
+	return _reloc;
+}
+
+void	Server::set_relocation(const std::string& rs)
+{
+	_reloc = rs;
+}
+
 void	Server::_init_status_strings()
 {
 	_status_string[100] = "Continue";
@@ -307,6 +318,11 @@ void	Server::create_response(Request& rq)
 		}
 		catch(const std::exception& e)
 		{
+			if (!_reloc.empty())
+			{
+				failed = false;
+				_errcode = 301;
+			}
 			failed = true;
 		}
 	}
@@ -327,9 +343,8 @@ void	Server::create_response(Request& rq)
 		ss << error_file.rdbuf();
 		body = ss.str();
 	}
-
+	
 	ss << "HTTP/1.1 " << _errcode << " " << _status_string[_errcode]  << "\r\n";
-
 	time_t	curr_time = time(NULL);
 	struct tm tim = *gmtime(&curr_time);
 	strftime(buf, sizeof(buf), "%a, %d, %b %Y %H:%M:%S %Z", &tim);
@@ -339,6 +354,8 @@ void	Server::create_response(Request& rq)
 
 	ss << "Content-Length: " << body.length()<< "\r\n";
 
+	if (!_reloc.empty())
+		ss << "Location: " << _reloc << "\r\n";
 	ex = Utils::get_file_extension(rq.get_path()); 
 	if (_errcode != 200 || ex == "")
 		ex = "default";
@@ -361,7 +378,6 @@ std::string		Server::_get_body(Request& rq)
 	}
 	if (rq.get_method() == "GET" || rq.get_method() == "HEAD")
 	{
-		// std::cout << "listing: " <<_listing << std::endl;
 		if (_listing)
 		{
 			if (_get_directory_list(loc_path, listing_body) < 0)
@@ -370,9 +386,9 @@ std::string		Server::_get_body(Request& rq)
 				Log::log("Error couldn't create directory listing", STD_ERR | ERROR_FILE);
 				throw std::runtime_error("error");
 			}
-			_errcode = 200;
 			_listing = false;
-			return listing_body;	
+			_errcode = 200;
+ 			return listing_body;	
 		}
 		std::ifstream file(loc_path.c_str());
 		if (file.fail())
@@ -482,13 +498,13 @@ int		Server::_process(Request& rq, std::string& ret_file)
 		}
 		if (S_ISDIR(fst.st_mode))
 		{
-			std::cout << ret_file << " is a directory." << std::endl;
-			std::cout << loc_info.get_directory_listing() << std::endl;
+			// std::cout << ret_file << " is a directory." << std::endl;
+			// std::cout << loc_info.get_directory_listing() << std::endl;
 			if (ret_file[ret_file.size() - 1] != '/')
 			{
 				// loc_path = rq.get_path() + "/";
-				ret_file = ret_file + "/";
-				// return (_errcode = 301);
+				_reloc = rq.get_path() + "/";
+				return (_errcode = 301);
 			}
 			if (!loc_info.get_index_path().empty())
 				ret_file += loc_info.get_index_path();
@@ -496,7 +512,7 @@ int		Server::_process(Request& rq, std::string& ret_file)
 				ret_file += get_index_path();
 			if (Utils::file_exists(ret_file) == false)
 			{
-				if (true)//loc_info.get_directory_listing())
+				if (loc_info.get_directory_listing())
 				{
 					ret_file.erase(ret_file.find_last_of('/') + 1);
 					_listing = true;
@@ -570,9 +586,12 @@ void	Server::_get_best_location_match(std::vector<LocationInfo*> locs,
 
 int	Server::_get_directory_list(std::string &path, std::string& body)
 {
-	std::stringstream ss;	
-
 	DIR	*dir;
+	std::stringstream ss;	
+	std::string f_path;
+	struct stat fst;
+	struct dirent *dir_entry;
+	//std::cout << path << std::endl;
 	dir = opendir(path.c_str());
 	if (dir == NULL)
 	{
@@ -581,27 +600,28 @@ int	Server::_get_directory_list(std::string &path, std::string& body)
 	}
 	ss << "<html>\n";
 	ss << "<head>\n<title> Index of " << path <<"</title>\n</head>\n";
+	ss << "<meta charset=\"UTF-8\">";
 	ss << "<body>\n";
 	ss << "<h1> Index of " + path + "</h1>\n";
 	ss << "<table style=\"width:80%; font-size:15px\">\n";
 	ss << "<hr>\n";
-	ss << "<th style=\"text-align:left\"> File Name <\th>\n";
-	ss << "<th style=\"text-align:left\"> Last Modification </th>\n";
-	ss << "<th style=\"text-align:left\"> File Size </th>\n";
-
-	struct stat fst;
-	std::string f_path;
-
-	struct dirent *dir_entry;
+	ss << "<th style=\"text-align:left\"> Name </th>\n";
+	ss << "<th style=\"text-align:left\"> Last Modified </th>\n";
+	ss << "<th style=\"text-align:left\"> Size </th>\n";
 	while((dir_entry = readdir(dir)) != NULL)
 	{
-		if ((dir_entry->d_name[0] == '.') && (dir_entry->d_name[1] = '\0'))
+		// if ((dir_entry->d_name[0] == '.') && (dir_entry->d_name[1] = '\0'))
+		if (strcmp(dir_entry->d_name, ".") == 0)
 			continue;
 		f_path = path + dir_entry->d_name;
 		stat(f_path.c_str(), &fst);
 		ss << "<tr>\n<td>\n";
-        ss << "<a href=\"" << dir_entry->d_name; 
-        if (S_ISDIR(fst.st_mode))
+		if (S_ISDIR(fst.st_mode))
+            ss << "&#x1F4C1;";
+		else
+			ss << "&#x1F4C4;";
+		ss << "<a href=\"" << dir_entry->d_name;
+		if (S_ISDIR(fst.st_mode))
             ss << "/";
         ss << "\">";
         ss << dir_entry->d_name;
@@ -627,5 +647,6 @@ void	Server::reset()
 {
 	_autoindex = false;
 	_errcode = 0;
+	_reloc.clear();
 	_response.clear();
 }
