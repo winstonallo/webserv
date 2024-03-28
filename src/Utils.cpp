@@ -370,7 +370,7 @@ namespace Utils
 		return "";
 	}
 
-	void	validate_required_server_value(Server* new_server)
+	void	validate_required_server_values(Server* new_server)
 	{
 		if (new_server->get_server_name().empty() == true)
 		{
