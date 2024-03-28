@@ -84,6 +84,12 @@ void	Config::set_servers(std::map <int, std::map <std::string, std::vector <std:
 			configure_server_names(it->second, new_server, new_unique_values);
 			configure_port(it->second, new_server, new_unique_values);
 			configure_host(it->second, new_server, new_unique_values);
+
+			if (new_server->get_server_name().empty() == true or new_server->get_port() == 0 or new_server->get_host_address().s_addr == 0)
+			{
+				throw std::runtime_error("error: required value missing in server '" + new_server->get_server_name()[0] + "', server will not be initialized\n");
+			}
+
 			configure_locations(it->second, new_server);
 
 			for (_map::iterator itt = it->second.begin(); itt != it->second.end(); itt++)
