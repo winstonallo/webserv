@@ -39,18 +39,14 @@ char**    CGI::set_arguments(const std::string& command, LocationInfo*& location
 {
     char** arguments = new char*[3];
 
-    (void)location;
-    arguments[0] = new char[command.size() + 1];
-    std::strncpy(arguments[0], command.c_str(), command.size() + 1);
-    arguments[1] = NULL;
-    // std::string interpreter = location->get_cgi_path();
-    // arguments[0] = new char[interpreter.size() + 1];
-    // std::strncpy(arguments[0], interpreter.c_str(), interpreter.size() + 1);
-    // arguments[1] = new char[command.size() + 1];
-    // std::strncpy(arguments[1], command.c_str(), command.size() + 1);
-    // arguments[2] = NULL;
-    
-    
+    std::string interpreter = location->get_cgi_path();
+    arguments[0] = new char[interpreter.size() + 1];
+    std::strncpy(arguments[0], interpreter.c_str(), interpreter.size() + 1);
+    arguments[1] = new char[command.size() + 1];
+    std::strncpy(arguments[1], command.c_str(), command.size() + 1);
+    arguments[2] = NULL;
+
+
     return arguments;
 }
 
@@ -102,7 +98,7 @@ void    CGI::parent(pid_t pid, int request_fd[2], int response_fd[2], char** arg
         }
         char buffer[1024];
         int ret = 0;
-        do 
+        do
         {
             std::memset(buffer, 0, 1024);
             ret = read(response_fd[0], buffer, 1024);
