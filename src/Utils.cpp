@@ -334,7 +334,7 @@ namespace Utils
 
 		std::ofstream	oss(new_html_path.c_str());
 
-		if (oss == false)
+		if (!oss)
 		{
 			Log::log("error: could not create default error page, falling back to 400: bad_request\n", STD_ERR | ERROR_FILE);
 			return DEFAULT_ERROR_PAGE;

@@ -44,7 +44,7 @@ namespace Setters
     }
 
     template <typename T>
-    void    set_string_check_path(const std::vector <std::string>& value, T* target, void (T::*setter)(const std::string&))
+    void    set_string_check_path(const std::vector <std::string>& value, T* target, void (T::*setter)(const std::string&), const std::string& dflt)
     {
         if (value.empty() == false)
         {
@@ -52,6 +52,14 @@ namespace Setters
             {
                 (target->*setter)(value[0]);
             }
+            else
+            {
+                (target->*setter)(dflt);
+            }
+        }
+        else
+        {
+            (target->*setter)(dflt);
         }
     }
 
@@ -102,7 +110,7 @@ namespace Setters
 
     void	configure_access_log(const std::vector <std::string>& access_log_vector, Server*& new_server)
     {
-        set_string_check_path(access_log_vector, new_server, &Server::set_access_log);
+        set_string_check_path(access_log_vector, new_server, &Server::set_access_log, "access.log");
     }
 
     void	configure_index(const std::vector <std::string>& index_vector, Server*& new_server)
