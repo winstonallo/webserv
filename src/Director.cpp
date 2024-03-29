@@ -59,9 +59,10 @@ int	Director::init_server(Server *si)
 	int rv, yes=1 ;
 	
 	memset(&hints, 0, sizeof hints);
-	hints.ai_family = AF_UNSPEC;
+	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
+	
 
 	std::stringstream pt;
 	pt << si->get_port();
@@ -72,6 +73,15 @@ int	Director::init_server(Server *si)
 		Log::log(ss.str(), ERROR_FILE | STD_ERR);
 		return -1;
 	}
+	// for (p = ai; p != NULL; p = p->ai_next)
+	// {
+	// 	std::cout << "addrinfo" << std::endl; 
+	// 	std::cout << "ai_flags: " << p->ai_flags << std::endl;
+	// 	std::cout << "ai_family: " << p->ai_family << std::endl;
+	// 	std::cout << "ai_socktype: " << p->ai_socktype << std::endl;
+	// 	std::cout << "ai_protocol: " << p->ai_protocol << std::endl;
+	// 	std::cout << "ai_addrlen: " << p->ai_addrlen << std::endl;
+	// }
 	for (p = ai; p != NULL; p = p->ai_next)
 	{
 		listener = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
@@ -92,18 +102,27 @@ int	Director::init_server(Server *si)
 			continue;
 		}
 		si->set_fd(listener);
-		si->set_addr(*((sockaddr_storage*)(p->ai_addr)));
+		//si->set_addr(*((sockaddr_storage*)(p->ai_addr)));
 		si->set_addr_len((size_t)p->ai_addrlen);
 
-//	print address
-		std::string ipver;
-		if (p->ai_family == AF_INET)
-			ipver = "IPv4";
-		else
-			ipver = "IPv6";
-		char ipstr[INET6_ADDRSTRLEN];
-        inet_ntop(p->ai_family, p->ai_addr, ipstr, sizeof(ipstr));
-        std::cout << ipver << " address: " << ipstr << std::endl;
+		std::cout << "Servers ready...\n" << std::endl;
+
+		//	print address
+		// struct sockaddr *address  = p->ai_addr;
+		// if (address->sa_family == AF_INET) 
+		// {
+		// 	struct sockaddr_in *ipv4 = reinterpret_cast<struct sockaddr_in *>(address);
+		// 	std::cout << "IPv4 Address: " << inet_ntoa(ipv4->sin_addr) << std::endl;
+		// 	std::cout << "Port: " << ntohs(ipv4->sin_port) << std::endl;
+		// } 
+		// else if (address->sa_family == AF_INET6) 
+		// {
+		// 	struct sockaddr_in6 *ipv6 = reinterpret_cast<struct sockaddr_in6 *>(address);
+		// 	char ipstr[INET6_ADDRSTRLEN];
+		// 	inet_ntop(AF_INET6, &(ipv6->sin6_addr), ipstr, sizeof(ipstr));
+		// 	std::cout << "IPv6 Address: " << ipstr << std::endl;
+		// 	std::cout << "Port: " << ntohs(ipv6->sin6_port) << std::endl;
+		// }
 		break;
 	}
 

@@ -60,6 +60,8 @@ class Server : public Node
 		std::string							respond(Request& rq);
 		int									get_error_code() const;
 		void								set_error_code(int err);
+		std::string							get_relocation() const;
+		void								set_relocation(const std::string& rel);
 		std::string							get_response() const;
 		void								set_response(const std::string& rs);
 		void								create_response(Request&);
@@ -78,6 +80,7 @@ class Server : public Node
 		std::string							_root;
 		std::string							_error_log;
 		std::string							_access_log;
+		std::string							_reloc;
 		std::map<int, std::string>			_error_pages;
 		std::vector<LocationInfo*>			_locations;
 //Server
@@ -88,10 +91,12 @@ class Server : public Node
 		void								_get_best_location_match(std::vector<LocationInfo*> locs, 
 														Request& rq, std::string& best_match, 
 														LocationInfo* locinfo);
+		int									_get_directory_list(std::string &path, std::string& body);
 		std::map<int, std::string>			_status_string;
 		std::map<std::string, std::string>	_content_type;
 		int									_errcode;
 		Director*							_director;
+		bool								_listing;
 };
 
 std::ostream& operator<<(std::ostream& os, const Server& server_info);

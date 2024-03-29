@@ -85,15 +85,18 @@ void	Config::set_servers(std::map <int, std::map <std::string, std::vector <std:
 			configure_server_names(it->second, new_server, new_unique_values);
 			configure_port(it->second, new_server, new_unique_values);
 			configure_host(it->second, new_server, new_unique_values);
+
+			Utils::validate_required_server_values(new_server);
+
 			configure_locations(it->second, new_server);
 
-			for (_map::iterator itt = it->second.begin(); itt != it->second.end(); itt++)
+			for (_map::iterator map_it = it->second.begin(); map_it != it->second.end(); map_it++)
 			{
-				if (_server_setters.find(itt->first) == _server_setters.end())
+				if (_server_setters.find(map_it->first) == _server_setters.end())
 				{
 					continue ;
 				}
-				(_server_setters[itt->first])(itt->second, new_server);
+				(_server_setters[map_it->first])(map_it->second, new_server);
 			}
 
 			_servers.push_back(new_server);

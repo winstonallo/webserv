@@ -29,18 +29,16 @@ SRCS   	= \
         $(SRCS_DIR)/ConfigDispatcher.cpp \
         $(SRCS_DIR)/ConfigSetters.cpp \
         $(SRCS_DIR)/Utils.cpp \
-		$(SRCS_DIR)/CGI.cpp \
-		$(SRCS_DIR)/cgi_tests.cpp \
-		
-TESTS	= \		
+		$(SRCS_DIR)/main_config.cpp
+TESTS	= \
 
 OBJS		= $(SRCS:${SRCS_DIR}/%.cpp=${OBJS_DIR}/%.o)
 TEST_OBJS	= $(TESTS:${TEST_DIR}/%.cpp=${TEST_OBJS_DIR}/%.o)
 
 DEPS	= $(OBJS:%.o=%.d)
 
-$(NAME): $(OBJS) 
-	$(CXX) $(CXXFLAGS) -o $(NAME) $(OBJS) 
+$(NAME): $(OBJS)
+	$(CXX) $(CXXFLAGS) -o $(NAME) $(OBJS)
 
 $(TEST_OBJS_DIR)/%.o: $(TEST_DIR)/%.cpp
 	mkdir -p $(TEST_OBJS_DIR)
@@ -53,7 +51,7 @@ $(OBJS_DIR)/%.o: $(SRCS_DIR)/%.cpp
 
 all		: $(NAME)
 
-run		: 
+run		:
 	./webserv config_files/simple.conf
 
 debug	:
