@@ -105,22 +105,24 @@ int	Director::init_server(Server *si)
 		//si->set_addr(*((sockaddr_storage*)(p->ai_addr)));
 		si->set_addr_len((size_t)p->ai_addrlen);
 
+		std::cout << "Servers ready...\n" << std::endl;
+
 		//	print address
-		struct sockaddr *address  = p->ai_addr;
-		if (address->sa_family == AF_INET) 
-		{
-			struct sockaddr_in *ipv4 = reinterpret_cast<struct sockaddr_in *>(address);
-			std::cout << "IPv4 Address: " << inet_ntoa(ipv4->sin_addr) << std::endl;
-			std::cout << "Port: " << ntohs(ipv4->sin_port) << std::endl;
-		} 
-		else if (address->sa_family == AF_INET6) 
-		{
-			struct sockaddr_in6 *ipv6 = reinterpret_cast<struct sockaddr_in6 *>(address);
-			char ipstr[INET6_ADDRSTRLEN];
-			inet_ntop(AF_INET6, &(ipv6->sin6_addr), ipstr, sizeof(ipstr));
-			std::cout << "IPv6 Address: " << ipstr << std::endl;
-			std::cout << "Port: " << ntohs(ipv6->sin6_port) << std::endl;
-		}
+		// struct sockaddr *address  = p->ai_addr;
+		// if (address->sa_family == AF_INET) 
+		// {
+		// 	struct sockaddr_in *ipv4 = reinterpret_cast<struct sockaddr_in *>(address);
+		// 	std::cout << "IPv4 Address: " << inet_ntoa(ipv4->sin_addr) << std::endl;
+		// 	std::cout << "Port: " << ntohs(ipv4->sin_port) << std::endl;
+		// } 
+		// else if (address->sa_family == AF_INET6) 
+		// {
+		// 	struct sockaddr_in6 *ipv6 = reinterpret_cast<struct sockaddr_in6 *>(address);
+		// 	char ipstr[INET6_ADDRSTRLEN];
+		// 	inet_ntop(AF_INET6, &(ipv6->sin6_addr), ipstr, sizeof(ipstr));
+		// 	std::cout << "IPv6 Address: " << ipstr << std::endl;
+		// 	std::cout << "Port: " << ntohs(ipv6->sin6_port) << std::endl;
+		// }
 		break;
 	}
 
