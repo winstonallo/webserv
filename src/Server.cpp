@@ -344,25 +344,43 @@ void	Server::create_response(Request& rq)
 		body = ss.str();
 	}
 	
+	std::cout << "got HTTP" << std::endl;
 	ss << "HTTP/1.1 " << _errcode << " " << _status_string[_errcode]  << "\r\n";
 	time_t	curr_time = time(NULL);
 	struct tm tim = *gmtime(&curr_time);
 	strftime(buf, sizeof(buf), "%a, %d, %b %Y %H:%M:%S %Z", &tim);
 	ss << "Date: " << buf << "\r\n";
+	std::cout << "got date" << std::endl;
 
 	ss << "Server: Awesome SAD Server/1.0" << "\r\n";
+	std::cout << "got server" << std::endl;
 
 	ss << "Content-Length: " << body.length()<< "\r\n";
+	std::cout << "got content-length" << std::endl;
 
 	if (!_reloc.empty())
+	{
 		ss << "Location: " << _reloc << "\r\n";
+		std::cout << "got location" << std::endl;
+	}
 	ex = Utils::get_file_extension(rq.get_path()); 
 	if (_errcode != 200 || ex == "")
 		ex = "default";
 	ss << "Content-Type: " << _content_type[ex] << "\r\n";
-	ss << "Connection: " << rq.get_header("CONNECTION") << "\r\n";
+	std::cout << "Content-Type: " << _content_type[ex] << "\r\n";
+	std::cout << "got content-type" << std::endl;
+	std::cout << rq.get_header("CONNECTION") << std::endl;
+	if (rq.get_header("CONNECTION").empty())
+	{
+		std::cout << "got in connections" << std::endl;
+		ss << "Connection: " << rq.get_header("CONNECTION") << "\r\n";
+		std::cout << "got connection" << std::endl;
+	}
+	std::cout << "got here" << std::endl;
 	ss << "\r\n";
-	ss << body; 
+	std::cout << "got here" << std::endl;
+	if (!body.empty())
+		ss << body; 
 	_response = ss.str();
 }
 
