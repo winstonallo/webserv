@@ -6,7 +6,9 @@
 #include <unistd.h>
 #include <map>
 
-namespace Utils 
+class Server;
+
+namespace Utils
 {
 	bool											write_access(const std::string& path);
 	bool											file_exists(const std::string& path);
@@ -25,6 +27,8 @@ namespace Utils
 	std::string										pathconcat(std::string s1, std::string s2);
 	std::string										generate_default_error_page(const int status_code);
 	std::string										extract_location_name(const std::string& location);
+	std::map <std::string, std::string>				get_environment_map(char **env);
+	void											validate_required_server_values(Server* new_server);
 };
 
 #define UNCLOSED_QUOTE "unclosed quote sequence"

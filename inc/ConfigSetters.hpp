@@ -3,7 +3,6 @@
 
 #include "LocationInfo.hpp"
 #include "Server.hpp"
-#include "Config.hpp"
 
 namespace Setters
 {
