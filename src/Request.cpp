@@ -33,6 +33,8 @@ std::string Request::get_header(const std::string& key) const
     {
     return this->headers.at(key);
     }
+    else if (key == "CONNECTION")
+        return "keep-alive"
     return NULL;
 }
 
