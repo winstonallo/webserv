@@ -2,7 +2,6 @@
 
 ClientInfo::ClientInfo()
 {
-
 }
 
 ClientInfo::~ClientInfo()
@@ -57,6 +56,10 @@ Server*		ClientInfo::get_server() const
 	return server;
 }
 
+Request*	ClientInfo::get_request()
+{
+	return &request;
+}
 
 // void	ClientInfo::set_request(Request rq)
 // {

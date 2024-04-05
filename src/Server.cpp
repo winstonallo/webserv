@@ -13,6 +13,7 @@ Server::Server()
 {
 	_init_status_strings();
 	_init_content_types();
+	_cgi = NULL;
 	_autoindex = false;
 	_errcode = 0;
 	_autoindex = false;
@@ -38,6 +39,8 @@ Server::~Server()
 	{
 		delete *it;
 	}
+	if (_cgi)
+		delete _cgi;
 }
 
 
@@ -344,41 +347,41 @@ void	Server::create_response(Request& rq)
 		body = ss.str();
 	}
 	
-	std::cout << "got HTTP" << std::endl;
+//	std::cout << "got HTTP" << std::endl;
 	ss << "HTTP/1.1 " << _errcode << " " << _status_string[_errcode]  << "\r\n";
 	time_t	curr_time = time(NULL);
 	struct tm tim = *gmtime(&curr_time);
 	strftime(buf, sizeof(buf), "%a, %d, %b %Y %H:%M:%S %Z", &tim);
 	ss << "Date: " << buf << "\r\n";
-	std::cout << "got date" << std::endl;
+//	std::cout << "got date" << std::endl;
 
 	ss << "Server: Awesome SAD Server/1.0" << "\r\n";
-	std::cout << "got server" << std::endl;
+//	std::cout << "got server" << std::endl;
 
 	ss << "Content-Length: " << body.length()<< "\r\n";
-	std::cout << "got content-length" << std::endl;
+//	std::cout << "got content-length" << std::endl;
 
 	if (!_reloc.empty())
 	{
 		ss << "Location: " << _reloc << "\r\n";
-		std::cout << "got location" << std::endl;
+//		std::cout << "got location" << std::endl;
 	}
 	ex = Utils::get_file_extension(rq.get_path()); 
 	if (_errcode != 200 || ex == "")
 		ex = "default";
 	ss << "Content-Type: " << _content_type[ex] << "\r\n";
-	std::cout << "Content-Type: " << _content_type[ex] << "\r\n";
-	std::cout << "got content-type" << std::endl;
-	std::cout << rq.get_header("CONNECTION") << std::endl;
+//	std::cout << "Content-Type: " << _content_type[ex] << "\r\n";
+//	std::cout << "got content-type" << std::endl;
+//	std::cout << rq.get_header("CONNECTION") << std::endl;
 	if (rq.get_header("CONNECTION").empty())
 	{
 		std::cout << "got in connections" << std::endl;
 		ss << "Connection: " << rq.get_header("CONNECTION") << "\r\n";
 		std::cout << "got connection" << std::endl;
 	}
-	std::cout << "got here" << std::endl;
+//	std::cout << "got here" << std::endl;
 	ss << "\r\n";
-	std::cout << "got here" << std::endl;
+//	std::cout << "got here" << std::endl;
 	if (!body.empty())
 		ss << body; 
 	_response = ss.str();
@@ -434,6 +437,7 @@ std::string		Server::_get_body(Request& rq)
 			Log::log("Error. Couldn't open location path.\n", STD_ERR | ERROR_FILE);
 			throw std::runtime_error("error");
 		}
+		_errcode = 200;
 		file.write(rq.get_body().c_str(), rq.get_body().size());
 	}
 	else if (rq.get_method() == "DELETE")
@@ -450,6 +454,7 @@ std::string		Server::_get_body(Request& rq)
 			Log::log("Error. Couldn't remove file to be removed.\n", STD_ERR | ERROR_FILE);
 			throw std::runtime_error("error");
 		}
+		_errcode = 200;
 	}
 	return "";
 }
@@ -486,6 +491,31 @@ int		Server::_process(Request& rq, std::string& ret_file)
 			loc_path = loc_info.get_return();
 			return (_errcode = 301);
 		}
+		// handle cgi
+		if (loc_info.get_path().find("cgi-bin") != std::string::npos)
+		{
+			std::string script_file_path;
+
+			script_file_path = rq.get_path();
+			script_file_path.erase(0, 1); //erase leading '/'
+			if (script_file_path == "cgi-bin")
+				script_file_path.append("/" + loc_info.get_index_path()); 
+			else if (script_file_path == "cgi-bin/")
+				script_file_path.append(loc_info.get_index_path());
+				
+			std::string script_ext = Utils::get_file_extension(script_file_path);
+			if (script_ext != ".sh" && script_ext != ".py")
+				return (_errcode = 501);	
+			if (!Utils::is_file(script_file_path))
+				return (_errcode = 404);
+			if (access(script_file_path.c_str(), X_OK) == -1 || access(script_file_path.c_str(), X_OK | R_OK) == -1)
+				return (_errcode = 403);
+			std::vector<std::string> allowed_methods = loc_info.get_allowed_methods();
+			if (std::find(allowed_methods.begin(), allowed_methods.end(), rq.get_method()) != allowed_methods.end())
+				return (_errcode = 405);
+
+			
+		}
 		// handle alias || create loc_path path
 		if (loc_info.get_alias().empty() == false) 
 			ret_file = Utils::pathconcat(loc_info.get_alias(), rq.get_path().substr(loc_info.get_path().size()));
@@ -508,7 +538,8 @@ int		Server::_process(Request& rq, std::string& ret_file)
 		struct stat fst;
 		if (stat(ret_file.c_str(), &fst) != 0)
 		{
-			_errcode = 400;
+			//_errcode = 400;
+			_errcode = 0;
 			std::stringstream ss;
 			ss << "Stat function for: " << ret_file << " failed. " << strerror(errno) << "\n";
 			Log::log(ss.str(), STD_ERR | ERROR_FILE);
@@ -668,3 +699,4 @@ void	Server::reset()
 	_reloc.clear();
 	_response.clear();
 }
+

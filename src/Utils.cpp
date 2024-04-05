@@ -399,4 +399,28 @@ namespace Utils
 			throw std::runtime_error("server block missing port");
 		}
 	}
+
+	bool	is_file(const std::string& path)
+	{
+		struct stat	buff;
+		int			res;
+		if (stat(path.c_str(), &buff) < 0)
+		{
+			Log::log("Error. Stat failed in is_file function", STD_ERR | ERROR_FILE);
+			return false;
+		}
+		return (buff.st_mode & S_IFREG);
+	}
+
+	bool	is_directory(const std::string& path)
+	{
+		struct stat	buff;
+		int			res;
+		if (stat(path.c_str(), &buff) < 0)
+		{
+			Log::log("Error. Stat failed in is_file function", STD_ERR | ERROR_FILE);
+			return false;
+		}
+		return (buff.st_mode & S_IFDIR);
+	}
 }

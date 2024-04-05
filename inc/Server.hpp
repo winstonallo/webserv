@@ -13,6 +13,7 @@
 #include "Node.hpp"
 #include "Request.hpp"
 #include "LocationInfo.hpp"
+#include "CGI.hpp"
 
 class LocationInfo;
 class Director;
@@ -83,6 +84,7 @@ class Server : public Node
 		std::string							_reloc;
 		std::map<int, std::string>			_error_pages;
 		std::vector<LocationInfo*>			_locations;
+		CGI*								_cgi;
 //Server
 		void								_init_status_strings();
 		void								_init_content_types();
@@ -92,6 +94,7 @@ class Server : public Node
 														Request& rq, std::string& best_match, 
 														LocationInfo* locinfo);
 		int									_get_directory_list(std::string &path, std::string& body);
+		void								_init_cgi(Request rq, LocationInfo loc);
 		std::map<int, std::string>			_status_string;
 		std::map<std::string, std::string>	_content_type;
 		int									_errcode;

@@ -29,6 +29,8 @@ namespace Utils
 	std::string										extract_location_name(const std::string& location);
 	std::map <std::string, std::string>				get_environment_map(char **env);
 	void											validate_required_server_values(Server* new_server);
+	bool											is_file(const std::string& path);
+	bool											is_directory(const std::string& path);
 };
 
 #define UNCLOSED_QUOTE "unclosed quote sequence"
