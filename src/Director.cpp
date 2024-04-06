@@ -357,14 +357,13 @@ int	Director::create_client_connection(int listener)
 
 int	Director::read_from_client(int client_fd)
 {
-	char			msg[MSG_SIZE];
+	static std::string		requestmsg;
 	char			remoteIP[INET6_ADDRSTRLEN];	
 	int				num = 0;
 	ClientInfo		*ci;
 
 	ci = dynamic_cast<ClientInfo *>(nodes[client_fd]);
-	memset(&msg, 0, MSG_SIZE);
-	num = read(client_fd, msg, MSG_SIZE);
+	num = read_request(client_fd, MSG_SIZE, requestmsg);
 	if (!num)
 	{
 		std::stringstream ss;
@@ -410,13 +409,13 @@ int	Director::read_from_client(int client_fd)
 		Log::log(ss.str(), ERROR_FILE | STD_ERR);
 		return -1;	
 	}
-	else if (num != 0)
+	else if (num != 2)
 	{
 		ci->set_time();
 		try
 		{
-			ci->get_request()->init(msg);
-			memset(msg, 0, sizeof(msg));
+			ci->get_request()->init(requestmsg.c_str());
+			requestmsg.clear();
 			ci->get_server()->create_response(*ci->get_request());
 			FD_CLR(client_fd, &read_fds);
 			if (client_fd == fdmax)	fdmax--;

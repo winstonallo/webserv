@@ -61,6 +61,7 @@ class Request
 
 };
 std::ostream& operator<<(std::ostream& os, const Request& req);
+int read_request(int client_fd, int size,std::string& requestmsg);
 
 #define BOLD "\033[1m"
 #define RESET "\033[0m"

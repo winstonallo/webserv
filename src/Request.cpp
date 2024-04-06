@@ -161,6 +161,84 @@ static bool convert_pct(std::string &str)
     }
     return true;
 }
+int read_request(int client_fd, int size,std::string& requestmsg)
+{
+	int num = 0;
+	char buf[size];
+	std::string mode;
+	num = read(client_fd, buf, size);
+	if (num < 1)
+		return num;
+	// append the message to the requestbuf
+	requestmsg.append(buf, num);
+
+	// check if the message has completed headers = \r\n\r\n
+	if (requestmsg.find("\r\n\r\n") != std::string::npos)
+	{
+		// if method is POST or PUT, check if the body is complete
+		if (requestmsg.find("POST") == 0 || requestmsg.find("PUT") == 0)
+		{
+			// check that there is a content-length header
+			if (requestmsg.find("Content-Length: ") != std::string::npos)
+			{
+				mode = "Content-Length: ";
+				// read the content-length header and convert it to an int
+				size_t pos = requestmsg.find(mode);
+
+				size_t end = requestmsg.find("\r\n", pos);
+				std::string content_length = requestmsg.substr(pos + mode.length(), end - pos - mode.length());
+				unsigned int content_length_int = std::atoi(content_length.c_str());
+				//check if the body is complete
+				if (requestmsg.length() - requestmsg.find("\r\n\r\n") - 4 < content_length_int)
+					return 2;
+				else if (requestmsg.length() - requestmsg.find("\r\n\r\n") - 4 > content_length_int)
+					{
+						// delete message after content-length
+						requestmsg = requestmsg.substr(0, requestmsg.find("\r\n\r\n") + 4 + content_length_int);
+					}
+				return 12;
+			}
+			else if (requestmsg.find("Transfer-Encoding: chunked\r\n") != std::string::npos)
+			{
+				mode = "chunked";
+				size_t pos = requestmsg.find("\r\n\r\n");
+				size_t end = requestmsg.find("\r\n", pos + 4);
+				if (pos == std::string::npos)
+					return 15;
+				if (end == std::string::npos)
+					return 2;
+				pos += 4;
+				std::string chunk_size = requestmsg.substr(pos);
+				std::cout << pos <<" "<< end << std::endl;
+				std::cout << "chunk_size: {" << chunk_size<< "}" << std::endl;
+				int chunk_size_int;
+				std::stringstream ss;
+				ss <<   std::hex << chunk_size;
+				ss >>   chunk_size_int;
+				// erase the chunk size line from the message
+				if (requestmsg.find("\r\n", pos) == std::string::npos)
+					return 14;
+				requestmsg.erase(pos, end - pos + 2);
+				// delete /r/n after chunk
+				requestmsg.erase(requestmsg.length() - 2, 2);
+				std::string buffer = buf;
+				// count chars after /r/n in buffer
+				buffer.erase(0, buffer.find("\r\n")+2);
+				int buffer_size = buffer.length();
+				if (buffer_size - 2 > chunk_size_int)
+					requestmsg.erase(requestmsg.length() - buffer_size - 2 - chunk_size_int, buffer_size - 2 - chunk_size_int);
+				std::cout << "chunk_size_int: " << chunk_size_int << std::endl;
+				std::cout << "buffer_size: " << buffer_size << std::endl;
+
+				if (chunk_size_int == 0)
+					return 13;
+				else 
+					return 2;
+			}
+		}
+	}
+	return 14;
+}
 void Request::pct_decode()
 {
     if ( convert_pct(this->userinfo)== false ||
