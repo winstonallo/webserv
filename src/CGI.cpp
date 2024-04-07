@@ -40,17 +40,20 @@ void    CGI::initialize_environment_map(Request& request)
     }
 }
 
-char**    CGI::set_arguments(const std::string& command, LocationInfo*& location)
+char** CGI::set_arguments(const std::string& command, LocationInfo*& location)
 {
-    char** arguments = new char*[3];
+    char** arguments = new char*[4];
 
-    std::string interpreter = location->get_cgi_handler();
-    arguments[0] = new char[interpreter.size() + 1];
-    std::strncpy(arguments[0], interpreter.c_str(), interpreter.size() + 1);
-    arguments[1] = new char[command.size() + 1];
-    std::strncpy(arguments[1], command.c_str(), command.size() + 1);
-    arguments[2] = NULL;
+    arguments[0] = new char[strlen("/usr/bin/env") + 1];
+    strcpy(arguments[0], "/usr/bin/env");
 
+    arguments[1] = new char[location->get_cgi_handler().size() + 1];
+    strcpy(arguments[1], location->get_cgi_handler().c_str());
+
+    arguments[2] = new char[command.size() + 1];
+    strcpy(arguments[2], command.c_str());
+
+    arguments[3] = NULL;
 
     return arguments;
 }
@@ -93,7 +96,7 @@ void CGI::parent(pid_t pid, int request_fd[2], int response_fd[2], char** argume
     waitpid(pid, &status, 0);
     if (WIFEXITED(status))
     {
-        std::cout << "exit status: " << WEXITSTATUS(status) << std::endl;
+        std::cout << "exit status: " << WEXITSTATUS(status) << ": " << strerror(errno) << std::endl;
     }
 
     fd_set read_fds;
@@ -178,7 +181,7 @@ std::string CGI::execute(std::vector <LocationInfo *> locations)
 {
     LocationInfo* location = get_location(_env_map["SCRIPT_NAME"], locations);
     int          request_fd[2], response_fd[2];
-    char**       arguments = set_arguments(_env_map["SCRIPT_NAME"], location);
+    char**       arguments = set_arguments("files/" + _env_map["SCRIPT_NAME"], location);
 
     set_pipes(request_fd, response_fd);
     pid_t pid = fork();

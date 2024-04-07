@@ -419,13 +419,17 @@ int	Director::read_from_client(int client_fd)
 			ci->get_request()->init(msg);
 			if (std::string(msg).find("/cgi-bin/") != std::string::npos)
 			{
+
 				Request *request = ci->get_request();
-				(void)request;
 				_cgi.initialize_environment_map(*request);
-				_cgi.execute(ci->get_server()->get_locations());
+			    std::cout << "[" + _cgi.execute(ci->get_server()->get_locations()) + "]" << std::endl;
+				
+			}
+			else 
+			{
+				ci->get_server()->create_response(*ci->get_request());
 			}
 			memset(msg, 0, sizeof(msg));
-			ci->get_server()->create_response(*ci->get_request());
 			FD_CLR(client_fd, &read_fds);
 			if (client_fd == fdmax)	fdmax--;
 			FD_SET(client_fd, &write_fds);
