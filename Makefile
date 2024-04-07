@@ -69,4 +69,6 @@ clean:
 
 re		: fclean all
 
+-include $(DEPS)
+
 .PHONY	: all clean fclean re run

@@ -169,9 +169,7 @@ int read_request(int client_fd, int size,std::string& requestmsg)
 	num = read(client_fd, buf, size);
 	if (num < 1)
 		return num;
-	// append the message to the requestbuf
 	requestmsg.append(buf, num);
-
 	// check if the message has completed headers = \r\n\r\n
 	if (requestmsg.find("\r\n\r\n") != std::string::npos)
 	{
