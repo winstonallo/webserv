@@ -1,4 +1,3 @@
-#include "CGI.hpp"
 #include <cstring>
 #include <cstdlib>
 #include <sched.h>
@@ -7,32 +6,38 @@
 #include <cerrno>
 #include <sys/wait.h>
 #include <cstdarg>
+#include <vector>
+#include "CGI.hpp"
 #include "LocationInfo.hpp"
 #include "Log.hpp"
 #include "Utils.hpp"
+#include "Request.hpp"
 
-CGI::CGI(const std::map<std::string, std::string>& env_map, std::vector <LocationInfo*> location)
+CGI::CGI(char** env)
 {
-    _env_map = env_map;
     _response_body = "";
-    _locations = location;
-    _env = new char*[_env_map.size() + 1];
+    _env = env;
+}
 
-    _env[_env_map.size()] = NULL;
+void    CGI::initialize_environment_map(Request& request)
+{
+    _env_map["GATEWAY_INTERFACE"] = "CGI/1.1";
+    _env_map["CONTENT_LENGTH"] = request.get_header("Content-length");
+    _env_map["CONTENT_TYPE"] = request.get_header("Content-Type");
+    _env_map["QUERY_STRING"] = request.get_query();
+    _env_map["REMOTE_HOST"] = request.get_host();
+    _env_map["REQUEST_METHOD"] = request.get_method();
+    _env_map["SCRIPT_NAME"] = Utils::get_cgi_script_name(request.get_uri());
+
     int i = 0;
 
-    for (std::map <std::string, std::string>::iterator it = _env_map.begin(); it != _env_map.end(); it++)
+    for (std::map <std::string, std::string>::iterator it = _env_map.begin(); _env[i] && it != _env_map.end(); it++)
     {
         std::string line = it->first + "=" + it->second;
         _env[i] = new char[line.size() + 1];
         std::strncpy(_env[i], line.c_str(), line.size() + 1);
         i++;
     }
-}
-
-std::string    CGI::get_cmd()
-{
-    return ""; // TODO: implement this
 }
 
 char**    CGI::set_arguments(const std::string& command, LocationInfo*& location)
@@ -109,13 +114,20 @@ void    CGI::parent(pid_t pid, int request_fd[2], int response_fd[2], char** arg
         close_pipes(1, response_fd[0]);
 }
 
-LocationInfo*    CGI::get_location(const std::string& script)
+LocationInfo*    CGI::get_location(const std::string& script, std::vector <LocationInfo *> locations)
 {
-    std::string extension = script.substr(script.find_last_of("."));
+    size_t extension_pos = script.find_last_of(".");
 
-    for (std::vector <LocationInfo *>::iterator it = _locations.begin(); it != _locations.end(); it++)
+    if (extension_pos == std::string::npos)
     {
-        if ((*it)->get_cgi() == true && (*it)->get_cgi_extensions()[0] == extension)
+        throw std::runtime_error("file extension missing in '" + script + "': could not execute");
+    }
+
+    std::string extension = script.substr(extension_pos);
+
+    for (std::vector <LocationInfo *>::iterator it = locations.begin(); it != locations.end(); it++)
+    {
+        if ((*it)->get_cgi() == true && (*it)->get_cgi_extensions().empty() == false && (*it)->get_cgi_extensions()[0] == extension)
         {
             return *it;
         }
@@ -123,11 +135,11 @@ LocationInfo*    CGI::get_location(const std::string& script)
     throw std::runtime_error("no valid cgi found for " + script);
 }
 
-std::string CGI::execute(const std::string& script)
+std::string CGI::execute(std::vector <LocationInfo *> locations)
 {
-    LocationInfo *location = get_location(script);
+    LocationInfo* location = get_location(_env_map["SCRIPT_NAME"], locations);
     int          request_fd[2], response_fd[2];
-    char**       arguments = set_arguments(script, location);
+    char**       arguments = set_arguments(_env_map["SCRIPT_NAME"], location);
 
     set_pipes(request_fd, response_fd);
     pid_t pid = fork();

@@ -13,6 +13,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <sys/time.h>
+#include "CGI.hpp"
 #include "Node.hpp"
 #include "Server.hpp"
 #include "ClientInfo.hpp"
@@ -29,7 +30,7 @@ class Config;
 class Director 
 {
 	public:
-										Director(const std::string& path);
+										Director(const std::string& path, char** env);
 										~Director();
 		int								init_servers();
 		int								run_servers();
@@ -48,6 +49,7 @@ class Director
 		Config*							config;
 		std::map<int, Node*>			nodes;
 		fd_set							read_fds, write_fds;
+		CGI								_cgi;
 };
 
 #endif
