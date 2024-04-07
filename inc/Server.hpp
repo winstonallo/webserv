@@ -10,7 +10,6 @@
 #include <netdb.h>
 #include <sys/stat.h>
 #include <dirent.h>
-#include "ClientInfo.hpp"
 #include "Node.hpp"
 #include "Request.hpp"
 #include "LocationInfo.hpp"
@@ -18,6 +17,7 @@
 
 class LocationInfo;
 class Director;
+class ClientInfo;
 //purpose:	Data class for the parsed values (from the config file)
 //			It is used fjor the initialization and the running of the servers.
 
