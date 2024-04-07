@@ -11,7 +11,7 @@ LocationInfo::LocationInfo()
 	_index = "";
 	_return = "";
 	_alias = "";
-	_cgi_path = "";
+	_cgi_handler = "";
 	_cgi_ext = std::vector<std::string>();
 	_allowed_methods = std::vector<std::string>(); 
 	_directory_listing_enabled = false;
@@ -49,7 +49,7 @@ LocationInfo&	LocationInfo::operator=(const LocationInfo& rhs)
 		_index = rhs._index;
 		_return = rhs._return;
 		_alias = rhs._alias;
-		_cgi_path = rhs._cgi_path;
+		_cgi_handler = rhs._cgi_handler;
 		_cgi_ext = rhs._cgi_ext;
 		_allowed_methods = rhs._allowed_methods;
 		_directory_listing_enabled = rhs._directory_listing_enabled;
@@ -126,14 +126,14 @@ void	LocationInfo::set_alias(const std::string &a)
 	}
 }
 
-void	LocationInfo::set_cgi_path(const std::string& p)
+void	LocationInfo::set_cgi_handler(const std::string& p)
 {
-	_cgi_path = p;
+	_cgi_handler = p;
 }
 
-std::string	LocationInfo::get_cgi_path() const
+std::string	LocationInfo::get_cgi_handler() const
 {
-	return _cgi_path;
+	return _cgi_handler;
 }
 
 void	LocationInfo::set_cgi_extensions(std::vector<std::string> e)
