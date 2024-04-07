@@ -39,7 +39,7 @@ char**    CGI::set_arguments(const std::string& command, LocationInfo*& location
 {
     char** arguments = new char*[3];
 
-    std::string interpreter = location->get_cgi_path();
+    std::string interpreter = location->get_cgi_handler();
     arguments[0] = new char[interpreter.size() + 1];
     std::strncpy(arguments[0], interpreter.c_str(), interpreter.size() + 1);
     arguments[1] = new char[command.size() + 1];
