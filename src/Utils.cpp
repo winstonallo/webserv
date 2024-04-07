@@ -4,6 +4,8 @@
 #include <sstream>
 #include <cstdlib>
 #include <algorithm>
+#include <string>
+#include <sys/socket.h>
 #include "Log.hpp"
 #include "Server.hpp"
 
@@ -420,5 +422,20 @@ namespace Utils
 			return false;
 		}
 		return (buff.st_mode & S_IFDIR);
+	}
+
+	void	notify_client_connection(Server* server, int client_socket, struct sockaddr_storage client_addr)
+	{
+		std::string server_ip = inet_ntoa(server->get_host_address());
+		std::string server_port = Utils::itoa(server->get_port());
+		std::string socket = Utils::itoa(client_socket);
+		std::string server_name = server->get_server_name()[0];
+		std::string	client_ip_str = inet_ntoa(((struct sockaddr_in*)&client_addr)->sin_addr);
+		std::string	client_port = Utils::itoa(ntohs(((struct sockaddr_in*)&client_addr)->sin_port));
+
+		Log::log("client connection from " + client_ip_str +
+			":" + client_port + " on socket " +
+			socket + " for server " + server_name +
+			" (" + server_ip + ":" + server_port + ")\n", STD_OUT | ACCEPT_FILE);
 	}
 }

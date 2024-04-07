@@ -1,6 +1,7 @@
 #include "Director.hpp"
 #include <string.h>
 #include "Log.hpp"
+#include "Utils.hpp"
 
 Director::Director(const std::string& config_path):fdmax(-1), config(new Config(config_path))
 {
@@ -330,7 +331,7 @@ int	Director::create_client_connection(int listener)
 						get_in_addr((struct sockaddr *)&remoteaddr),
 						remoteIP, INET6_ADDRSTRLEN);
 		ss2 << " on socket " << newfd << std::endl;
-		Log::log(ss2.str(), ACCEPT_FILE | STD_OUT);
+		Utils::notify_client_connection(dynamic_cast<Server*>(nodes[listener]), newfd, remoteaddr);
 		if (fcntl(newfd, F_SETFL, O_NONBLOCK) < 0)
 		{
 			std::stringstream ss3;
@@ -471,7 +472,7 @@ int	Director::write_to_client(int fd)
 	if (num_bytes == (int)(content.size()) || num_bytes == 0)
 	{
 		std::stringstream ss;
-		ss << "Response send to socket:" << fd << std::endl;;
+		ss << "Response sent to socket:" << fd << std::endl;;
 		Log::log(ss.str(), STD_OUT);
 		if (FD_ISSET(fd, &write_fds))
 		{
