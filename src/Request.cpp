@@ -31,11 +31,9 @@ std::string Request::get_header(const std::string& key) const
 {
     if (this->headers.find(key) != this->headers.end())
     {
-    return this->headers.at(key);
+    	return this->headers.at(key);
     }
-    else if (key == "CONNECTION")
-        return "keep-alive"
-    return NULL;
+    return "keep-alive";
 }
 
 // init and parse request

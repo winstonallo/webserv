@@ -210,39 +210,42 @@ int	Director::run_servers()
 		}
 		for (int i = 0; i <= fdmax; i++)
 		{
-			if (nodes.find(i) != nodes.end() && nodes[i]->get_type() == SERVER_NODE)
+			if (nodes.find(i) != nodes.end())
 			{
-				if (FD_ISSET(i, &readfds_backup))
-					if(create_client_connection(i) < 0)
-					{
-						std::stringstream ss;
-						ss << "Error creating a client connection: " << std::endl;
-						Log::log(ss.str(), ERROR_FILE | STD_ERR);
-						exit(2); // TODO: Need to deallocate something?
-					}
-				
-			}
-			else if (nodes.find(i) != nodes.end() && nodes[i]->get_type() == CLIENT_NODE) 
-			{
-				if (FD_ISSET(i, &readfds_backup))
+				if (nodes[i]->get_type() == SERVER_NODE)
 				{
-					if(read_from_client(i) < 0)
-					{
-						std::stringstream ss;
-						std::cerr << "Error reading from client: " << std::endl;
-						Log::log(ss.str(), ERROR_FILE | STD_ERR);
-					}
+					if (FD_ISSET(i, &readfds_backup))
+						if(create_client_connection(i) < 0)
+						{
+							std::stringstream ss;
+							ss << "Error creating a client connection: " << std::endl;
+							Log::log(ss.str(), ERROR_FILE | STD_ERR);
+							exit(2); // TODO: Need to deallocate something?
+						}
+					
 				}
-				if (FD_ISSET(i, &write_fds))
+				else if (nodes[i]->get_type() == CLIENT_NODE) 
 				{
-					if(write_to_client(i) < 0)
+					if (FD_ISSET(i, &readfds_backup))
 					{
-						std::stringstream ss;
-						std::cerr << "Error writing to client." << std::endl;
-						Log::log(ss.str(), ERROR_FILE | STD_ERR);
+						if(read_from_client(i) < 0)
+						{
+							std::stringstream ss;
+							ss << "Error reading from client: " << std::endl;
+							Log::log(ss.str(), ERROR_FILE | STD_ERR);
+						}
 					}
-				}
+					if (FD_ISSET(i, &write_fds))
+					{
+						if(write_to_client(i) < 0)
+						{
+							std::stringstream ss;
+							ss << "Error writing to client." << std::endl;
+							Log::log(ss.str(), ERROR_FILE | STD_ERR);
+						}
+					}
 
+				}
 			}
 		}
 /*
@@ -370,23 +373,36 @@ int	Director::read_from_client(int client_fd)
 		ss << " on socket " << client_fd << std::endl;
 		Log::log(ss.str(), ACCEPT_FILE | STD_OUT);
 		if (FD_ISSET(client_fd, &write_fds))
+		{
 			FD_CLR(client_fd, &write_fds);
+			if (client_fd == fdmax)
+				fdmax--;
+		}
 		if (FD_ISSET(client_fd, &read_fds))
+		{
 			FD_CLR(client_fd, &read_fds);
-		if (client_fd == fdmax)
-			fdmax--;
+			if (client_fd == fdmax)
+				fdmax--;
+		}
 		delete nodes[client_fd];
 		nodes.erase(client_fd);
 		close(client_fd);
+		return 0;
 	}
 	else if (num == -1)
 	{
 		if (FD_ISSET(client_fd, &write_fds))
+		{
 			FD_CLR(client_fd, &write_fds);
+			if (client_fd == fdmax)
+				fdmax--;
+		}
 		if (FD_ISSET(client_fd, &read_fds))
+		{
 			FD_CLR(client_fd, &read_fds);
-		if (client_fd == fdmax)
-			fdmax--;
+			if (client_fd == fdmax)
+				fdmax--;
+		}
 		nodes.erase(client_fd);
 		close(client_fd);
 		std::stringstream ss;
@@ -394,15 +410,14 @@ int	Director::read_from_client(int client_fd)
 		Log::log(ss.str(), ERROR_FILE | STD_ERR);
 		return -1;	
 	}
-	else 
+	else if (num != 0)
 	{
 		ci->set_time();
 		try
 		{
-			Request	req;
-			req.init(msg);
+			ci->get_request()->init(msg);
 			memset(msg, 0, sizeof(msg));
-			ci->get_server()->create_response(req); 
+			ci->get_server()->create_response(*ci->get_request());
 			FD_CLR(client_fd, &read_fds);
 			if (client_fd == fdmax)	fdmax--;
 			FD_SET(client_fd, &write_fds);
