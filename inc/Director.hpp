@@ -17,7 +17,6 @@
 #include "Node.hpp"
 #include "Server.hpp"
 #include "ClientInfo.hpp"
-#include "Request.hpp"
 #include "Config.hpp"
 
 #define MSG_SIZE 50000
