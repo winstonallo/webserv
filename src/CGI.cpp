@@ -9,7 +9,7 @@
 #include <vector>
 #include "CGI.hpp"
 #include "LocationInfo.hpp"
-#include "Log.hpp"
+#include <sys/select.h>
 #include "Utils.hpp"
 #include "Request.hpp"
 
@@ -83,36 +83,75 @@ void    CGI::execute_script(int request_fd[2], int response_fd[2], char** argume
     _exit(errno);
 }
 
-void    CGI::parent(pid_t pid, int request_fd[2], int response_fd[2], char** arguments)
+void CGI::parent(pid_t pid, int request_fd[2], int response_fd[2], char** arguments)
 {
-        delete_char_array(arguments);
-        close_pipes(1, request_fd[0]);
-        write(request_fd[1], _request_body.c_str(), _request_body.size());
-        close_pipes(2, request_fd[1], response_fd[1]);
+    delete_char_array(arguments);
+    close_pipes(1, request_fd[0]);
+    close_pipes(2, request_fd[1], response_fd[1]);
 
-        int status;
-        waitpid(pid, &status, 0);
-        if (WIFEXITED(status) == true)
+    int status;
+    waitpid(pid, &status, 0);
+    if (WIFEXITED(status))
+    {
+        std::cout << "exit status: " << WEXITSTATUS(status) << std::endl;
+    }
+
+    fd_set read_fds;
+    FD_ZERO(&read_fds);
+    FD_SET(response_fd[0], &read_fds);
+
+    char buffer[1024];
+    while (true)
+    {
+        FD_ZERO(&read_fds);
+        FD_SET(response_fd[0], &read_fds);
+
+        struct timeval tv;
+        tv.tv_sec = 1;
+        tv.tv_usec = 0;
+
+        int ret = select(response_fd[0] + 1, &read_fds, NULL, NULL, &tv);
+        if (ret > 0)
         {
-            int exit_status = WEXITSTATUS(status);
-            std::cout << "exit status: " << exit_status << std::endl;
-            if (exit_status != 0)
+            if (FD_ISSET(response_fd[0], &read_fds))
             {
-                Log::log("error: child process exited with status " + Utils::itoa(exit_status) + ": " + strerror(exit_status));
+                std::memset(buffer, 0, 1024);
+                ssize_t bytes_read = read(response_fd[0], buffer, 1024);
+                if (bytes_read > 0)
+                {
+                    _response_body.append(buffer, bytes_read);
+                }
+                else if (bytes_read == 0)
+                {
+                    break;
+                }
+                else
+                {
+                    if (errno != EAGAIN && errno != EWOULDBLOCK)
+                    {
+                        break;
+                    }
+                }
             }
         }
-        char buffer[1024];
-        int ret = 0;
-        do
+        else if (ret == 0)
         {
-            std::memset(buffer, 0, 1024);
-            ret = read(response_fd[0], buffer, 1024);
-            _response_body.append(buffer, ret);
+            std::cout << "Read timeout occurred" << std::endl;
+            break;
         }
-        while(ret > 0);
+        else
+        {
+            if (errno != EINTR)
+            {
+                std::cerr << "Select error: " << strerror(errno) << std::endl;
+                break;
+            }
+        }
+    }
 
-        close_pipes(1, response_fd[0]);
+    close_pipes(1, response_fd[0]);
 }
+
 
 LocationInfo*    CGI::get_location(const std::string& script, std::vector <LocationInfo *> locations)
 {
@@ -180,6 +219,13 @@ void    CGI::delete_char_array(char** arr)
         delete[] arr[i];
     }
     delete[] arr;
+}
+
+void    CGI::clear()
+{
+    _response_body.clear();
+    _locations.clear();
+    _env_map.clear();
 }
 
 CGI::~CGI()

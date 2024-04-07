@@ -417,7 +417,6 @@ int	Director::read_from_client(int client_fd)
 		try
 		{
 			ci->get_request()->init(msg);
-			std::cout << msg << std::endl;
 			if (std::string(msg).find("/cgi-bin/") != std::string::npos)
 			{
 				Request *request = ci->get_request();

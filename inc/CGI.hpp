@@ -14,16 +14,15 @@ class CGI
 
         std::string                             execute(std::vector <LocationInfo *> locations);
         void                                    initialize_environment_map(Request& request);
+        void                                    clear();
 
         CGI(char** env=NULL);
         ~CGI();
 
     private:
 
-        std::string                             _cmd;
         char**                                  _env;
         std::vector <LocationInfo*>             _locations;
-        std::string                             _request_body;
         std::string                             _response_body;
         std::map <std::string, std::string>     _env_map;
 
