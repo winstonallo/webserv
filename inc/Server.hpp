@@ -10,6 +10,7 @@
 #include <netdb.h>
 #include <sys/stat.h>
 #include <dirent.h>
+#include "ClientInfo.hpp"
 #include "Node.hpp"
 #include "Request.hpp"
 #include "LocationInfo.hpp"
@@ -65,7 +66,7 @@ class Server : public Node
 		void								set_relocation(const std::string& rel);
 		std::string							get_response() const;
 		void								set_response(const std::string& rs);
-		void								create_response(Request&);
+		void								create_response(Request&, CGI& cgi, ClientInfo* client_info);
 		void								reset();
 
 	private:

@@ -25,9 +25,9 @@ void    CGI::initialize_environment_map(Request& request)
     _env_map["CONTENT_LENGTH"] = request.get_header("Content-length");
     _env_map["CONTENT_TYPE"] = request.get_header("Content-Type");
     _env_map["QUERY_STRING"] = request.get_query();
-    _env_map["REMOTE_HOST"] = request.get_host();
     _env_map["REQUEST_METHOD"] = request.get_method();
     _env_map["SCRIPT_NAME"] = Utils::get_cgi_script_name(request.get_uri());
+    _env_map["SERVER_NAME"] = request.get_host();
 
     int i = 0;
 
@@ -94,9 +94,9 @@ void CGI::parent(pid_t pid, int request_fd[2], int response_fd[2], char** argume
 
     int status;
     waitpid(pid, &status, 0);
-    if (WIFEXITED(status))
+    if (WIFEXITED(status) && WEXITSTATUS(status) != 0)
     {
-        std::cout << "exit status: " << WEXITSTATUS(status) << ": " << strerror(errno) << std::endl;
+        throw std::runtime_error("CGI failed with exit status: " + Utils::itoa(WEXITSTATUS(status)) + ": " + strerror(errno) + " (CGI)\n");
     }
 
     fd_set read_fds;

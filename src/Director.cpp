@@ -1,5 +1,6 @@
 #include "Director.hpp"
 #include <string.h>
+#include <string>
 #include "Log.hpp"
 #include "Utils.hpp"
 
@@ -417,18 +418,8 @@ int	Director::read_from_client(int client_fd)
 		try
 		{
 			ci->get_request()->init(msg);
-			if (std::string(msg).find("/cgi-bin/") != std::string::npos)
-			{
+			ci->get_server()->create_response(*ci->get_request(), _cgi, ci);
 
-				Request *request = ci->get_request();
-				_cgi.initialize_environment_map(*request);
-			    std::cout << "[" + _cgi.execute(ci->get_server()->get_locations()) + "]" << std::endl;
-				
-			}
-			else 
-			{
-				ci->get_server()->create_response(*ci->get_request());
-			}
 			memset(msg, 0, sizeof(msg));
 			FD_CLR(client_fd, &read_fds);
 			if (client_fd == fdmax)	fdmax--;
