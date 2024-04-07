@@ -33,7 +33,7 @@ std::string Request::get_header(const std::string& key) const
     {
     	return this->headers.at(key);
     }
-    return "keep-alive";
+    return "default";
 }
 
 // init and parse request
@@ -436,6 +436,52 @@ void Request::check_length()
     }
 
 }
+void Request::check_headers()
+{
+    // if no connection header is present, set it to keep-alive
+    if (this->headers.find("CONNECTION") == this->headers.end())
+    {
+        this->headers["CONNECTION"] = "keep-alive";
+    }
+    // check that host is present
+    if (this->headers.find("HOST") == this->headers.end())
+    {
+        this->errcode = 400;
+        throw std::runtime_error("Invalid request: Host header is missing");
+    }
+    // check that host is not empty
+    if (this->headers["HOST"].size() == 0)
+    {
+        this->errcode = 400;
+        throw std::runtime_error("Invalid request: Host header is empty");
+    }
+    // if method is post or put, check that content-length or chuncked is present
+    if (this->method == "POST" || this->method == "PUT")
+    {
+        if (this->headers.find("CONTENT-LENGTH") == this->headers.end() && this->headers.find("TRANSFER-ENCODING") == this->headers.end())
+        {
+            this->errcode = 411;
+            throw std::runtime_error("Invalid request: Content-Length and Transfer-Encoding is missing");
+        }
+        // if both content-length and transfer-encoding are present, return 400
+        if (this->headers.find("CONTENT-LENGTH") != this->headers.end() && this->headers.find("TRANSFER-ENCODING") != this->headers.end())
+        {
+            this->errcode = 400;
+            throw std::runtime_error("Invalid request: Content-Length and Transfer-Encoding are both present");
+        }
+        // if content-length is present, check that it is a number
+        if (this->headers.find("CONTENT-LENGTH") != this->headers.end())
+        {
+            std::string content_length = this->headers["CONTENT-LENGTH"];
+            if (!valid_token(content_length, DIGIT))
+            {
+                this->errcode = 400;
+                throw std::runtime_error("Invalid request: Content-Length is not a number");
+            }
+        }
+    
+    }
+}
 
 void Request::init(std::string request)
 {
@@ -445,6 +491,7 @@ void Request::init(std::string request)
     validate_uri();
     pct_decode();
     check_length();
+    check_headers();
 }
 void Request::clean(void)
 {
