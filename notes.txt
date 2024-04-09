@@ -1,7 +1,7 @@
 Error tests:
 	Config File:
-		- Write a directive (like listen 2023) several times
-		- Check if token after Location is empty
+		- Can we write a directive (like listen 8080) several times? (we shouldn't)
+		- Check if token after Location is empty (and the next token is '{)
 		- Check if token after path is {
 		- Check if root in Location is a real path
 		- Check if allow_methods is written twice
@@ -22,7 +22,7 @@ Error tests:
 		- is Location root set from outer scope?
 		- is the path location + index a file that is readable
 		- does return exist?
-		- does alias esit and readable?
+		- does alias exists and readable?
 		- can host be written after a Location?
 		- can we have multiple hosts in one server?
 		- same with root error_page
@@ -33,3 +33,33 @@ Error tests:
 		- is there a port?
 		- are the error pages valid?
 		- can there be two servers with same host, port and server_name?
+		- on two servers. is port host and server_name the same?
+
+	Request:
+		- does path of Request line start with / ?
+		- are the chars in the URI allowed?
+		- do we check for the maximum uri length?
+		- do we check for HTTP with / ? 
+		- do we check for right version (are they numbers)?
+		- are we checking that the line ends with \r\n?
+		- do the headers have valid characters?
+		- do we check if the transfer-encoding is chunked?
+		- do we set the server name from the host? 
+
+	CGI:
+		- is path ending with .py or .sh
+		- is it a file?
+		- do we have execute permission?
+		- is the method of the request allowed?
+		- is the CGI class reset before a new response?
+		- in the config file, can we put cgi extensions and such in a Location that is not in the cgi-bin path?
+		
+	Response:
+		- Do we redirect when the request path is a directory without a final / ?
+		- do we replace with alias?
+		- if we have a directory path, do we append index of location or index of server?
+		- do we check if the file to be returned exist?  
+		
+		
+
+		

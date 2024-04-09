@@ -403,7 +403,6 @@ namespace Utils
 	bool	is_file(const std::string& path)
 	{
 		struct stat	buff;
-		int			res;
 		if (stat(path.c_str(), &buff) < 0)
 		{
 			Log::log("Error. Stat failed in is_file function", STD_ERR | ERROR_FILE);
@@ -415,7 +414,6 @@ namespace Utils
 	bool	is_directory(const std::string& path)
 	{
 		struct stat	buff;
-		int			res;
 		if (stat(path.c_str(), &buff) < 0)
 		{
 			Log::log("Error. Stat failed in is_file function", STD_ERR | ERROR_FILE);

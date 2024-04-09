@@ -74,6 +74,7 @@ class Server : public Node
 		int									_client_max_body_size;
 		std::vector <std::string>			_server_name;
 		struct in_addr						_host_address;
+// in_addr_t							_host_address;
 //		struct sockaddr_in					address;
 		bool								_autoindex;
 		std::string							_response;

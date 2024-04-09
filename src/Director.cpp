@@ -62,7 +62,6 @@ int	Director::init_server(Server *si)
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
-	
 
 	std::stringstream pt;
 	pt << si->get_port();
@@ -103,9 +102,10 @@ int	Director::init_server(Server *si)
 		}
 		si->set_fd(listener);
 		//si->set_addr(*((sockaddr_storage*)(p->ai_addr)));
+		//si->set_addr((struct in_addr)p->ai_addr);
 		si->set_addr_len((size_t)p->ai_addrlen);
 
-		std::cout << "Servers ready...\n" << std::endl;
+		std::cout << "Server ready...\n" << std::endl;
 
 		//	print address
 		// struct sockaddr *address  = p->ai_addr;
@@ -151,13 +151,33 @@ int	Director::init_servers()
 	FD_ZERO(&read_fds);
 	FD_ZERO(&write_fds);
 
-	std::vector<Server*> servers = config->get_servers();
-	std::vector<Server*>::iterator e = servers.end();
-	std::vector<Server*>::iterator it ;
+	std::vector<Server*> 			servers = config->get_servers();
+	std::vector<Server*>::iterator 	e = servers.end();
+	std::vector<Server*>::iterator 	it ;
+	std::vector<Server*>::iterator 	sub_it;
+	bool							same_socket;	
+	// take virtual servers into account
 	for (it = servers.begin(); it != e; it++)
 	{
-		if (init_server(*it) < 0)
-			return -1;
+		same_socket = false;
+		for (sub_it = servers.begin(); sub_it != it; sub_it++) 
+		{
+			if ((*sub_it)->get_host_address().s_addr == (*it)->get_host_address().s_addr &&
+				(*sub_it)->get_port() == (*it)->get_port())
+			{
+				(*it)->set_fd((*sub_it)->get_fd());
+				same_socket = true;
+			}
+		}
+		if (same_socket == false)
+		{
+			if (init_server(*it) < 0)
+				return -1;
+		}
+	}
+	
+	for (it = servers.begin(); it != e; it++)
+	{
 		int listener = (*it)->get_fd();
 		if (fcntl(listener, F_SETFL, O_NONBLOCK) < 0)
 		{
@@ -166,7 +186,7 @@ int	Director::init_servers()
 			Log::log(ss.str(), ERROR_FILE | STD_ERR);
 			return -1;
 		}
-		if (listen(listener, 800) == -1)
+		if (listen(listener, 512) == -1)
 		{
 			std::stringstream ss;
 			ss << "Error listening: " << strerror(errno) << std::endl;
@@ -360,6 +380,7 @@ int	Director::read_from_client(int client_fd)
 	char			msg[MSG_SIZE];
 	char			remoteIP[INET6_ADDRSTRLEN];	
 	int				num = 0;
+
 	ClientInfo		*ci;
 
 	ci = dynamic_cast<ClientInfo *>(nodes[client_fd]);
@@ -417,6 +438,21 @@ int	Director::read_from_client(int client_fd)
 		{
 			ci->get_request()->init(msg);
 			memset(msg, 0, sizeof(msg));
+
+			std::vector<Server*> servers = config->get_servers();
+			std::vector<Server*>::iterator it;
+			for (it = servers.begin(); it != servers.end(); it++)
+			{
+				std::cout << (*it)->get_host_address().s_addr << " " << (*it)->get_port();
+				std::cout << " " << (*it)->get_server_name()[0] << ci->get_request()->get_host() <<  std::endl;
+				if ((*it)->get_host_address().s_addr == ci->get_server()->get_host_address().s_addr &&
+				(*it)->get_port() == ci->get_server()->get_port() &&
+				(*it)->get_server_name()[0] == ci->get_request()->get_host())
+				{
+					ci->set_server(*it);
+					std::cout << (*it)->get_server_name()[0] << std::endl;
+				}
+			}
 			ci->get_server()->create_response(*ci->get_request());
 			FD_CLR(client_fd, &read_fds);
 			if (client_fd == fdmax)	fdmax--;

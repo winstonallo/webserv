@@ -23,8 +23,7 @@ Server::Server()
 	_reloc = "";
 	_client_max_body_size = 4098;
 	_server_name = std::vector<std::string>();
-	struct in_addr lo= {0};
-	_host_address = lo;
+	memset(&_host_address, 0, sizeof(_host_address));
 	_error_log = "";
 	_access_log = "";
 	_error_pages = std::map<int, std::string>();
@@ -49,6 +48,22 @@ Server::Server(int tfd, struct sockaddr_storage ss, size_t taddr_len):
 {
 	_init_status_strings();
 	_init_content_types(); 
+	_cgi = NULL;
+	_autoindex = false;
+	_errcode = 0;
+	_autoindex = false;
+	_index = "";
+	_root = "";
+	_port = 0;
+	_reloc = "";
+	_client_max_body_size = 4098;
+	_server_name = std::vector<std::string>();
+	memset(&_host_address, 0, sizeof(_host_address));
+	_error_log = "";
+	_access_log = "";
+	_error_pages = std::map<int, std::string>();
+	_locations = std::vector<LocationInfo *>();
+	_listing = false;
 }
 
 Server::Server(const Server& rhs) : Node()

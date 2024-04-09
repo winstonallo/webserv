@@ -253,7 +253,8 @@ void	Config::configure_host(_map& server, Server*& new_server, std::vector <std:
 	{
 		throw std::runtime_error("error: '" + host + "' is not a valid IPv4 address, server will not be initialized\n");
 	}
-	new_unique_values.push_back(host);
+	(void)new_unique_values;
+	//new_unique_values.push_back(host);
 
 	new_server->set_host_address(ip_address);
 }
@@ -317,8 +318,8 @@ void	Config::configure_port(_map& server, Server*& new_server, std::vector <std:
 		throw std::runtime_error("error: on server '" + new_server->get_server_name()[0] + "': port " + port + " already taken: '" + new_server->get_server_name()[0] + "' will not be initialized\n");
 	}
 	new_server->set_port(std::atoi(port.c_str()));
-
-	new_unique_values.push_back(port);
+	(void)new_unique_values;
+	//new_unique_values.push_back(port);
 }
 
 
