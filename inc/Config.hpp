@@ -39,9 +39,9 @@ class Config
 		void									set_servers(std::map <int, _map>& raw_servers);
 		void									set_error_pages(const std::map <int, std::string>& error_pages);
 
-		void									configure_port(_map& server, Server*& new_server, std::vector <std::string>& new_unique_values);
-		void									configure_server_names(_map& server, Server*& new_server, std::vector <std::string>& new_unique_values);
-		void									configure_host(_map& server, Server*& new_server, std::vector <std::string>& new_unique_values);
+		void									configure_port(_map& server, Server*& new_server);
+		void									configure_server_names(_map& server, Server*& new_server);
+		void									configure_host(_map& server, Server*& new_server);
 		location_setter_map::iterator			configure_cgi(std::string key, LocationInfo*& new_location);
 		location_setter_map::iterator			initialize_location(const std::string& name, const std::string& key, LocationInfo*& new_location);
 		void									configure_locations(const _map& server, Server*& new_server);
@@ -54,10 +54,11 @@ class Config
 		
 		std::vector <LocationInfo *>			_locations;
 		std::map <int, std::string>             _error_status_codes;
-		std::vector <std::string>				_unique_values;
 
 		location_setter_map						_location_setters;
 		server_setter_map						_server_setters;
+
+		std::vector <std::string>				_server_names;
 
 		Config(const Config& rhs);
 		Config &operator=(const Config& rhs);
