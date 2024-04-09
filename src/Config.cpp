@@ -243,10 +243,7 @@ void	Config::configure_host(_map& server, Server*& new_server)
 	{
 		host = "127.0.0.1";
 	}
-	if (std::find(_unique_values.begin(), _unique_values.end(), host) != _unique_values.end())
-	{
-		throw std::runtime_error("error: '" + host + "': host address already taken, server will not be initialized\n");
-	}
+
 	else if (inet_pton(AF_INET, host.c_str(), &ip_address) != 1)
 	{
 		throw std::runtime_error("error: '" + host + "' is not a valid IPv4 address, server will not be initialized\n");
@@ -278,11 +275,13 @@ void	Config::configure_server_names(_map& server, Server*& new_server)
 
 	for (std::vector <std::string>::const_iterator it = new_server_names.begin(); it != new_server_names.end(); it++)
 	{
-		if (std::find(_unique_values.begin(), _unique_values.end(), *it) != _unique_values.end())
+		if (std::find(_server_names.begin(), _server_names.end(), *it) != _server_names.end())
 		{
 			throw std::runtime_error("error: on server: '" + *it + "': name already taken, server will not be initialized\n");
 		}
 	}
+
+	_server_names.insert(_server_names.begin(), new_server_names.begin(), new_server_names.end());
 
 	new_server->set_server_name(new_server_names);
 
@@ -308,10 +307,6 @@ void	Config::configure_port(_map& server, Server*& new_server)
 
 	std::string port = server["port"][0];
 
-	if (std::find(_unique_values.begin(), _unique_values.end(), port) != _unique_values.end())
-	{
-		throw std::runtime_error("error: on server '" + new_server->get_server_name()[0] + "': port " + port + " already taken: '" + new_server->get_server_name()[0] + "' will not be initialized\n");
-	}
 	new_server->set_port(std::atoi(port.c_str()));
 }
 

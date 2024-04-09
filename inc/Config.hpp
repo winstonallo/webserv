@@ -58,6 +58,8 @@ class Config
 		location_setter_map						_location_setters;
 		server_setter_map						_server_setters;
 
+		std::vector <std::string>				_server_names;
+
 		Config(const Config& rhs);
 		Config &operator=(const Config& rhs);
 };
