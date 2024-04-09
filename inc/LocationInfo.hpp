@@ -28,8 +28,8 @@ class LocationInfo
 		std::string					get_alias() const;
 		bool						get_cgi() const;
 		void						set_cgi(bool cg);
-		void						set_cgi_path(const std::string& p);
-		std::string					get_cgi_path() const;
+		void						set_cgi_handler(const std::string& p);
+		std::string					get_cgi_handler() const;
 		void						set_cgi_extensions(std::vector<std::string> e);
 		std::vector<std::string>	get_cgi_extensions() const;
 		int							get_client_max_body_size() const;
@@ -44,7 +44,7 @@ class LocationInfo
 		bool						_autoindex;
 		std::string					_return;
 		std::string					_alias;
-		std::string					_cgi_path;
+		std::string					_cgi_handler;
 		std::vector<std::string>	_cgi_ext;
 		std::vector <std::string>	_allowed_methods;
 		bool						_directory_listing_enabled;

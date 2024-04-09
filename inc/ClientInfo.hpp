@@ -6,6 +6,7 @@
 #include <netdb.h>
 #include <ctime>
 #include "Node.hpp"
+#include "Request.hpp"
 #include "Server.hpp"
 
 //purpose:	data filled from the request parsing for and used for 
@@ -27,9 +28,11 @@ class ClientInfo : public Node
 		void						set_time();
 		Server*						get_server() const;
 		void						set_server(Server* si);
+		Request*					get_request();
 
 	private:
 		Server*						server;
+		Request						request;
 		time_t						prev_time;
 };
 
