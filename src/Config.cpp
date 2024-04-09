@@ -80,11 +80,10 @@ void	Config::set_servers(std::map <int, std::map <std::string, std::vector <std:
 		try
 		{	
 			new_server = new Server;
-			std::vector <std::string>	new_unique_values;
 
-			configure_server_names(it->second, new_server, new_unique_values);
-			configure_port(it->second, new_server, new_unique_values);
-			configure_host(it->second, new_server, new_unique_values);
+			configure_server_names(it->second, new_server);
+			configure_port(it->second, new_server);
+			configure_host(it->second, new_server);
 
 			Utils::validate_required_server_values(new_server);
 
@@ -100,7 +99,6 @@ void	Config::set_servers(std::map <int, std::map <std::string, std::vector <std:
 			}
 
 			_servers.push_back(new_server);
-			_unique_values.insert(_unique_values.end(), new_unique_values.begin(), new_unique_values.end());
 		}
 		catch (const std::exception& e)
 		{
@@ -230,7 +228,7 @@ Config::location_setter_map::iterator	Config::configure_cgi(std::string key, Loc
 	return _location_setters.find(current_key);
 }
 
-void	Config::configure_host(_map& server, Server*& new_server, std::vector <std::string>& new_unique_values)
+void	Config::configure_host(_map& server, Server*& new_server)
 {
 	if (server.find("host") == server.end() or server["host"].empty() == true)
 	{
@@ -253,7 +251,6 @@ void	Config::configure_host(_map& server, Server*& new_server, std::vector <std:
 	{
 		throw std::runtime_error("error: '" + host + "' is not a valid IPv4 address, server will not be initialized\n");
 	}
-	new_unique_values.push_back(host);
 
 	new_server->set_host_address(ip_address);
 }
@@ -270,7 +267,7 @@ void	Config::configure_host(_map& server, Server*& new_server, std::vector <std:
 //	else:	
 //			-> add server name(s) to vector of unique values
 //			-> set server name(s) of current Server object
-void	Config::configure_server_names(_map& server, Server*& new_server, std::vector <std::string>& new_unique_values)
+void	Config::configure_server_names(_map& server, Server*& new_server)
 {
 	if (server.find("server_name") == server.end() or server["server_name"].empty() == true)
 	{
@@ -289,7 +286,6 @@ void	Config::configure_server_names(_map& server, Server*& new_server, std::vect
 
 	new_server->set_server_name(new_server_names);
 
-	new_unique_values.insert(new_unique_values.end(), new_server_names.begin(), new_server_names.end());
 }
 
 // finds the port in the server map and performs some error handling on it before storing it in the current Server
@@ -303,7 +299,7 @@ void	Config::configure_server_names(_map& server, Server*& new_server, std::vect
 //	else:	
 //			-> add port to vector of unique values
 //			-> set port of current Server object
-void	Config::configure_port(_map& server, Server*& new_server, std::vector <std::string>& new_unique_values)
+void	Config::configure_port(_map& server, Server*& new_server)
 {
 	if (server.find("port") == server.end() or server["port"].empty() == true)
 	{
@@ -317,8 +313,6 @@ void	Config::configure_port(_map& server, Server*& new_server, std::vector <std:
 		throw std::runtime_error("error: on server '" + new_server->get_server_name()[0] + "': port " + port + " already taken: '" + new_server->get_server_name()[0] + "' will not be initialized\n");
 	}
 	new_server->set_port(std::atoi(port.c_str()));
-
-	new_unique_values.push_back(port);
 }
 
 
