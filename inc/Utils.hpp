@@ -33,6 +33,7 @@ namespace Utils
 	bool											is_file(const std::string& path);
 	bool											is_directory(const std::string& path);
 	void											notify_client_connection(Server* server, int client_socket, struct sockaddr_storage client_addr);
+	std::string										get_cgi_script_name(const std::string& uri);
 };
 
 #define UNCLOSED_QUOTE "unclosed quote sequence"

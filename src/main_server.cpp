@@ -1,7 +1,7 @@
 #include "Server.hpp"
 #include "Director.hpp"
 
-int main(int argc, char **argv)
+int main(int argc, char **argv, char** env)
 {
 	if (argc != 1 && argc != 2)
 	{
@@ -16,7 +16,7 @@ int main(int argc, char **argv)
 			config_file = argv[1];
 		else
 			config_file = "config_files/simple.conf";
-		Director director(config_file);
+		Director director(config_file, env);
 		if(director.init_servers() < 0)
 		{
 			std::cerr << "Error initializing servers." << std::endl;

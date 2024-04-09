@@ -438,4 +438,12 @@ namespace Utils
 			socket + " for server " + server_name +
 			" (" + server_ip + ":" + server_port + ")\n", STD_OUT | ACCEPT_FILE);
 	}
+
+	std::string	get_cgi_script_name(const std::string &uri)
+	{
+		size_t start_pos = uri.find("cgi-bin");
+		size_t end_pos = uri.find_first_of("/", start_pos + sizeof("cgi-bin/"));
+
+		return uri.substr(start_pos, end_pos);
+	}
 }

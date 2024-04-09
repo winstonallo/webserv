@@ -1,9 +1,10 @@
 #include "Director.hpp"
 #include <string.h>
+#include <string>
 #include "Log.hpp"
 #include "Utils.hpp"
 
-Director::Director(const std::string& config_path):fdmax(-1), config(new Config(config_path))
+Director::Director(const std::string& config_path, char** env):fdmax(-1), config(new Config(config_path)), _cgi(CGI(env))
 {
 
 }
@@ -417,8 +418,9 @@ int	Director::read_from_client(int client_fd)
 		try
 		{
 			ci->get_request()->init(msg);
+			ci->get_server()->create_response(*ci->get_request(), _cgi, ci);
+
 			memset(msg, 0, sizeof(msg));
-			ci->get_server()->create_response(*ci->get_request());
 			FD_CLR(client_fd, &read_fds);
 			if (client_fd == fdmax)	fdmax--;
 			FD_SET(client_fd, &write_fds);
