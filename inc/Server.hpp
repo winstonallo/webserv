@@ -17,6 +17,7 @@
 
 class LocationInfo;
 class Director;
+class ClientInfo;
 //purpose:	Data class for the parsed values (from the config file)
 //			It is used fjor the initialization and the running of the servers.
 
@@ -65,7 +66,7 @@ class Server : public Node
 		void								set_relocation(const std::string& rel);
 		std::string							get_response() const;
 		void								set_response(const std::string& rs);
-		void								create_response(Request&);
+		void								create_response(Request&, CGI& cgi, ClientInfo* client_info);
 		void								reset();
 
 	private:

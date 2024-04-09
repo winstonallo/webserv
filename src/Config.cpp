@@ -345,7 +345,7 @@ void	Config::initialize_location_setters()
 	_location_setters["allowed_methods"] = &Setters::set_allowed_methods;
 	_location_setters["return"] = &Setters::set_return;
 	_location_setters["alias"] = &Setters::set_alias;
-	_location_setters["handler"] = &Setters::set_cgi_path;
+	_location_setters["handler"] = &Setters::set_cgi_handler;
 	_location_setters["extension"] = &Setters::set_cgi_extension;
 	_location_setters["autoindex"] = &Setters::set_autoindex;
 	_location_setters["index"] = &Setters::set_index;
@@ -421,7 +421,7 @@ std::ostream &operator<<(std::ostream &out, const Config &config)
 			std::cout << std::endl;
 			if ((*it)->get_cgi() == true)
 			{
-				std::cout << "\t\tcgi_path: " << (*it)->get_cgi_path() << std::endl;
+				std::cout << "\t\tcgi_handler: " << (*it)->get_cgi_handler() << std::endl;
 				std::cout << "\t\tcgi_extension: " << (*it)->get_cgi_extensions()[0] << std::endl;
 			}
 		}

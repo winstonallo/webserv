@@ -88,9 +88,9 @@ namespace Setters
         set_string_value(alias, new_location, &LocationInfo::set_alias);
     }
 
-    void	set_cgi_path(const std::vector <std::string>& cgi_path, LocationInfo*& new_location)
+    void	set_cgi_handler(const std::vector <std::string>& cgi_path, LocationInfo*& new_location)
     {
-        set_string_value(cgi_path, new_location, &LocationInfo::set_cgi_path);
+        set_string_value(cgi_path, new_location, &LocationInfo::set_cgi_handler);
     }
 
     void	set_cgi_extension(const std::vector <std::string>& extension, LocationInfo*& new_location)

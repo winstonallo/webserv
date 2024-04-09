@@ -1,4 +1,3 @@
-#include "CGI.hpp"
 #include <cstring>
 #include <cstdlib>
 #include <sched.h>
@@ -7,21 +6,32 @@
 #include <cerrno>
 #include <sys/wait.h>
 #include <cstdarg>
+#include <vector>
+#include "CGI.hpp"
 #include "LocationInfo.hpp"
-#include "Log.hpp"
+#include <sys/select.h>
 #include "Utils.hpp"
+#include "Request.hpp"
 
-CGI::CGI(const std::map<std::string, std::string>& env_map, std::vector <LocationInfo*> location)
+CGI::CGI(char** env)
 {
-    _env_map = env_map;
     _response_body = "";
-    _locations = location;
-    _env = new char*[_env_map.size() + 1];
+    _env = env;
+}
 
-    _env[_env_map.size()] = NULL;
+void    CGI::initialize_environment_map(Request& request)
+{
+    _env_map["GATEWAY_INTERFACE"] = "CGI/1.1";
+    _env_map["CONTENT_LENGTH"] = request.get_header("Content-length");
+    _env_map["CONTENT_TYPE"] = request.get_header("Content-Type");
+    _env_map["QUERY_STRING"] = request.get_query();
+    _env_map["REQUEST_METHOD"] = request.get_method();
+    _env_map["SCRIPT_NAME"] = Utils::get_cgi_script_name(request.get_uri());
+    _env_map["SERVER_NAME"] = request.get_host();
+
     int i = 0;
 
-    for (std::map <std::string, std::string>::iterator it = _env_map.begin(); it != _env_map.end(); it++)
+    for (std::map <std::string, std::string>::iterator it = _env_map.begin(); _env[i] && it != _env_map.end(); it++)
     {
         std::string line = it->first + "=" + it->second;
         _env[i] = new char[line.size() + 1];
@@ -30,22 +40,20 @@ CGI::CGI(const std::map<std::string, std::string>& env_map, std::vector <Locatio
     }
 }
 
-std::string    CGI::get_cmd()
+char** CGI::set_arguments(const std::string& command, LocationInfo*& location)
 {
-    return ""; // TODO: implement this
-}
+    char** arguments = new char*[4];
 
-char**    CGI::set_arguments(const std::string& command, LocationInfo*& location)
-{
-    char** arguments = new char*[3];
+    arguments[0] = new char[strlen("/usr/bin/env") + 1];
+    strcpy(arguments[0], "/usr/bin/env");
 
-    std::string interpreter = location->get_cgi_path();
-    arguments[0] = new char[interpreter.size() + 1];
-    std::strncpy(arguments[0], interpreter.c_str(), interpreter.size() + 1);
-    arguments[1] = new char[command.size() + 1];
-    std::strncpy(arguments[1], command.c_str(), command.size() + 1);
-    arguments[2] = NULL;
+    arguments[1] = new char[location->get_cgi_handler().size() + 1];
+    strcpy(arguments[1], location->get_cgi_handler().c_str());
 
+    arguments[2] = new char[command.size() + 1];
+    strcpy(arguments[2], command.c_str());
+
+    arguments[3] = NULL;
 
     return arguments;
 }
@@ -78,44 +86,90 @@ void    CGI::execute_script(int request_fd[2], int response_fd[2], char** argume
     _exit(errno);
 }
 
-void    CGI::parent(pid_t pid, int request_fd[2], int response_fd[2], char** arguments)
+void CGI::parent(pid_t pid, int request_fd[2], int response_fd[2], char** arguments)
 {
-        delete_char_array(arguments);
-        close_pipes(1, request_fd[0]);
-        write(request_fd[1], _request_body.c_str(), _request_body.size());
-        close_pipes(2, request_fd[1], response_fd[1]);
+    delete_char_array(arguments);
+    close_pipes(1, request_fd[0]);
+    close_pipes(2, request_fd[1], response_fd[1]);
 
-        int status;
-        waitpid(pid, &status, 0);
-        if (WIFEXITED(status) == true)
+    int status;
+    waitpid(pid, &status, 0);
+    if (WIFEXITED(status) && WEXITSTATUS(status) != 0)
+    {
+        throw std::runtime_error("CGI failed with exit status: " + Utils::itoa(WEXITSTATUS(status)) + ": " + strerror(errno) + " (CGI)\n");
+    }
+
+    fd_set read_fds;
+    FD_ZERO(&read_fds);
+    FD_SET(response_fd[0], &read_fds);
+
+    char buffer[1024];
+    while (true)
+    {
+        FD_ZERO(&read_fds);
+        FD_SET(response_fd[0], &read_fds);
+
+        struct timeval tv;
+        tv.tv_sec = 1;
+        tv.tv_usec = 0;
+
+        int ret = select(response_fd[0] + 1, &read_fds, NULL, NULL, &tv);
+        if (ret > 0)
         {
-            int exit_status = WEXITSTATUS(status);
-            std::cout << "exit status: " << exit_status << std::endl;
-            if (exit_status != 0)
+            if (FD_ISSET(response_fd[0], &read_fds))
             {
-                Log::log("error: child process exited with status " + Utils::itoa(exit_status) + ": " + strerror(exit_status));
+                std::memset(buffer, 0, 1024);
+                ssize_t bytes_read = read(response_fd[0], buffer, 1024);
+                if (bytes_read > 0)
+                {
+                    _response_body.append(buffer, bytes_read);
+                }
+                else if (bytes_read == 0)
+                {
+                    break;
+                }
+                else
+                {
+                    if (errno != EAGAIN && errno != EWOULDBLOCK)
+                    {
+                        break;
+                    }
+                }
             }
         }
-        char buffer[1024];
-        int ret = 0;
-        do
+        else if (ret == 0)
         {
-            std::memset(buffer, 0, 1024);
-            ret = read(response_fd[0], buffer, 1024);
-            _response_body.append(buffer, ret);
+            std::cout << "Read timeout occurred" << std::endl;
+            break;
         }
-        while(ret > 0);
+        else
+        {
+            if (errno != EINTR)
+            {
+                std::cerr << "Select error: " << strerror(errno) << std::endl;
+                break;
+            }
+        }
+    }
 
-        close_pipes(1, response_fd[0]);
+    close_pipes(1, response_fd[0]);
 }
 
-LocationInfo*    CGI::get_location(const std::string& script)
-{
-    std::string extension = script.substr(script.find_last_of("."));
 
-    for (std::vector <LocationInfo *>::iterator it = _locations.begin(); it != _locations.end(); it++)
+LocationInfo*    CGI::get_location(const std::string& script, std::vector <LocationInfo *> locations)
+{
+    size_t extension_pos = script.find_last_of(".");
+
+    if (extension_pos == std::string::npos)
     {
-        if ((*it)->get_cgi() == true && (*it)->get_cgi_extensions()[0] == extension)
+        throw std::runtime_error("file extension missing in '" + script + "': could not execute");
+    }
+
+    std::string extension = script.substr(extension_pos);
+
+    for (std::vector <LocationInfo *>::iterator it = locations.begin(); it != locations.end(); it++)
+    {
+        if ((*it)->get_cgi() == true && (*it)->get_cgi_extensions().empty() == false && (*it)->get_cgi_extensions()[0] == extension)
         {
             return *it;
         }
@@ -123,11 +177,11 @@ LocationInfo*    CGI::get_location(const std::string& script)
     throw std::runtime_error("no valid cgi found for " + script);
 }
 
-std::string CGI::execute(const std::string& script)
+std::string CGI::execute(std::vector <LocationInfo *> locations)
 {
-    LocationInfo *location = get_location(script);
+    LocationInfo* location = get_location(_env_map["SCRIPT_NAME"], locations);
     int          request_fd[2], response_fd[2];
-    char**       arguments = set_arguments(script, location);
+    char**       arguments = set_arguments("files/" + _env_map["SCRIPT_NAME"], location);
 
     set_pipes(request_fd, response_fd);
     pid_t pid = fork();
@@ -168,6 +222,13 @@ void    CGI::delete_char_array(char** arr)
         delete[] arr[i];
     }
     delete[] arr;
+}
+
+void    CGI::clear()
+{
+    _response_body.clear();
+    _locations.clear();
+    _env_map.clear();
 }
 
 CGI::~CGI()

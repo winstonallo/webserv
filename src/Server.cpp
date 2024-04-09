@@ -305,7 +305,7 @@ void	Server::_init_content_types()
     _content_type[".mp3"] 	= 	"audio/mp3";
 }
 
-void	Server::create_response(Request& rq)
+void	Server::create_response(Request& rq, CGI& cgi, ClientInfo* client_info)
 {
 	std::stringstream 	ss;
 	std::string 		ex;
@@ -317,7 +317,18 @@ void	Server::create_response(Request& rq)
 	{
 		try
 		{
-			body = _get_body(rq);
+			if (rq.get_uri().find("/cgi-bin/") != std::string::npos)
+			{
+
+				cgi.initialize_environment_map(rq);
+			    body =  cgi.execute(client_info->get_server()->get_locations()) + "]";
+				cgi.clear();
+				
+			}
+			else 
+			{
+				body = _get_body(rq);
+			}
 		}
 		catch(const std::exception& e)
 		{
@@ -383,12 +394,12 @@ void	Server::create_response(Request& rq)
 	ss << "\r\n";
 //	std::cout << "got here" << std::endl;
 	if (!body.empty())
-		ss << body; 
+		ss << body;
 	_response = ss.str();
 }
 
 std::string		Server::_get_body(Request& rq)
-{	
+{
 	std::string	loc_path;
 	std::string listing_body;
 
