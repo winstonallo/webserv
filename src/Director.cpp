@@ -443,14 +443,13 @@ int	Director::read_from_client(int client_fd)
 			std::vector<Server*>::iterator it;
 			for (it = servers.begin(); it != servers.end(); it++)
 			{
-				std::cout << (*it)->get_host_address().s_addr << " " << (*it)->get_port();
-				std::cout << " " << (*it)->get_server_name()[0] << ci->get_request()->get_host() <<  std::endl;
+				// std::cout << (*it)->get_host_address().s_addr << " " << (*it)->get_port();
+				// std::cout << " " << (*it)->get_server_name()[0] << ",host: " << ci->get_request()->get_header("HOST") <<  std::endl;
 				if ((*it)->get_host_address().s_addr == ci->get_server()->get_host_address().s_addr &&
 				(*it)->get_port() == ci->get_server()->get_port() &&
-				(*it)->get_server_name()[0] == ci->get_request()->get_host())
+				(*it)->get_server_name()[0] == ci->get_request()->get_header("HOST"))
 				{
 					ci->set_server(*it);
-					std::cout << (*it)->get_server_name()[0] << std::endl;
 				}
 			}
 			ci->get_server()->create_response(*ci->get_request());
