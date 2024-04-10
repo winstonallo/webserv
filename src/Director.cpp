@@ -439,6 +439,7 @@ int	Director::read_from_client(int client_fd)
 			ci->get_request()->init(msg);
 			memset(msg, 0, sizeof(msg));
 
+			// virtual servers, we go throug the servers and match the host name / server name 
 			std::vector<Server*> servers = config->get_servers();
 			std::vector<Server*>::iterator it;
 			for (it = servers.begin(); it != servers.end(); it++)
@@ -446,10 +447,16 @@ int	Director::read_from_client(int client_fd)
 				// std::cout << (*it)->get_host_address().s_addr << " " << (*it)->get_port();
 				// std::cout << " " << (*it)->get_server_name()[0] << ",host: " << ci->get_request()->get_header("HOST") <<  std::endl;
 				if ((*it)->get_host_address().s_addr == ci->get_server()->get_host_address().s_addr &&
-				(*it)->get_port() == ci->get_server()->get_port() &&
-				(*it)->get_server_name()[0] == ci->get_request()->get_header("HOST"))
+				(*it)->get_port() == ci->get_server()->get_port())
 				{
-					ci->set_server(*it);
+					std::vector<std::string> host_names = (*it)->get_server_name(); 
+					std::vector<std::string>::iterator host_it;
+					std::string host_header = Utils::to_lower(ci->get_request()->get_header("HOST"));
+					for (host_it = host_names.begin(); host_it != host_names.end(); host_it++) 
+					{
+						if (Utils::to_lower(*host_it) == host_header)	
+							ci->set_server(*it);
+					}
 				}
 			}
 			ci->get_server()->create_response(*ci->get_request());

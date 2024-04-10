@@ -31,6 +31,7 @@ namespace Utils
 	void											validate_required_server_values(Server* new_server);
 	bool											is_file(const std::string& path);
 	bool											is_directory(const std::string& path);
+	std::string										to_lower(const std::string& str);
 };
 
 #define UNCLOSED_QUOTE "unclosed quote sequence"

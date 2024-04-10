@@ -421,4 +421,14 @@ namespace Utils
 		}
 		return (buff.st_mode & S_IFDIR);
 	}
+
+	std::string	to_lower(const std::string& str)
+	{
+		std::string res = str;
+		for (size_t i = 0; i < str.length(); i++)
+		{
+			res[i] = std::tolower(res[i]);	
+		}
+		return res;
+	}
 }
