@@ -4,7 +4,7 @@
 #include "Log.hpp"
 #include "Utils.hpp"
 
-Director::Director(const std::string& config_path, char** env):fdmax(-1), config(new Config(config_path)), _cgi(CGI(env))
+Director::Director(const std::string& config_path):fdmax(-1), config(new Config(config_path)), _cgi(CGI())
 {
 
 }
@@ -158,6 +158,7 @@ int	Director::init_servers()
 	std::vector<Server*>::iterator 	it ;
 	std::vector<Server*>::iterator 	sub_it;
 	bool							same_socket;	
+
 	// take virtual servers into account
 	for (it = servers.begin(); it != e; it++)
 	{
@@ -178,6 +179,7 @@ int	Director::init_servers()
 		}
 	}
 	
+	//make servers non-blocking and listen
 	for (it = servers.begin(); it != e; it++)
 	{
 		int listener = (*it)->get_fd();
