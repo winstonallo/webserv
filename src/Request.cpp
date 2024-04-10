@@ -9,6 +9,8 @@ std::ostream& operator<<(std::ostream& os, const Request& req)
 {
     // print request with name in red
     os << RED << "~FULL REQUEST~ " << std::endl;
+    os << RED << "Host: " << RESET << req.get_host() << std::endl;
+    os << RED << "Port: " << RESET << req.get_port() << std::endl;
     os << RED <<"Method: " << RESET << req.get_method() << std::endl;
     os << RED << "URI: " << RESET << req.get_uri() << std::endl;
     os << RED << "Protocol: " << RESET  << req.get_protocol() << std::endl;
@@ -447,6 +449,7 @@ void Request::check_headers()
     if (this->headers.find("HOST") == this->headers.end())
     {
         this->errcode = 400;
+        std::cout << *this << std::endl;
         throw std::runtime_error("Invalid request: Host header is missing");
     }
     // check that host is not empty
@@ -454,6 +457,16 @@ void Request::check_headers()
     {
         this->errcode = 400;
         throw std::runtime_error("Invalid request: Host header is empty");
+    }
+    // split into host and port by :
+    if (this->headers["HOST"].find(":") != std::string::npos)
+    {
+        this->host = this->headers["HOST"].substr(0, this->headers["HOST"].find(":"));
+        this->port = this->headers["HOST"].substr(this->headers["HOST"].find(":") + 1);
+    }
+    else
+    {
+        this->host = this->headers["HOST"];
     }
     // if method is post or put, check that content-length or chuncked is present
     if (this->method == "POST" || this->method == "PUT")
@@ -492,6 +505,7 @@ void Request::init(std::string request)
     pct_decode();
     check_length();
     check_headers();
+    std::cout << *this << std::endl;
 }
 void Request::clean(void)
 {
