@@ -439,8 +439,6 @@ int	Director::read_from_client(int client_fd)
 		try
 		{
 			ci->get_request()->init(msg);
-			ci->get_server()->create_response(*ci->get_request(), _cgi, ci);
-
 			memset(msg, 0, sizeof(msg));
 
 			// virtual servers, we go throug the servers and match the host name / server name 
@@ -463,6 +461,9 @@ int	Director::read_from_client(int client_fd)
 					}
 				}
 			}
+
+			ci->get_server()->create_response(*ci->get_request(), _cgi, ci);
+
 			FD_CLR(client_fd, &read_fds);
 			if (client_fd == fdmax)	fdmax--;
 			FD_SET(client_fd, &write_fds);
