@@ -18,6 +18,7 @@ TESTFLAGS	= -Wall -Wextra -Werror -MP -MD -g -Iinc -I$(GTEST_DIR)/include
 
 SRCS   	= \
 		$(SRCS_DIR)/Node.cpp \
+		$(SRCS_DIR)/CGI.cpp \
 		$(SRCS_DIR)/ClientInfo.cpp \
 		$(SRCS_DIR)/LocationInfo.cpp \
 		$(SRCS_DIR)/Server.cpp \
@@ -30,6 +31,7 @@ SRCS   	= \
         $(SRCS_DIR)/ConfigDispatcher.cpp \
         $(SRCS_DIR)/ConfigSetters.cpp \
         $(SRCS_DIR)/Utils.cpp \
+        $(SRCS_DIR)/CGI.cpp \
 		$(SRCS_DIR)/main_server.cpp
 TESTS	= \
 

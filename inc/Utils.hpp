@@ -1,6 +1,7 @@
 #ifndef UTILS_HPP
 #define UTILS_HPP
 
+#include <sys/socket.h>
 #include <vector>
 #include <string>
 #include <unistd.h>
@@ -31,6 +32,8 @@ namespace Utils
 	void											validate_required_server_values(Server* new_server);
 	bool											is_file(const std::string& path);
 	bool											is_directory(const std::string& path);
+	void											notify_client_connection(Server* server, int client_socket, struct sockaddr_storage client_addr);
+	std::string										get_cgi_script_name(const std::string& uri);
 	std::string										to_lower(const std::string& str);
 };
 

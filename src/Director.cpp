@@ -1,8 +1,10 @@
 #include "Director.hpp"
 #include <string.h>
+#include <string>
 #include "Log.hpp"
+#include "Utils.hpp"
 
-Director::Director(const std::string& config_path):fdmax(-1), config(new Config(config_path))
+Director::Director(const std::string& config_path, char** env):fdmax(-1), config(new Config(config_path)), _cgi(CGI(env))
 {
 
 }
@@ -350,7 +352,7 @@ int	Director::create_client_connection(int listener)
 						get_in_addr((struct sockaddr *)&remoteaddr),
 						remoteIP, INET6_ADDRSTRLEN);
 		ss2 << " on socket " << newfd << std::endl;
-		Log::log(ss2.str(), ACCEPT_FILE | STD_OUT);
+		Utils::notify_client_connection(dynamic_cast<Server*>(nodes[listener]), newfd, remoteaddr);
 		if (fcntl(newfd, F_SETFL, O_NONBLOCK) < 0)
 		{
 			std::stringstream ss3;
@@ -437,6 +439,8 @@ int	Director::read_from_client(int client_fd)
 		try
 		{
 			ci->get_request()->init(msg);
+			ci->get_server()->create_response(*ci->get_request(), _cgi, ci);
+
 			memset(msg, 0, sizeof(msg));
 
 			// virtual servers, we go throug the servers and match the host name / server name 
@@ -459,7 +463,6 @@ int	Director::read_from_client(int client_fd)
 					}
 				}
 			}
-			ci->get_server()->create_response(*ci->get_request());
 			FD_CLR(client_fd, &read_fds);
 			if (client_fd == fdmax)	fdmax--;
 			FD_SET(client_fd, &write_fds);
@@ -513,7 +516,7 @@ int	Director::write_to_client(int fd)
 	if (num_bytes == (int)(content.size()) || num_bytes == 0)
 	{
 		std::stringstream ss;
-		ss << "Response send to socket:" << fd << std::endl;;
+		ss << "Response sent to socket:" << fd << std::endl;;
 		Log::log(ss.str(), STD_OUT);
 		if (FD_ISSET(fd, &write_fds))
 		{
