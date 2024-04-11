@@ -217,6 +217,8 @@ void    CGI::close_pipes(int count, ...)
 
 void    CGI::delete_char_array(char** arr)
 {
+	if (!arr)
+		return ;
     for (int i = 0; arr[i]; i++)
     {
         delete[] arr[i];

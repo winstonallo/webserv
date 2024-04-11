@@ -11,7 +11,8 @@ Director::Director(const std::string& config_path):fdmax(-1), config(new Config(
 
 Director::~Director()
 {
-	delete config;
+	if (config)
+		delete config;
 }
 
 Director::Director(const Director& rhs)
