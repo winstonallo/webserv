@@ -405,12 +405,11 @@ void	Server::create_response(Request& rq, CGI& cgi, ClientInfo* client_info)
 		ss << "Connection: " << rq.get_header("CONNECTION") << "\r\n";
 		std::cout << "got connection" << std::endl;
 	}
-//	std::cout << "got here" << std::endl;
 	ss << "\r\n";
-//	std::cout << "got here" << std::endl;
 	if (!body.empty())
 		ss << body;
-	_response = ss.str();
+	client_info->set_response(ss.str());
+	// _response = ss.str();
 }
 
 std::string		Server::_get_body(Request& rq)

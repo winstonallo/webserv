@@ -107,7 +107,7 @@ int	Director::init_server(Server *si)
 		//si->set_addr((struct in_addr)p->ai_addr);
 		si->set_addr_len((size_t)p->ai_addrlen);
 
-		std::cout << "Server ready...\n" << std::endl;
+		std::cout << "Server created on port: " << si->get_port() << std::endl;
 
 		//	print address
 		// struct sockaddr *address  = p->ai_addr;
@@ -490,7 +490,7 @@ int	Director::write_to_client(int fd)
 	int				num_bytes;
 	ClientInfo*		cl = dynamic_cast<ClientInfo*>(nodes[fd]);
 
-	std::string content = cl->get_server()->get_response();
+	std::string content = cl->get_response();
 	int sz = content.size();
 
 	if (sz < MSG_SIZE)
