@@ -243,13 +243,15 @@ void	Config::configure_host(_map& server, Server*& new_server)
 	{
 		host = "127.0.0.1";
 	}
-
-	else if (inet_pton(AF_INET, host.c_str(), &ip_address) != 1)
+	
+	if (inet_pton(AF_INET, host.c_str(), &ip_address) != 1)
 	{
 		throw std::runtime_error("error: '" + host + "' is not a valid IPv4 address, server will not be initialized\n");
 	}
 
 	new_server->set_host_address(ip_address);
+
+	std::cout << inet_ntoa((new_server)->get_host_address()) << std::endl;
 }
 
 // finds the server_name(s) in the server map and performs some error handling on them 
