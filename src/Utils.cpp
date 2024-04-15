@@ -446,4 +446,14 @@ namespace Utils
 
 		return uri.substr(start_pos, end_pos);
 	}
+
+	std::string	to_lower(const std::string& str)
+	{
+		std::string res = str;
+		for (size_t i = 0; i < str.length(); i++)
+		{
+			res[i] = std::tolower(res[i]);	
+		}
+		return res;
+	}
 }

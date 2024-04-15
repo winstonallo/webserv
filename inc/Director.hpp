@@ -29,7 +29,7 @@ class Config;
 class Director 
 {
 	public:
-										Director(const std::string& path, char** env);
+										Director(const std::string& path);
 										~Director();
 		int								init_servers();
 		int								run_servers();

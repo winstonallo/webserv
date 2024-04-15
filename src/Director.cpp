@@ -4,14 +4,15 @@
 #include "Log.hpp"
 #include "Utils.hpp"
 
-Director::Director(const std::string& config_path, char** env):fdmax(-1), config(new Config(config_path)), _cgi(CGI(env))
+Director::Director(const std::string& config_path):fdmax(-1), config(new Config(config_path)), _cgi(CGI())
 {
 
 }
 
 Director::~Director()
 {
-	delete config;
+	if (config)
+		delete config;
 }
 
 Director::Director(const Director& rhs)
@@ -64,7 +65,6 @@ int	Director::init_server(Server *si)
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
-	
 
 	std::stringstream pt;
 	pt << si->get_port();
@@ -105,9 +105,10 @@ int	Director::init_server(Server *si)
 		}
 		si->set_fd(listener);
 		//si->set_addr(*((sockaddr_storage*)(p->ai_addr)));
+		//si->set_addr((struct in_addr)p->ai_addr);
 		si->set_addr_len((size_t)p->ai_addrlen);
 
-		std::cout << "Servers ready...\n" << std::endl;
+		std::cout << "Server created on port: " << si->get_port() << std::endl;
 
 		//	print address
 		// struct sockaddr *address  = p->ai_addr;
@@ -153,13 +154,35 @@ int	Director::init_servers()
 	FD_ZERO(&read_fds);
 	FD_ZERO(&write_fds);
 
-	std::vector<Server*> servers = config->get_servers();
-	std::vector<Server*>::iterator e = servers.end();
-	std::vector<Server*>::iterator it ;
+	std::vector<Server*> 			servers = config->get_servers();
+	std::vector<Server*>::iterator 	e = servers.end();
+	std::vector<Server*>::iterator 	it ;
+	std::vector<Server*>::iterator 	sub_it;
+	bool							same_socket;	
+
+	// take virtual servers into account
 	for (it = servers.begin(); it != e; it++)
 	{
-		if (init_server(*it) < 0)
-			return -1;
+		same_socket = false;
+		for (sub_it = servers.begin(); sub_it != it; sub_it++) 
+		{
+			if ((*sub_it)->get_host_address().s_addr == (*it)->get_host_address().s_addr &&
+				(*sub_it)->get_port() == (*it)->get_port())
+			{
+				(*it)->set_fd((*sub_it)->get_fd());
+				same_socket = true;
+			}
+		}
+		if (same_socket == false)
+		{
+			if (init_server(*it) < 0)
+				return -1;
+		}
+	}
+	
+	//make servers non-blocking and listen
+	for (it = servers.begin(); it != e; it++)
+	{
 		int listener = (*it)->get_fd();
 		if (fcntl(listener, F_SETFL, O_NONBLOCK) < 0)
 		{
@@ -168,7 +191,7 @@ int	Director::init_servers()
 			Log::log(ss.str(), ERROR_FILE | STD_ERR);
 			return -1;
 		}
-		if (listen(listener, 800) == -1)
+		if (listen(listener, 512) == -1)
 		{
 			std::stringstream ss;
 			ss << "Error listening: " << strerror(errno) << std::endl;
@@ -362,6 +385,7 @@ int	Director::read_from_client(int client_fd)
 	char			msg[MSG_SIZE];
 	char			remoteIP[INET6_ADDRSTRLEN];	
 	int				num = 0;
+
 	ClientInfo		*ci;
 
 	ci = dynamic_cast<ClientInfo *>(nodes[client_fd]);
@@ -418,9 +442,31 @@ int	Director::read_from_client(int client_fd)
 		try
 		{
 			ci->get_request()->init(msg);
+			memset(msg, 0, sizeof(msg));
+
+			// virtual servers, we go throug the servers and match the host name / server name 
+			std::vector<Server*> servers = config->get_servers();
+			std::vector<Server*>::iterator it;
+			for (it = servers.begin(); it != servers.end(); it++)
+			{
+				// std::cout << (*it)->get_host_address().s_addr << " " << (*it)->get_port();
+				// std::cout << " " << (*it)->get_server_name()[0] << ",host: " << ci->get_request()->get_header("HOST") <<  std::endl;
+				if ((*it)->get_host_address().s_addr == ci->get_server()->get_host_address().s_addr &&
+				(*it)->get_port() == ci->get_server()->get_port())
+				{
+					std::vector<std::string> host_names = (*it)->get_server_name(); 
+					std::vector<std::string>::iterator host_it;
+					std::string host_header = Utils::to_lower(ci->get_request()->get_header("HOST"));
+					for (host_it = host_names.begin(); host_it != host_names.end(); host_it++) 
+					{
+						if (Utils::to_lower(*host_it) == host_header)	
+							ci->set_server(*it);
+					}
+				}
+			}
+
 			ci->get_server()->create_response(*ci->get_request(), _cgi, ci);
 
-			memset(msg, 0, sizeof(msg));
 			FD_CLR(client_fd, &read_fds);
 			if (client_fd == fdmax)	fdmax--;
 			FD_SET(client_fd, &write_fds);
@@ -445,7 +491,7 @@ int	Director::write_to_client(int fd)
 	int				num_bytes;
 	ClientInfo*		cl = dynamic_cast<ClientInfo*>(nodes[fd]);
 
-	std::string content = cl->get_server()->get_response();
+	std::string content = cl->get_response();
 	int sz = content.size();
 
 	if (sz < MSG_SIZE)
