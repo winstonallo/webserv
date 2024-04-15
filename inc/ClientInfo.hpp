@@ -29,11 +29,15 @@ class ClientInfo : public Node
 		Server*						get_server() const;
 		void						set_server(Server* si);
 		Request*					get_request();
+		std::string					get_response() const;
+		void						set_response(const std::string& res);
+		void						clear_response(); 
 
 	private:
-		Server*						server;
-		Request						request;
-		time_t						prev_time;
+		Server*						_server;
+		Request						_request;
+		std::string					_response;
+		time_t						_prev_time;
 };
 
 #endif

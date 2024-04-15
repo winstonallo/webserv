@@ -4,6 +4,8 @@
 #include <sstream>
 #include <cstdlib>
 #include <algorithm>
+#include <string>
+#include <sys/socket.h>
 #include "Log.hpp"
 #include "Server.hpp"
 
@@ -420,5 +422,38 @@ namespace Utils
 			return false;
 		}
 		return (buff.st_mode & S_IFDIR);
+	}
+
+	void	notify_client_connection(Server* server, int client_socket, struct sockaddr_storage client_addr)
+	{
+		std::string server_ip = inet_ntoa(server->get_host_address());
+		std::string server_port = Utils::itoa(server->get_port());
+		std::string socket = Utils::itoa(client_socket);
+		std::string server_name = server->get_server_name()[0];
+		std::string	client_ip_str = inet_ntoa(((struct sockaddr_in*)&client_addr)->sin_addr);
+		std::string	client_port = Utils::itoa(ntohs(((struct sockaddr_in*)&client_addr)->sin_port));
+
+		Log::log("client connection from " + client_ip_str +
+			":" + client_port + " on socket " +
+			socket + " for server " + server_name +
+			" (" + server_ip + ":" + server_port + ")\n", STD_OUT | ACCEPT_FILE);
+	}
+
+	std::string	get_cgi_script_name(const std::string &uri)
+	{
+		size_t start_pos = uri.find("cgi-bin");
+		size_t end_pos = uri.find_first_of("/", start_pos + sizeof("cgi-bin/"));
+
+		return uri.substr(start_pos, end_pos);
+	}
+
+	std::string	to_lower(const std::string& str)
+	{
+		std::string res = str;
+		for (size_t i = 0; i < str.length(); i++)
+		{
+			res[i] = std::tolower(res[i]);	
+		}
+		return res;
 	}
 }

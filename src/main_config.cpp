@@ -6,12 +6,8 @@ int main(int argc, char **argv)
 {
 	try
 	{
-		Config conf;
-		(void)argv;
-		if (argc == 2)
-		{
-			Config conf(argv[1]);
-		}
+		(void)argc;
+		Config conf((argv[1]));
 		std::cout << conf;
 	}
 	catch (const std::exception &e)
