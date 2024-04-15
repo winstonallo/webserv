@@ -449,7 +449,6 @@ void Request::check_headers()
     if (this->headers.find("HOST") == this->headers.end())
     {
         this->errcode = 400;
-        std::cout << *this << std::endl;
         throw std::runtime_error("Invalid request: Host header is missing");
     }
     // check that host is not empty
@@ -505,21 +504,11 @@ void Request::init(std::string request)
     pct_decode();
     check_length();
     check_headers();
-    std::cout << *this << std::endl;
+    //std::cout << *this << std::endl;
 }
 void Request::clean(void)
 {
-    this->protocol.clear();
-    this->method.clear();
-    this->uri.clear();
-    this->headers.clear();
-    this->body.clear();
-    this->userinfo.clear();
-    this->host.clear();
-    this->port.clear();
-    this->path.clear();
-    this->query.clear();
-    this->fragment.clear();
+    //clean all variables if they exist
     this->errcode = 0;
 }
 Request::Request(){}
