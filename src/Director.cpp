@@ -447,8 +447,7 @@ int	Director::read_from_client(int client_fd)
 		ci->set_time();
 		try
 		{
-			ci->get_request()->init(msg);
-			memset(msg, 0, sizeof(msg));
+			ci->get_request()->init(requestmsg[client_fd]);
 
 			// virtual servers, we go throug the servers and match the host name / server name 
 			std::vector<Server*> servers = config->get_servers();

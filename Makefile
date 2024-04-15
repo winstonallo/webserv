@@ -23,7 +23,6 @@ SRCS   	= \
 		$(SRCS_DIR)/LocationInfo.cpp \
 		$(SRCS_DIR)/Server.cpp \
 		$(SRCS_DIR)/Log.cpp \
-		$(SRCS_DIR)/CGI.cpp \
 		$(SRCS_DIR)/Request.cpp \
 		$(SRCS_DIR)/Director.cpp \
         $(SRCS_DIR)/Config.cpp \
