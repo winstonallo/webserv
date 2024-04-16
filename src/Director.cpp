@@ -448,6 +448,7 @@ int	Director::read_from_client(int client_fd)
 		try
 		{
 			ci->get_request()->init(requestmsg[client_fd]);
+			//std::cout << "Request: " << *ci->get_request() << std::endl;
 
 			// virtual servers, we go throug the servers and match the host name / server name 
 			std::vector<Server*> servers = config->get_servers();
