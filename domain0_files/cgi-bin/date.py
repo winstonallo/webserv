@@ -50,6 +50,4 @@ page += '''</b>
 </body>
 </html>
 '''
-print("HTTP/1.1 200 OK")
-print("Content-type: text/html\r\n\r\n")
 print(page);

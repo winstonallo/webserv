@@ -408,6 +408,8 @@ void	Server::create_response(Request& rq, CGI& cgi, ClientInfo* client_info)
 	ss << "\r\n";
 	if (!body.empty())
 		ss << body;
+
+	std::cout << body;
 	client_info->set_response(ss.str());
 	// _response = ss.str();
 }

@@ -492,6 +492,7 @@ int	Director::write_to_client(int fd)
 	ClientInfo*		cl = dynamic_cast<ClientInfo*>(nodes[fd]);
 
 	std::string content = cl->get_response();
+	//std::cout << content;
 	int sz = content.size();
 
 	if (sz < MSG_SIZE)
@@ -534,7 +535,7 @@ int	Director::write_to_client(int fd)
 	else
 	{
 		cl->set_time();
-		cl->get_server()->set_response(cl->get_server()->get_response().substr(num_bytes));
+		cl->get_server()->set_response(cl->get_response().substr(num_bytes));
 	}
 	return (0);
 }
