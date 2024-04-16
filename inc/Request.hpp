@@ -58,9 +58,10 @@ class Request
         void                        validate_uri(void);
         void                        pct_decode(void);
         void                        check_length(void);
-
+        void                        check_headers(void);
 };
 std::ostream& operator<<(std::ostream& os, const Request& req);
+int read_request(int client_fd, int size,std::string& requestmsg);
 
 #define BOLD "\033[1m"
 #define RESET "\033[0m"
