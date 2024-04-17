@@ -413,11 +413,11 @@ int	Director::read_from_client(int client_fd)
 			if (client_fd == fdmax)
 				fdmax--;
 		}
+		ci->get_request()->clean();
 		delete nodes[client_fd];
 		nodes.erase(client_fd);
 		close(client_fd);
 		requestmsg[client_fd].clear();
-		ci->get_request()->clean();
 		return 0;
 	}
 	else if (num == -1)
@@ -434,13 +434,13 @@ int	Director::read_from_client(int client_fd)
 			if (client_fd == fdmax)
 				fdmax--;
 		}
+		ci->get_request()->clean();
 		nodes.erase(client_fd);
 		close(client_fd);
 		std::stringstream ss;
 		ss << "Error reading from socket: " << client_fd << std::endl;
 		Log::log(ss.str(), ERROR_FILE | STD_ERR);
 		requestmsg[client_fd].clear();
-		ci->get_request()->clean();
 		return -1;	
 	}
 	else if (num != 2)

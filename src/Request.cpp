@@ -537,6 +537,18 @@ void Request::init(std::string request)
 }
 void Request::clean(void)
 {
+    this->method.clear();
+    this->uri.clear();
+    this->protocol.clear();
+    this->headers.clear();
+    this->body.clear();
+    this->host.clear();
+    this->port.clear();
+    this->path.clear();
+    this->query.clear();
+    this->fragment.clear();
+    this->userinfo.clear();
+    this->errcode = 0;
 }
 Request::Request(){
 
