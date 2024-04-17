@@ -383,15 +383,17 @@ int	Director::create_client_connection(int listener)
 
 int	Director::read_from_client(int client_fd)
 {
-	char			msg[MSG_SIZE];
-	char			remoteIP[INET6_ADDRSTRLEN];	
+	static std::map<int ,std::string>		requestmsg;
+	char			remoteIP[INET6_ADDRSTRLEN];
 	int				num = 0;
 
 	ClientInfo		*ci;
 
 	ci = dynamic_cast<ClientInfo *>(nodes[client_fd]);
-	memset(&msg, 0, MSG_SIZE);
-	num = read(client_fd, msg, MSG_SIZE);
+
+	num = read_request(client_fd, MSG_SIZE, requestmsg[client_fd]);
+	// std::cout << RED << "{num: " << num << std::endl;
+	// std::cout << RED << "requestmsg: \n" << requestmsg[client_fd] << "}" << std::endl;
 	if (!num)
 	{
 		std::stringstream ss;
@@ -414,6 +416,8 @@ int	Director::read_from_client(int client_fd)
 		delete nodes[client_fd];
 		nodes.erase(client_fd);
 		close(client_fd);
+		requestmsg[client_fd].clear();
+		ci->get_request()->clean();
 		return 0;
 	}
 	else if (num == -1)
@@ -435,15 +439,17 @@ int	Director::read_from_client(int client_fd)
 		std::stringstream ss;
 		ss << "Error reading from socket: " << client_fd << std::endl;
 		Log::log(ss.str(), ERROR_FILE | STD_ERR);
+		requestmsg[client_fd].clear();
+		ci->get_request()->clean();
 		return -1;	
 	}
-	else if (num != 0)
+	else if (num != 2)
 	{
 		ci->set_time();
 		try
 		{
-			ci->get_request()->init(msg);
-			memset(msg, 0, sizeof(msg));
+			ci->get_request()->init(requestmsg[client_fd]);
+			//std::cout << "Request: " << *ci->get_request() << std::endl;
 
 			// virtual servers, we go throug the servers and match the host name / server name 
 			std::vector<Server*> servers = config->get_servers();
@@ -477,6 +483,8 @@ int	Director::read_from_client(int client_fd)
 		{
 			std::cerr << e.what() << '\n';
 		}
+		ci->get_request()->clean();
+		requestmsg[client_fd].clear();
 	}
 	return 0;
 }
