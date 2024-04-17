@@ -386,7 +386,7 @@ void	Server::create_response(Request& rq, CGI& cgi, ClientInfo* client_info)
 
 	ss << "Content-Length: " << body.length()<< "\r\n";
 //	std::cout << "got content-length" << std::endl;
-
+//	std::cout << body.length() << std::endl;
 	if (!_reloc.empty())
 	{
 		ss << "Location: " << _reloc << "\r\n";

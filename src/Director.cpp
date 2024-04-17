@@ -544,7 +544,7 @@ int	Director::write_to_client(int fd)
 	else
 	{
 		cl->set_time();
-		cl->get_server()->set_response(cl->get_response().substr(num_bytes));
+		cl->set_response(cl->get_response().substr(num_bytes));
 	}
 	return (0);
 }
