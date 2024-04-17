@@ -108,7 +108,8 @@ int	Director::init_server(Server *si)
 		//si->set_addr((struct in_addr)p->ai_addr);
 		si->set_addr_len((size_t)p->ai_addrlen);
 
-		std::cout << "Server created on port: " << si->get_port() << std::endl;
+		std::cout << "Server created on localhost with domain name: " ;
+		std::cout << si->get_server_name()[0] << ", port: " << si->get_port() << std::endl;
 
 		//	print address
 		// struct sockaddr *address  = p->ai_addr;
@@ -503,7 +504,7 @@ int	Director::write_to_client(int fd)
 	if (num_bytes < 0)
 	{
 		std::stringstream ss;
-		ss << "Error sending a response: " << strerror(errno);
+		ss << "Error sending a response: " << strerror(errno) << std::endl;
 		Log::log(ss.str(), STD_ERR | ERROR_FILE);
 		if (FD_ISSET(fd, &write_fds))
 		{
@@ -518,7 +519,7 @@ int	Director::write_to_client(int fd)
 		close(fd);
 		nodes.erase(fd);
 	}
-	if (num_bytes == (int)(content.size()) || num_bytes == 0)
+	else if (num_bytes == (int)(content.size()) || num_bytes == 0)
 	{
 		std::stringstream ss;
 		ss << "Response sent to socket:" << fd << std::endl;;

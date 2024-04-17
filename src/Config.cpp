@@ -251,7 +251,7 @@ void	Config::configure_host(_map& server, Server*& new_server)
 
 	new_server->set_host_address(ip_address);
 
-	std::cout << inet_ntoa((new_server)->get_host_address()) << std::endl;
+	//std::cout << inet_ntoa((new_server)->get_host_address()) << std::endl;
 }
 
 // finds the server_name(s) in the server map and performs some error handling on them 

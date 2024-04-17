@@ -409,7 +409,7 @@ void	Server::create_response(Request& rq, CGI& cgi, ClientInfo* client_info)
 	if (!body.empty())
 		ss << body;
 
-	std::cout << body;
+	//std::cout << body;
 	client_info->set_response(ss.str());
 	// _response = ss.str();
 }
@@ -442,7 +442,7 @@ std::string		Server::_get_body(Request& rq)
 		if (file.fail())
 		{
 			_errcode = 400;
-			Log::log("Error reading request file", STD_ERR | ERROR_FILE); 
+			Log::log("Error reading request file\n", STD_ERR | ERROR_FILE); 
 			throw std::runtime_error("error");
 		}
 		std::ostringstream ss;

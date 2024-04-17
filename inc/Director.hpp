@@ -19,7 +19,7 @@
 #include "ClientInfo.hpp"
 #include "Config.hpp"
 
-#define MSG_SIZE 50000
+#define MSG_SIZE 40000
 #define TIMEOUT_TIME 30
 
 // purpose:	class that handles all connections wit select(ing) the 

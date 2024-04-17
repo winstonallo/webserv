@@ -10,6 +10,7 @@
 #include <netdb.h>
 #include <sys/stat.h>
 #include <dirent.h>
+#include <signal.h>
 #include "Node.hpp"
 #include "Request.hpp"
 #include "LocationInfo.hpp"

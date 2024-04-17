@@ -1,6 +1,12 @@
 #include "Server.hpp"
 #include "Director.hpp"
 
+void	pipe_signal_handler(int signal)
+{
+	if (signal)
+		return ;
+}
+
 int main(int argc, char **argv)
 {
 	if (argc != 1 && argc != 2)
@@ -11,6 +17,7 @@ int main(int argc, char **argv)
 	}
 	else
 	{
+		signal(SIGPIPE, pipe_signal_handler);
 		std::string	config_file;
 		if (argc == 2)
 			config_file = argv[1];
