@@ -385,16 +385,16 @@ int	Director::read_from_client(int client_fd)
 {
 	static std::map<int ,std::string>		requestmsg;
 	char			remoteIP[INET6_ADDRSTRLEN];
-	int				num = 0;
+	int				flag = 0;
 
 	ClientInfo		*ci;
 
 	ci = dynamic_cast<ClientInfo *>(nodes[client_fd]);
 
-	num = read_request(client_fd, MSG_SIZE, requestmsg[client_fd]);
-	// std::cout << RED << "{num: " << num << std::endl;
+	flag = read_request(client_fd, MSG_SIZE, requestmsg[client_fd]);
+	// std::cout << RED << "{flag: " << flag << std::endl;
 	// std::cout << RED << "requestmsg: \n" << requestmsg[client_fd] << "}" << std::endl;
-	if (!num)
+	if (!flag)
 	{
 		std::stringstream ss;
 		ss << "Connection closed by " << inet_ntop(AF_INET, get_in_addr((struct sockaddr *)&ci->get_addr()),
@@ -420,7 +420,7 @@ int	Director::read_from_client(int client_fd)
 		requestmsg[client_fd].clear();
 		return 0;
 	}
-	else if (num == -1)
+	else if (flag == -1)
 	{
 		if (FD_ISSET(client_fd, &write_fds))
 		{
@@ -443,7 +443,7 @@ int	Director::read_from_client(int client_fd)
 		requestmsg[client_fd].clear();
 		return -1;	
 	}
-	else if (num != 2)
+	else if (flag == READ)
 	{
 		ci->set_time();
 		try

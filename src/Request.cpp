@@ -204,7 +204,7 @@ int read_request(int client_fd, int size,std::string& requestmsg)
     if (requestmsg.find("\r\n\r\n") == std::string::npos  && buff.find("\r\n\r\n") == std::string::npos)
     {
         requestmsg.append(buff);
-        return 2;
+        return NOTREAD;
     }
     std::string chunked;
     if (requestmsg.find("Transfer-Encoding: chunked\r\n") != std::string::npos)
@@ -228,13 +228,13 @@ int read_request(int client_fd, int size,std::string& requestmsg)
 				unsigned int content_length_int = std::atoi(content_length.c_str());
 				//check if the body is complete
 				if (requestmsg.length() - requestmsg.find("\r\n\r\n") - 4 < content_length_int)
-					return 2;
+					return NOTREAD;
 				else if (requestmsg.length() - requestmsg.find("\r\n\r\n") - 4 > content_length_int)
                     {
                         // delete message after content-length
                         requestmsg = requestmsg.substr(0, requestmsg.find("\r\n\r\n") + 4 + content_length_int);
                     }
-				return 12;
+				return READ;
 			}
 			else if (requestmsg.find("Transfer-Encoding: chunked\r\n") != std::string::npos)
 			{
@@ -243,7 +243,7 @@ int read_request(int client_fd, int size,std::string& requestmsg)
                 size_t pos = requestmsg.find("\r\n\r\n");
                 //if not found send 13
                 if (pos == std::string::npos)
-                    return 13;
+                    return READ;
                 //if \r\n\r\n is not at the end of the message take the chunked part and dechunk it
                 if (pos != requestmsg.size() - 4 && first_read == 1)
                 {
@@ -261,12 +261,12 @@ int read_request(int client_fd, int size,std::string& requestmsg)
                     chunked.clear();
                 }
                 if (flag == 1)
-                    return 17;
-                return 2;
+                    return READ;
+                return NOTREAD;
 			}
 		}
 	}
-	return 14;
+	return READ;
 }
 void Request::pct_decode()
 {

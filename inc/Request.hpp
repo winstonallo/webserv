@@ -7,6 +7,8 @@
 #include <algorithm>
 
 #include "Utils.hpp"
+#define READ 5
+#define NOTREAD 2
 
 
 class Request
