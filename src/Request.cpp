@@ -191,7 +191,7 @@ static std::string dechunk(std::string chunked, int &flag)
     return dechunked;
 }
 
-int read_request(int client_fd, int size,std::string& requestmsg)
+int Request::read_request(int client_fd, int size,std::string& requestmsg)
 {
 	int num = 0;
     int first_read = 1;
@@ -401,6 +401,32 @@ void Request::validate_uri(void)
             throw std::runtime_error("Invalid path: " + path);
         }
         this->path = path;
+    }
+    //split path by /
+    std::vector<std::string> path_parts;
+    std::string part;
+    std::istringstream iss(this->path);
+    while (std::getline(iss, part, '/'))
+    {
+        path_parts.push_back(part);
+    }
+    int count = 0;
+    // add +1 if  element is not .. and -1 if it is if count < 0 means it went out of the root
+    for (size_t i = 0; i < path_parts.size(); i++)
+    {
+        if (path_parts[i] == "..")
+        {
+            count--;
+        }
+        else if (path_parts[i] != "")
+        {
+            count++;
+        }
+        if (count < 0)
+        {
+            this->errcode = 400;
+            throw std::runtime_error("Invalid path: .. goes out of root");
+        }
     }
     /* std::cout << "~Reading uri~ " << std::endl;
     std::cout << "userinfo: " <<    this->userinfo << std::endl;

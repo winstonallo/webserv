@@ -424,7 +424,7 @@ int	Director::read_from_client(int client_fd)
 
 	ci = dynamic_cast<ClientInfo *>(nodes[client_fd]);
 
-	flag = read_request(client_fd, MSG_SIZE, requestmsg[client_fd]);
+	flag = Request::read_request(client_fd, MSG_SIZE, requestmsg[client_fd]);
 	// std::cout << RED << "{flag: " << flag << std::endl;
 	// std::cout << RED << "requestmsg: \n" << requestmsg[client_fd] << "}" << std::endl;
 	if (!flag)
