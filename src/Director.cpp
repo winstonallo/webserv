@@ -273,8 +273,6 @@ int	Director::run_servers()
 					}
 
 				}
-
-
 			}
 		}
 		// Test for timeout of Clients
@@ -449,8 +447,8 @@ int	Director::read_from_client(int client_fd)
 				fdmax--;
 		}
 		ci->get_request()->clean();
-		delete nodes[client_fd];
 		nodes.erase(client_fd);
+		delete ci;
 		close(client_fd);
 		requestmsg[client_fd].clear();
 		return 0;
@@ -472,6 +470,7 @@ int	Director::read_from_client(int client_fd)
 		ci->get_request()->clean();
 		nodes.erase(client_fd);
 		close(client_fd);
+		delete ci;
 		std::stringstream ss;
 		ss << "Error reading from socket: " << client_fd << std::endl;
 		Log::log(ss.str(), ERROR_FILE | STD_ERR);
