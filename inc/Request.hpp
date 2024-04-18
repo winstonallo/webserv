@@ -39,6 +39,7 @@ class Request
         std::string get_fragment() const{ return this->fragment;}
         int get_errcode() const{ return this->errcode;}
         std::string get_header(const std::string& key) const;
+        static int read_request(int client_fd, int size,std::string& requestmsg);
 
 
 	private:
