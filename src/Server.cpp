@@ -373,45 +373,39 @@ void	Server::create_response(Request& rq, CGI& cgi, ClientInfo* client_info)
 		body = ss.str();
 	}
 	
-//	std::cout << "got HTTP" << std::endl;
 	ss << "HTTP/1.1 " << _errcode << " " << _status_string[_errcode]  << "\r\n";
 	time_t	curr_time = time(NULL);
 	struct tm tim = *gmtime(&curr_time);
 	strftime(buf, sizeof(buf), "%a, %d, %b %Y %H:%M:%S %Z", &tim);
 	ss << "Date: " << buf << "\r\n";
-//	std::cout << "got date" << std::endl;
-
 	ss << "Server: Awesome SAD Server/1.0" << "\r\n";
-//	std::cout << "got server" << std::endl;
-
 	ss << "Content-Length: " << body.length()<< "\r\n";
-//	std::cout << "got content-length" << std::endl;
-//	std::cout << body.length() << std::endl;
 	if (!_reloc.empty())
 	{
 		ss << "Location: " << _reloc << "\r\n";
-//		std::cout << "got location" << std::endl;
 	}
 	ex = Utils::get_file_extension(rq.get_path()); 
 	if (_errcode != 200 || ex == "")
 		ex = "default";
 	ss << "Content-Type: " << _content_type[ex] << "\r\n";
-//	std::cout << "Content-Type: " << _content_type[ex] << "\r\n";
-//	std::cout << "got content-type" << std::endl;
-//	std::cout << rq.get_header("CONNECTION") << std::endl;
 	if (rq.get_header("CONNECTION").empty())
 	{
-		std::cout << "got in connections" << std::endl;
+		// std::cout << "got in connections" << std::endl;
 		ss << "Connection: " << rq.get_header("CONNECTION") << "\r\n";
-		std::cout << "got connection" << std::endl;
+		// std::cout << "got connection" << std::endl;
 	}
 	ss << "\r\n";
 	if (!body.empty())
 		ss << body;
+	std::ofstream f("show.txt", std::ios::out);
+	if (!f.is_open())
+	{
+		std::cerr << "Error op file" << std::endl;
+	}
+	f << ss.str();
+	f.close();
 
-	//std::cout << body;
 	client_info->set_response(ss.str());
-	// _response = ss.str();
 }
 
 std::string		Server::_get_body(Request& rq)

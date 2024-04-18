@@ -1,6 +1,7 @@
 #include "Director.hpp"
 #include <string.h>
 #include <string>
+#include <map>
 #include "Log.hpp"
 #include "Utils.hpp"
 
@@ -272,7 +273,42 @@ int	Director::run_servers()
 					}
 
 				}
+
+
 			}
+		}
+		// Test for timeout of Clients
+		for (std::map<int, Node*>::iterator iter = nodes.begin(); iter != nodes.end(); )
+		{
+			if (iter->second->get_type() == CLIENT_NODE)
+			{
+				ClientInfo *ci = static_cast<ClientInfo *>(iter->second);
+				time_t current_time = time(NULL);
+				if (current_time - ci->get_prev_time() > TIMEOUT_TIME)
+				{
+					std::stringstream ss;
+					ss << "Client: " << iter->first << " timed out. Closing connection.";
+					Log::log(ss.str(), STD_OUT);
+					if (FD_ISSET(iter->first, &write_fds))
+					{
+						FD_CLR(iter->first, &write_fds);
+						if (iter->first == fdmax)
+							fdmax--;
+					}
+					if (FD_ISSET(iter->first, &read_fds))
+					{
+						FD_CLR(iter->first, &read_fds);
+						if (iter->first == fdmax)
+							fdmax--;
+					}
+					close(iter->first);
+					nodes.erase(iter++);
+					delete ci;
+					continue;
+				}
+			}
+			else
+				++iter;
 		}
 /*
 		char	remoteIP[INET6_ADDRSTRLEN];	
@@ -384,10 +420,9 @@ int	Director::create_client_connection(int listener)
 int	Director::read_from_client(int client_fd)
 {
 	static std::map<int ,std::string>		requestmsg;
-	char			remoteIP[INET6_ADDRSTRLEN];
-	int				flag = 0;
-
-	ClientInfo		*ci;
+	char									remoteIP[INET6_ADDRSTRLEN];
+	int										flag = 0;
+	ClientInfo								*ci;
 
 	ci = dynamic_cast<ClientInfo *>(nodes[client_fd]);
 
@@ -449,6 +484,7 @@ int	Director::read_from_client(int client_fd)
 		try
 		{
 			ci->get_request()->init(requestmsg[client_fd]);
+			
 			//std::cout << "Request: " << *ci->get_request() << std::endl;
 
 			// virtual servers, we go throug the servers and match the host name / server name 
@@ -540,6 +576,7 @@ int	Director::write_to_client(int fd)
 		FD_SET(fd, &read_fds);
 		if (fd == fdmax) { fdmax=fd; }  
 		cl->get_server()->reset();
+		cl->clear_response();
 	}
 	else
 	{

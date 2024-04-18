@@ -48,6 +48,5 @@ page += '''</b>
 	</form>
 </div>
 </body>
-</html>
-'''
+</html>'''
 print(page);

@@ -76,6 +76,10 @@ void	ClientInfo::clear_response()
 	_response.clear();
 }
 
+void	ClientInfo::clear_request()
+{
+	_request.clean();
+}
 
 
 // void	ClientInfo::set_request(Request rq)

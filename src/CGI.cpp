@@ -17,6 +17,7 @@ CGI::CGI(char** env)
 {
     _response_body = "";
     _env = env;
+	_env = new char *[7];
 }
 
 void    CGI::initialize_environment_map(Request& request)
@@ -181,7 +182,7 @@ std::string CGI::execute(std::vector <LocationInfo *> locations)
 {
     LocationInfo* location = get_location(_env_map["SCRIPT_NAME"], locations);
     int          request_fd[2], response_fd[2];
-    char**       arguments = set_arguments("files/" + _env_map["SCRIPT_NAME"], location);
+    char**       arguments = set_arguments("domain0_files/" + _env_map["SCRIPT_NAME"], location);
 
     set_pipes(request_fd, response_fd);
     pid_t pid = fork();
