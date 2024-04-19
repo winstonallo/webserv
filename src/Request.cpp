@@ -402,16 +402,19 @@ void Request::validate_uri(void)
         }
         this->path = path;
     }
-    //split path by /
+
+    //read path and count .. so it does not go out of root
+    // split path by /
     std::vector<std::string> path_parts;
-    std::string part;
     std::istringstream iss(this->path);
+    std::string part;
     while (std::getline(iss, part, '/'))
     {
+        std::cout <<"{" <<part <<"}" <<std::endl;
         path_parts.push_back(part);
     }
     int count = 0;
-    // add +1 if  element is not .. and -1 if it is if count < 0 means it went out of the root
+    // add +1 if  element is not .. and -1 if it is
     for (size_t i = 0; i < path_parts.size(); i++)
     {
         if (path_parts[i] == "..")
@@ -428,6 +431,12 @@ void Request::validate_uri(void)
             throw std::runtime_error("Invalid path: .. goes out of root");
         }
     }
+
+
+
+
+
+
     /* std::cout << "~Reading uri~ " << std::endl;
     std::cout << "userinfo: " <<    this->userinfo << std::endl;
     std::cout << "host: " <<        this->host << std::endl;

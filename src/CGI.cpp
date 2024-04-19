@@ -33,7 +33,6 @@ void    CGI::initialize_environment_map(Request& request)
     _env_map["SERVER_NAME"] = request.get_host();
 	_env_map["HTTP_COOKIE"] = request.get_header("COOKIE");
 
-
     int i = 0;
 
     for (std::map <std::string, std::string>::iterator it = _env_map.begin(); _env[i] && it != _env_map.end(); it++)
