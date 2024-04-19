@@ -5,7 +5,7 @@
 #include "Log.hpp"
 #include "Utils.hpp"
 
-Director::Director(const std::string& config_path):fdmax(-1), config(new Config(config_path)), _cgi(CGI())
+Director::Director(const std::string& config_path):fdmax(-1), config(new Config(config_path))
 {
 
 }
@@ -276,38 +276,37 @@ int	Director::run_servers()
 			}
 		}
 		// Test for timeout of Clients
-		for (std::map<int, Node*>::iterator iter = nodes.begin(); iter != nodes.end(); )
-		{
-			if (iter->second->get_type() == CLIENT_NODE)
-			{
-				ClientInfo *ci = static_cast<ClientInfo *>(iter->second);
-				time_t current_time = time(NULL);
-				if (current_time - ci->get_prev_time() > TIMEOUT_TIME)
-				{
-					std::stringstream ss;
-					ss << "Client: " << iter->first << " timed out. Closing connection.";
-					Log::log(ss.str(), STD_OUT);
-					if (FD_ISSET(iter->first, &write_fds))
-					{
-						FD_CLR(iter->first, &write_fds);
-						if (iter->first == fdmax)
-							fdmax--;
-					}
-					if (FD_ISSET(iter->first, &read_fds))
-					{
-						FD_CLR(iter->first, &read_fds);
-						if (iter->first == fdmax)
-							fdmax--;
-					}
-					close(iter->first);
-					nodes.erase(iter++);
-					delete ci;
-					continue;
-				}
-			}
-			else
-				++iter;
-		}
+		// for (std::map<int, Node*>::iterator iter = nodes.begin(); iter != nodes.end(); )
+		// {
+		// 	if (iter->second->get_type() == CLIENT_NODE)
+		// 	{
+		// 		ClientInfo *ci = static_cast<ClientInfo *>(iter->second);
+		// 		time_t current_time = time(NULL);
+		// 		if (current_time - ci->get_prev_time() > TIMEOUT_TIME)
+		// 		{
+		// 			std::stringstream ss;
+		// 			ss << "Client: " << iter->first << " timed out. Closing connection.";
+		// 			Log::log(ss.str(), STD_OUT);
+		// 			if (FD_ISSET(iter->first, &write_fds))
+		// 			{
+		// 				FD_CLR(iter->first, &write_fds);
+		// 				if (iter->first == fdmax)
+		// 					fdmax--;
+		// 			}
+		// 			if (FD_ISSET(iter->first, &read_fds))
+		// 			{
+		// 				FD_CLR(iter->first, &read_fds);
+		// 				if (iter->first == fdmax)
+		// 					fdmax--;
+		// 			}
+		// 			close(iter->first);
+		// 			nodes.erase(iter++);
+		// 			delete ci;
+		// 		}
+		// 	}
+		// 	else
+		// 		++iter;
+		// }
 /*
 		char	remoteIP[INET6_ADDRSTRLEN];	
 		//timeout for clients
@@ -479,12 +478,16 @@ int	Director::read_from_client(int client_fd)
 	}
 	else if (flag == READ)
 	{
-		ci->set_time();
+		ci->set_time(); //TODO this should be in the read request 
 		try
 		{
 			ci->get_request()->init(requestmsg[client_fd]);
-			
-			//std::cout << "Request: " << *ci->get_request() << std::endl;
+
+			// print Request parsed log
+			std::stringstream ss;
+			ss << "Request: " << client_fd << " parsed: " << ci->get_request()->get_method();
+			ss << " " << ci->get_request()->get_path() << std::endl;
+			Log::log(ss.str(), STD_OUT);	
 
 			// virtual servers, we go throug the servers and match the host name / server name 
 			std::vector<Server*> servers = config->get_servers();
@@ -507,8 +510,16 @@ int	Director::read_from_client(int client_fd)
 				}
 			}
 
-			ci->get_server()->create_response(*ci->get_request(), _cgi, ci);
-
+			ci->get_server()->create_response(*ci->get_request(), ci);
+			if (ci->is_cgi())
+			{
+				FD_SET(ci->get_cgi().request_fd[1], &write_fds);
+				if (ci->get_cgi().request_fd[1] > fdmax)
+					fdmax = ci->get_cgi().request_fd[1];
+				FD_SET(ci->get_cgi().response_fd[0], &read_fds);
+				if (ci->get_cgi().response_fd[0] > fdmax)
+					fdmax = ci->get_cgi().response_fd[0];
+			}	
 			FD_CLR(client_fd, &read_fds);
 			if (client_fd == fdmax)	fdmax--;
 			FD_SET(client_fd, &write_fds);
@@ -567,15 +578,38 @@ int	Director::write_to_client(int fd)
 		std::stringstream ss;
 		ss << "Response sent to socket:" << fd << std::endl;;
 		Log::log(ss.str(), STD_OUT);
-		if (FD_ISSET(fd, &write_fds))
+		//cl->get_request()->get_header("KEEP-ALIVE") != "keep-alive" ||
+		if(	cl->get_request()->get_errcode() ||
+			cl->is_cgi())
 		{
-			FD_CLR(fd, &write_fds);
-			if (fd == fdmax) { fdmax--; }  
+			std::stringstream ss;
+			ss << "Closing client connection on: " << fd;
+			Log::log(ss.str(), STD_OUT );
+			if (FD_ISSET(fd, &write_fds))
+			{
+				FD_CLR(fd, &write_fds);
+				if (fd == fdmax) { fdmax--; }  
+			}
+			if (FD_ISSET(fd, &read_fds))
+			{
+				FD_CLR(fd, &read_fds);
+				if (fd == fdmax) { fdmax--; }  
+			}
+			close(fd);
+			nodes.erase(fd);
 		}
-		FD_SET(fd, &read_fds);
-		if (fd == fdmax) { fdmax=fd; }  
-		cl->get_server()->reset();
-		cl->clear_response();
+		else
+		{
+			if (FD_ISSET(fd, &write_fds))
+			{
+				FD_CLR(fd, &write_fds);
+				if (fd == fdmax) { fdmax--; }  
+			}
+			FD_SET(fd, &read_fds);
+			if (fd == fdmax) { fdmax=fd; }  
+			cl->get_server()->reset();
+			cl->clear_response();
+		}
 	}
 	else
 	{

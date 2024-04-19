@@ -67,7 +67,7 @@ class Server : public Node
 		void								set_relocation(const std::string& rel);
 		std::string							get_response() const;
 		void								set_response(const std::string& rs);
-		void								create_response(Request&, CGI& cgi, ClientInfo* client_info);
+		void								create_response(Request&, ClientInfo* client_info);
 		void								reset();
 
 	private:
@@ -91,8 +91,8 @@ class Server : public Node
 //Server
 		void								_init_status_strings();
 		void								_init_content_types();
-		std::string							_get_body(Request& rq);
-		int									_process(Request &rq, std::string& loc_path);
+		std::string							_get_body(Request& rq, ClientInfo *ci);
+		int									_process(Request &rq, ClientInfo* ci, std::string& loc_path);
 		void								_get_best_location_match(std::vector<LocationInfo*> locs, 
 														Request& rq, std::string& best_match, 
 														LocationInfo* locinfo);

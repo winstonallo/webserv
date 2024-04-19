@@ -12,12 +12,14 @@
 #include <sys/select.h>
 #include "Utils.hpp"
 #include "Request.hpp"
+#include "Log.hpp"
 
 CGI::CGI(char** env)
 {
     _response_body = "";
     _env = env;
-	_env = new char *[7];
+	_env = new char *[8];
+	_errcode = 0;
 }
 
 void    CGI::initialize_environment_map(Request& request)
@@ -29,6 +31,8 @@ void    CGI::initialize_environment_map(Request& request)
     _env_map["REQUEST_METHOD"] = request.get_method();
     _env_map["SCRIPT_NAME"] = Utils::get_cgi_script_name(request.get_uri());
     _env_map["SERVER_NAME"] = request.get_host();
+	_env_map["HTTP_COOKIE"] = request.get_header("COOKIE");
+
 
     int i = 0;
 
@@ -43,18 +47,15 @@ void    CGI::initialize_environment_map(Request& request)
 
 char** CGI::set_arguments(const std::string& command, LocationInfo*& location)
 {
-    char** arguments = new char*[4];
+    char** arguments = new char*[3];
 
-    arguments[0] = new char[strlen("/usr/bin/env") + 1];
-    strcpy(arguments[0], "/usr/bin/env");
+    arguments[0] = new char[location->get_cgi_handler().size() + 1];
+    strcpy(arguments[0], location->get_cgi_handler().c_str());
 
-    arguments[1] = new char[location->get_cgi_handler().size() + 1];
-    strcpy(arguments[1], location->get_cgi_handler().c_str());
-
-    arguments[2] = new char[command.size() + 1];
+    arguments[1] = new char[command.size() + 1];
     strcpy(arguments[2], command.c_str());
 
-    arguments[3] = NULL;
+    arguments[2] = NULL;
 
     return arguments;
 }
@@ -63,11 +64,15 @@ void    CGI::set_pipes(int request_fd[2], int response_fd[2])
 {
     if (pipe(request_fd) == -1)
     {
+		_errcode = 500;
+		Log::log("Error. CGI Request pipe failed.", STD_ERR | ERROR_FILE);
         throw std::runtime_error("pipe() failure");
     }
     if (pipe(response_fd) == -1)
     {
-        close_pipes(2, request_fd[0], request_fd[0]);
+		Log::log("Error. CGI Response pipe failed.", STD_ERR | ERROR_FILE);
+		_errcode = 500;
+        close_pipes(2, request_fd[0], request_fd[1]);
         throw std::runtime_error("pipe() failure");
     }
 }
@@ -78,13 +83,14 @@ void    CGI::execute_script(int request_fd[2], int response_fd[2], char** argume
 
     if (dup2(response_fd[1], STDOUT_FILENO) == -1 || dup2(request_fd[0], STDIN_FILENO) == -1)
     {
+		Log::log("Error. CGI dup2 failed.", STD_ERR | ERROR_FILE);
         _exit(errno);
     }
     close_pipes(2, response_fd[1], request_fd[0]);
 
-    execve(arguments[0], arguments, _env);
+    _exit_status = execve(arguments[0], arguments, _env);
     delete_char_array(arguments);
-    _exit(errno);
+    exit(_exit_status);
 }
 
 void CGI::parent(pid_t pid, int request_fd[2], int response_fd[2], char** arguments)
@@ -178,11 +184,10 @@ LocationInfo*    CGI::get_location(const std::string& script, std::vector <Locat
     throw std::runtime_error("no valid cgi found for " + script);
 }
 
-std::string CGI::execute(std::vector <LocationInfo *> locations)
+std::string CGI::execute(std::vector <LocationInfo *> locations, const std::string& sfp)
 {
     LocationInfo* location = get_location(_env_map["SCRIPT_NAME"], locations);
-    int          request_fd[2], response_fd[2];
-    char**       arguments = set_arguments("domain0_files/" + _env_map["SCRIPT_NAME"], location);
+    char**       arguments = set_arguments(sfp, location);
 
     set_pipes(request_fd, response_fd);
     pid_t pid = fork();
@@ -196,7 +201,7 @@ std::string CGI::execute(std::vector <LocationInfo *> locations)
     }
     else
     {
-        parent(pid, request_fd, response_fd, arguments);
+    //    parent(pid, request_fd, response_fd, arguments);
     }
     return _response_body;
 }
@@ -232,6 +237,7 @@ void    CGI::clear()
     _response_body.clear();
     _locations.clear();
     _env_map.clear();
+	_errcode = 0;
 }
 
 CGI::~CGI()

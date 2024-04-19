@@ -320,7 +320,7 @@ void	Server::_init_content_types()
     _content_type[".mp3"] 	= 	"audio/mp3";
 }
 
-void	Server::create_response(Request& rq, CGI& cgi, ClientInfo* client_info)
+void	Server::create_response(Request& rq, ClientInfo* client_info)
 {
 	std::stringstream 	ss;
 	std::string 		ex;
@@ -332,18 +332,7 @@ void	Server::create_response(Request& rq, CGI& cgi, ClientInfo* client_info)
 	{
 		try
 		{
-			if (rq.get_uri().find("/cgi-bin/") != std::string::npos)
-			{
-
-				cgi.initialize_environment_map(rq);
-			    body =  cgi.execute(client_info->get_server()->get_locations()) + "]";
-				cgi.clear();
-				
-			}
-			else 
-			{
-				body = _get_body(rq);
-			}
+			body = _get_body(rq, client_info);
 		}
 		catch(const std::exception& e)
 		{
@@ -379,7 +368,7 @@ void	Server::create_response(Request& rq, CGI& cgi, ClientInfo* client_info)
 	strftime(buf, sizeof(buf), "%a, %d, %b %Y %H:%M:%S %Z", &tim);
 	ss << "Date: " << buf << "\r\n";
 	ss << "Server: Awesome SAD Server/1.0" << "\r\n";
-	ss << "Content-Length: " << body.length()<< "\r\n";
+	ss << "Content-Length: " << body.length() << "\r\n";
 	if (!_reloc.empty())
 	{
 		ss << "Location: " << _reloc << "\r\n";
@@ -408,15 +397,19 @@ void	Server::create_response(Request& rq, CGI& cgi, ClientInfo* client_info)
 	client_info->set_response(ss.str());
 }
 
-std::string		Server::_get_body(Request& rq)
+std::string		Server::_get_body(Request& rq, ClientInfo *ci)
 {
 	std::string	loc_path;
 	std::string listing_body;
 
-	_errcode = _process(rq, loc_path);
+	_errcode = _process(rq, ci, loc_path);
 	if (_errcode)
 	{
 		throw std::runtime_error("error");
+	}
+	if (ci->is_cgi())
+	{
+		return 0;
 	}
 	if (rq.get_method() == "GET" || rq.get_method() == "HEAD")
 	{
@@ -480,7 +473,7 @@ std::string		Server::_get_body(Request& rq)
 	return "";
 }
 
-int		Server::_process(Request& rq, std::string& ret_file)
+int		Server::_process(Request& rq, ClientInfo* ci, std::string& ret_file)
 {
 	//std::string ret_file;
 	LocationInfo loc_info;
@@ -534,8 +527,11 @@ int		Server::_process(Request& rq, std::string& ret_file)
 			std::vector<std::string> allowed_methods = loc_info.get_allowed_methods();
 			if (std::find(allowed_methods.begin(), allowed_methods.end(), rq.get_method()) != allowed_methods.end())
 				return (_errcode = 405);
-
-			
+			ci->get_cgi().clear();
+			ci->set_is_cgi(true);
+			ci->get_cgi().initialize_environment_map(rq);
+			ci->get_cgi().execute(_locations, script_file_path);
+			return 0;
 		}
 		// handle alias || create loc_path path
 		if (loc_info.get_alias().empty() == false) 

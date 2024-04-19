@@ -48,7 +48,6 @@ class Director
 		Config*							config;
 		std::map<int, Node*>			nodes;
 		fd_set							read_fds, write_fds;
-		CGI								_cgi;
 };
 
 #endif

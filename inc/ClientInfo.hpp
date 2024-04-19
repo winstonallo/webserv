@@ -25,6 +25,10 @@ class ClientInfo : public Node
 
 		time_t						get_prev_time() const;
 		void						set_prev_time(time_t tm);
+		CGI&						get_cgi();
+		void						set_cgi(CGI* cg);
+		bool						is_cgi() const;
+		void						set_is_cgi(bool);
 		void						set_time();
 		Server*						get_server() const;
 		void						set_server(Server* si);
@@ -39,6 +43,8 @@ class ClientInfo : public Node
 		Request						_request;
 		std::string					_response;
 		time_t						_prev_time;
+		CGI							_cgi;
+		bool						_isCGI;
 };
 
 #endif
