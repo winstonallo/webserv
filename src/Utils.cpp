@@ -433,10 +433,10 @@ namespace Utils
 		std::string	client_ip_str = inet_ntoa(((struct sockaddr_in*)&client_addr)->sin_addr);
 		std::string	client_port = Utils::itoa(ntohs(((struct sockaddr_in*)&client_addr)->sin_port));
 
-		Log::log("client connection from " + client_ip_str +
-			":" + client_port + " on socket " +
-			socket + " for server " + server_name +
-			" (" + server_ip + ":" + server_port + ")\n", STD_OUT | ACCEPT_FILE);
+		Log::log("Accept Connection: " + client_ip_str +
+			":" + client_port + ": " +
+			socket + "->" + server_name + "\n", STD_OUT | ACCEPT_FILE);
+//			" (" + server_ip + ":" + server_port + ")\n", STD_OUT | ACCEPT_FILE);
 	}
 
 	std::string	get_cgi_script_name(const std::string &uri)

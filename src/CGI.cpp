@@ -183,7 +183,7 @@ LocationInfo*    CGI::get_location(const std::string& script, std::vector <Locat
     throw std::runtime_error("no valid cgi found for " + script);
 }
 
-std::string CGI::execute(std::vector <LocationInfo *> locations, const std::string& sfp)
+pid_t	CGI::execute(std::vector <LocationInfo *> locations, const std::string& sfp)
 {
     LocationInfo* location = get_location(_env_map["SCRIPT_NAME"], locations);
     char**       arguments = set_arguments(sfp, location);
@@ -197,12 +197,14 @@ std::string CGI::execute(std::vector <LocationInfo *> locations, const std::stri
     else if (pid == 0)
     {
         execute_script(request_fd, response_fd, arguments);
+		return 0; // should never reach here
     }
     else
     {
+		return pid;	
     //    parent(pid, request_fd, response_fd, arguments);
     }
-    return _response_body;
+	return pid; // should never reach here
 }
 
 // variadic function to close pipes to avoid

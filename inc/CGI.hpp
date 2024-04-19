@@ -12,7 +12,7 @@ class CGI
 {
     public:
 
-        std::string                             execute(std::vector <LocationInfo *> locations, const std::string& sfp);
+        pid_t		                            execute(std::vector <LocationInfo *> locations, const std::string& sfp);
         void                                    initialize_environment_map(Request& request);
         void                                    clear();
 

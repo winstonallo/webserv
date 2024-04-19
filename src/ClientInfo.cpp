@@ -1,8 +1,9 @@
 #include "ClientInfo.hpp"
 
-ClientInfo::ClientInfo():_cgi(CGI())
+ClientInfo::ClientInfo()
 {
 	_isCGI = false;
+	_cgi = NULL;
 }
 
 ClientInfo::~ClientInfo()
@@ -11,11 +12,13 @@ ClientInfo::~ClientInfo()
 }
 
 ClientInfo::ClientInfo(int tfd, const struct sockaddr_storage& address, size_t taddrlen) :
-	Node(tfd, address, taddrlen, CLIENT_NODE), _cgi(CGI())
+	Node(tfd, address, taddrlen, CLIENT_NODE), _cgi(NULL)
 {
 	type = CLIENT_NODE;
 	_isCGI = false;
 	_prev_time = time(NULL);
+	_pid = -1;
+	_fin = false;
 }
 
 ClientInfo::ClientInfo(const ClientInfo& rhs) : Node()
@@ -33,9 +36,14 @@ ClientInfo&	ClientInfo::operator=(const ClientInfo& rhs)
 	return (*this);
 }
 
-CGI&	ClientInfo::get_cgi()
+CGI*	ClientInfo::get_cgi()
 {
 	return _cgi;
+}
+
+void	ClientInfo::set_cgi(CGI *cg)
+{
+	_cgi = cg; 
 }
 
 time_t	ClientInfo::get_prev_time() const
@@ -78,7 +86,7 @@ Request*	ClientInfo::get_request()
 	return &_request;
 }
 
-std::string	ClientInfo::get_response() const
+std::string&	ClientInfo::get_response()
 {
 	return _response;
 }
@@ -98,7 +106,25 @@ void	ClientInfo::clear_request()
 	_request.clean();
 }
 
+int		ClientInfo::get_pid() const
+{
+	return _pid;
+}
 
+void	ClientInfo::set_pid(int p)
+{
+	_pid = p;
+}
+
+bool	ClientInfo::get_fin() const
+{
+	return _fin;
+}
+
+void	ClientInfo::set_fin(bool f)
+{
+	_fin = f;
+}
 // void	ClientInfo::set_request(Request rq)
 // {
 // 	request = rq;

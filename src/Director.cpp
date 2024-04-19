@@ -2,6 +2,7 @@
 #include <string.h>
 #include <string>
 #include <map>
+#include <sys/wait.h>
 #include "Log.hpp"
 #include "Utils.hpp"
 
@@ -218,10 +219,12 @@ int	Director::init_servers()
 // return: int -> -1 if there was an error 0 if successfull
 int	Director::run_servers()
 {
-	int ret;
-	fd_set readfds_backup;
-	fd_set writefds_backup;
-	struct timeval timeout_time;
+	int 						ret;
+	fd_set 						readfds_backup;
+	fd_set 						writefds_backup;
+	struct timeval 				timeout_time;
+	ClientInfo* 				cl;
+
 	while (true)
 	{
 		readfds_backup = read_fds;
@@ -253,6 +256,7 @@ int	Director::run_servers()
 				}
 				else if (nodes[i]->get_type() == CLIENT_NODE) 
 				{
+					cl = static_cast<ClientInfo*>(nodes[i]);
 					if (FD_ISSET(i, &readfds_backup))
 					{
 						if(read_from_client(i) < 0)
@@ -264,11 +268,100 @@ int	Director::run_servers()
 					}
 					if (FD_ISSET(i, &write_fds))
 					{
-						if(write_to_client(i) < 0)
+						// give request body to CGI
+						if (cl->is_cgi() && FD_ISSET(cl->get_cgi()->request_fd[1], &writefds_backup))
 						{
-							std::stringstream ss;
-							ss << "Error writing to client." << std::endl;
-							Log::log(ss.str(), ERROR_FILE | STD_ERR);
+							int send;
+
+							std::string&	reqb = cl->get_request()->get_body();
+							if (!reqb.size())
+								send = 0;
+							else if (reqb.size() >= MSG_SIZE)
+								send = write(cl->get_cgi()->request_fd[1], reqb.c_str(), MSG_SIZE);
+							else
+								send = write(cl->get_cgi()->request_fd[1], reqb.c_str(), reqb.size());
+							if (send < 0)
+							{
+								std::stringstream ss;
+								ss << "Error sending request body to CGI: " << strerror(errno);
+								Log::log(ss.str(), STD_ERR | ERROR_FILE);
+								FD_CLR(cl->get_cgi()->request_fd[1], &writefds_backup);
+								if (cl->get_cgi()->request_fd[1] == fdmax)
+									fdmax--;
+								close(cl->get_cgi()->request_fd[1]);
+								close(cl->get_cgi()->request_fd[0]);
+								//send error page back
+							}
+							else if (send == 0 || (size_t) send == reqb.size())
+							{
+								FD_CLR(cl->get_cgi()->request_fd[1], &writefds_backup);
+								if (cl->get_cgi()->request_fd[1] == fdmax)
+									fdmax--;
+								
+								close(cl->get_cgi()->request_fd[1]);
+								close(cl->get_cgi()->request_fd[0]);
+							}
+							else
+							{
+								cl->set_time();
+								reqb = reqb.substr(send);
+							}
+						}
+						//return from cgi
+						else if (cl->get_cgi() && FD_ISSET(cl->get_cgi()->response_fd[0], &readfds_backup))
+						{
+							char	msg[MSG_SIZE * 4];
+							int		receive = 0;
+							int		status = 0;
+
+							receive = read(cl->get_cgi()->response_fd[0], msg, MSG_SIZE * 4);
+
+							if (receive == 0)
+							{
+								FD_CLR(cl->get_cgi()->response_fd[0], &readfds_backup);
+								if (cl->get_cgi()->response_fd[0] == fdmax)
+									fdmax--;
+								close(cl->get_cgi()->response_fd[0]);
+								close(cl->get_cgi()->response_fd[1]);
+								waitpid(cl->get_pid(), &status, 0);
+								if (WIFEXITED(status) != 0)
+								{
+									//cl->set_error_response(502);
+								}
+								cl->set_fin(true);
+								if (cl->get_response().find("HTTP/1.1") == std::string::npos)
+									cl->get_response().insert(0, "HTTP/1.1 200 OK\r\n");
+								return 0;
+							}
+							else if (receive < 0)
+							{
+								std::stringstream ss;
+								ss << "Error reading CGI response: " << strerror(errno);
+								Log::log(ss.str(), STD_ERR | ERROR_FILE);
+								FD_CLR(cl->get_cgi()->response_fd[0], &readfds_backup);
+								if (cl->get_cgi()->response_fd[0] == fdmax)
+									fdmax--;
+								close(cl->get_cgi()->request_fd[0]);
+								close(cl->get_cgi()->response_fd[0]);
+								cl->set_fin(true);
+								//cl->set_error_response();
+								return -1;
+							}
+							else
+							{
+								cl->set_time();
+								cl->get_response().append(msg, receive);
+								memset(msg, 0, sizeof(msg));
+							}
+						}
+						else if ((cl->is_cgi() == 0 || cl->get_fin() == true) && FD_ISSET(i, &writefds_backup))
+						{
+							if(write_to_client(i) < 0)
+							{
+								std::stringstream ss;
+								ss << "Error writing to client." << std::endl;
+								Log::log(ss.str(), ERROR_FILE | STD_ERR);
+							}
 						}
 					}
 
@@ -478,60 +571,59 @@ int	Director::read_from_client(int client_fd)
 	}
 	else if (flag == READ)
 	{
-		ci->set_time(); //TODO this should be in the read request 
 		try
 		{
 			ci->get_request()->init(requestmsg[client_fd]);
-
-			// print Request parsed log
-			std::stringstream ss;
-			ss << "Request: " << client_fd << " parsed: " << ci->get_request()->get_method();
-			ss << " " << ci->get_request()->get_path() << std::endl;
-			Log::log(ss.str(), STD_OUT);	
-
-			// virtual servers, we go throug the servers and match the host name / server name 
-			std::vector<Server*> servers = config->get_servers();
-			std::vector<Server*>::iterator it;
-			for (it = servers.begin(); it != servers.end(); it++)
-			{
-				// std::cout << (*it)->get_host_address().s_addr << " " << (*it)->get_port();
-				// std::cout << " " << (*it)->get_server_name()[0] << ",host: " << ci->get_request()->get_header("HOST") <<  std::endl;
-				if ((*it)->get_host_address().s_addr == ci->get_server()->get_host_address().s_addr &&
-				(*it)->get_port() == ci->get_server()->get_port())
-				{
-					std::vector<std::string> host_names = (*it)->get_server_name(); 
-					std::vector<std::string>::iterator host_it;
-					std::string host_header = Utils::to_lower(ci->get_request()->get_header("HOST"));
-					for (host_it = host_names.begin(); host_it != host_names.end(); host_it++) 
-					{
-						if (Utils::to_lower(*host_it) == host_header)	
-							ci->set_server(*it);
-					}
-				}
-			}
-
-			ci->get_server()->create_response(*ci->get_request(), ci);
-			if (ci->is_cgi())
-			{
-				FD_SET(ci->get_cgi().request_fd[1], &write_fds);
-				if (ci->get_cgi().request_fd[1] > fdmax)
-					fdmax = ci->get_cgi().request_fd[1];
-				FD_SET(ci->get_cgi().response_fd[0], &read_fds);
-				if (ci->get_cgi().response_fd[0] > fdmax)
-					fdmax = ci->get_cgi().response_fd[0];
-			}	
-			FD_CLR(client_fd, &read_fds);
-			if (client_fd == fdmax)	fdmax--;
-			FD_SET(client_fd, &write_fds);
-			if (client_fd > fdmax)	fdmax = client_fd;
 		}
 		catch(const std::exception& e)
 		{
 			std::cerr << e.what() << '\n';
+			return -1;
 		}
+		// print Request parsed log
+		std::stringstream ss;
+		ss << "Request: " << client_fd << " parsed: " << ci->get_request()->get_method();
+		ss << " " << ci->get_request()->get_path() << std::endl;
+		Log::log(ss.str(), STD_OUT);	
+
+		// virtual servers, we go throug the servers and match the host name / server name 
+		std::vector<Server*> servers = config->get_servers();
+		std::vector<Server*>::iterator it;
+		for (it = servers.begin(); it != servers.end(); it++)
+		{
+			// std::cout << (*it)->get_host_address().s_addr << " " << (*it)->get_port();
+			// std::cout << " " << (*it)->get_server_name()[0] << ",host: " << ci->get_request()->get_header("HOST") <<  std::endl;
+			if ((*it)->get_host_address().s_addr == ci->get_server()->get_host_address().s_addr &&
+			(*it)->get_port() == ci->get_server()->get_port())
+			{
+				std::vector<std::string> host_names = (*it)->get_server_name(); 
+				std::vector<std::string>::iterator host_it;
+				std::string host_header = Utils::to_lower(ci->get_request()->get_header("HOST"));
+				for (host_it = host_names.begin(); host_it != host_names.end(); host_it++) 
+				{
+					if (Utils::to_lower(*host_it) == host_header)	
+						ci->set_server(*it);
+				}
+			}
+		}
+		ci->get_server()->create_response(*ci->get_request(), ci);
+		if (ci->is_cgi())
+		{
+			FD_SET(ci->get_cgi()->request_fd[1], &write_fds);
+			if (ci->get_cgi()->request_fd[1] > fdmax)
+				fdmax = ci->get_cgi()->request_fd[1];
+			FD_SET(ci->get_cgi()->response_fd[0], &read_fds);
+			if (ci->get_cgi()->response_fd[0] > fdmax)
+				fdmax = ci->get_cgi()->response_fd[0];
+		}	
+		FD_CLR(client_fd, &read_fds);
+		if (client_fd == fdmax)	fdmax--;
+		FD_SET(client_fd, &write_fds);
+		if (client_fd > fdmax)	fdmax = client_fd;
 		ci->get_request()->clean();
 		requestmsg[client_fd].clear();
 	}
+	ci->set_time(); //TODO this should be in the read request
 	return 0;
 }
 
@@ -579,8 +671,7 @@ int	Director::write_to_client(int fd)
 		ss << "Response sent to socket:" << fd << std::endl;;
 		Log::log(ss.str(), STD_OUT);
 		//cl->get_request()->get_header("KEEP-ALIVE") != "keep-alive" ||
-		if(	cl->get_request()->get_errcode() ||
-			cl->is_cgi())
+		if(	cl->get_request()->get_errcode() || cl->is_cgi())
 		{
 			std::stringstream ss;
 			ss << "Closing client connection on: " << fd;

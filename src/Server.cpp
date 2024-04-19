@@ -333,6 +333,8 @@ void	Server::create_response(Request& rq, ClientInfo* client_info)
 		try
 		{
 			body = _get_body(rq, client_info);
+			if (client_info->is_cgi())
+				return ;
 		}
 		catch(const std::exception& e)
 		{
@@ -409,10 +411,11 @@ std::string		Server::_get_body(Request& rq, ClientInfo *ci)
 	}
 	if (ci->is_cgi())
 	{
-		return 0;
+		return "";
 	}
 	if (rq.get_method() == "GET" || rq.get_method() == "HEAD")
 	{
+		//directory listing
 		if (_listing)
 		{
 			if (_get_directory_list(loc_path, listing_body) < 0)
@@ -425,6 +428,8 @@ std::string		Server::_get_body(Request& rq, ClientInfo *ci)
 			_errcode = 200;
  			return listing_body;	
 		}
+
+		// 
 		std::ifstream file(loc_path.c_str());
 		if (file.fail())
 		{
@@ -527,10 +532,11 @@ int		Server::_process(Request& rq, ClientInfo* ci, std::string& ret_file)
 			std::vector<std::string> allowed_methods = loc_info.get_allowed_methods();
 			if (std::find(allowed_methods.begin(), allowed_methods.end(), rq.get_method()) != allowed_methods.end())
 				return (_errcode = 405);
-			ci->get_cgi().clear();
+			ci->set_cgi(new CGI());
+			ci->get_cgi()->clear();
 			ci->set_is_cgi(true);
-			ci->get_cgi().initialize_environment_map(rq);
-			ci->get_cgi().execute(_locations, script_file_path);
+			ci->get_cgi()->initialize_environment_map(rq);
+			ci->set_pid(ci->get_cgi()->execute(_locations, script_file_path));
 			return 0;
 		}
 		// handle alias || create loc_path path

@@ -5,7 +5,7 @@
 
 Request::~Request(){}
 
-std::ostream& operator<<(std::ostream& os, const Request& req)
+std::ostream& operator<<(std::ostream& os, Request& req)
 {
     // print request with name in red
     os << RED << "~FULL REQUEST~ " << std::endl;
