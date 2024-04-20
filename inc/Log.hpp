@@ -8,6 +8,17 @@
 #include <sys/time.h>
 #include <map>
 
+// #define RESET          "/033[0m"
+// #define LIGHT_BLUE     "/033[94m"
+// #define WHITE          "/033[37m"
+// #define BLINK           "/033[5m"
+// #define YELLOW         "/033[33m"
+// #define CYAN           "/033[36m"
+// #define LIGHT_RED      "/033[91m"
+// #define RED            "/033[31m"
+// #define DARK_GREY      "/033[90m"
+// #define LIGHTMAGENTA   "/033[95m"
+
 enum LogDest
 {
 	STD_OUT = 1,

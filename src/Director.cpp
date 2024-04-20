@@ -229,7 +229,7 @@ int	Director::run_servers()
 	{
 		readfds_backup = read_fds;
 		writefds_backup = write_fds;
-		timeout_time.tv_sec = 1;
+		timeout_time.tv_sec = 0.1;
 		timeout_time.tv_usec = 0;
 		if ((ret = select(fdmax + 1, &readfds_backup, &writefds_backup, NULL, &timeout_time)) < 0 )
 		{
@@ -266,7 +266,7 @@ int	Director::run_servers()
 							Log::log(ss.str(), ERROR_FILE | STD_ERR);
 						}
 					}
-					if (FD_ISSET(i, &write_fds))
+					if (FD_ISSET(i, &writefds_backup))
 					{
 						// give request body to CGI
 						if (cl->is_cgi() && FD_ISSET(cl->get_cgi()->request_fd[1], &writefds_backup))
@@ -620,7 +620,7 @@ int	Director::read_from_client(int client_fd)
 		if (client_fd == fdmax)	fdmax--;
 		FD_SET(client_fd, &write_fds);
 		if (client_fd > fdmax)	fdmax = client_fd;
-		ci->get_request()->clean();
+		// ci->get_request()->clean();
 		requestmsg[client_fd].clear();
 	}
 	ci->set_time(); //TODO this should be in the read request
@@ -668,7 +668,7 @@ int	Director::write_to_client(int fd)
 	else if (num_bytes == (int)(content.size()) || num_bytes == 0)
 	{
 		std::stringstream ss;
-		ss << "Response " << " send to socket:" << fd << std::endl;
+		ss << "Response " << cl->get_request()->get_path() << " send to socket:" << fd << std::endl;
 		Log::log(ss.str(), STD_OUT);
 		//cl->get_request()->get_header("KEEP-ALIVE") != "keep-alive" ||
 		if(	cl->get_request()->get_errcode() || cl->is_cgi())

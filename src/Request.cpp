@@ -410,7 +410,7 @@ void Request::validate_uri(void)
     std::string part;
     while (std::getline(iss, part, '/'))
     {
-        std::cout <<"{" <<part <<"}" <<std::endl;
+        //std::cout <<"{" <<part <<"}" <<std::endl;
         path_parts.push_back(part);
     }
     int count = 0;
