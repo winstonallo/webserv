@@ -387,7 +387,7 @@ void	Server::create_response(Request& rq, ClientInfo* client_info)
 	}
 	ss << "\r\n";
 	if (!body.empty())
-		ss << body << std::flush;
+		ss << body;
 	// std::ofstream f("show.txt", std::ios::out);
 	// if (!f.is_open())
 	// {

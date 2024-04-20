@@ -42,11 +42,11 @@ class ClientInfo : public Node
 		void						clear_response();
 		void						clear_request(); 
 		void						clean();
+		std::string					_response;
 
 	private:
 		Server*						_server;
 		Request						_request;
-		std::string					_response;
 		time_t						_prev_time;
 		CGI*						_cgi;
 		bool						_isCGI;

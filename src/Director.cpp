@@ -229,7 +229,7 @@ int	Director::run_servers()
 	{
 		readfds_backup = read_fds;
 		writefds_backup = write_fds;
-		timeout_time.tv_sec = 0.1;
+		timeout_time.tv_sec = 1;
 		timeout_time.tv_usec = 0;
 		if ((ret = select(fdmax + 1, &readfds_backup, &writefds_backup, NULL, &timeout_time)) < 0 )
 		{
@@ -240,11 +240,15 @@ int	Director::run_servers()
 		}
 		for (int i = 0; i <= fdmax; i++)
 		{
+
+			// std::cout << LYELLOW << i << "is processed" << RESET << std::endl;
 			if (nodes.find(i) != nodes.end())
 			{
+				// FOR SERVERS
 				if (nodes[i]->get_type() == SERVER_NODE)
 				{
 					if (FD_ISSET(i, &readfds_backup))
+					{
 						if(create_client_connection(i) < 0)
 						{
 							std::stringstream ss;
@@ -252,13 +256,16 @@ int	Director::run_servers()
 							Log::log(ss.str(), ERROR_FILE | STD_ERR);
 							exit(2); // TODO: Need to deallocate something?
 						}
-					
+					}
 				}
+				// FOR CLIENTS
 				else if (nodes[i]->get_type() == CLIENT_NODE) 
 				{
 					cl = static_cast<ClientInfo*>(nodes[i]);
+					// READING
 					if (FD_ISSET(i, &readfds_backup))
 					{
+						// std::cout << i << GREEN << "reading from" << RESET << std::endl; 
 						if(read_from_client(i) < 0)
 						{
 							std::stringstream ss;
@@ -266,9 +273,12 @@ int	Director::run_servers()
 							Log::log(ss.str(), ERROR_FILE | STD_ERR);
 						}
 					}
+					// WRITING
 					if (FD_ISSET(i, &writefds_backup))
 					{
 						// give request body to CGI
+
+						// std::cout << i << GREEN << "writing to " << RESET << std::endl; 
 						if (cl->is_cgi() && FD_ISSET(cl->get_cgi()->request_fd[1], &writefds_backup))
 						{
 							int send;
@@ -354,7 +364,7 @@ int	Director::run_servers()
 								memset(msg, 0, sizeof(msg));
 							}
 						}
-						else if ((cl->is_cgi() == 0 || cl->get_fin() == true) && FD_ISSET(i, &writefds_backup))
+						else if ((cl->is_cgi() == false || cl->get_fin() == true) && FD_ISSET(i, &writefds_backup))
 						{
 							if(write_to_client(i) < 0)
 							{
@@ -515,7 +525,9 @@ int	Director::read_from_client(int client_fd)
 	ClientInfo								*ci;
 
 	ci = dynamic_cast<ClientInfo *>(nodes[client_fd]);
-
+	std::stringstream ss;
+	ss << "read: got socket " << client_fd << std::endl;
+	Log::log(LLIGHT_BLUE + ss.str() + RESET, STD_OUT);
 	flag = Request::read_request(client_fd, MSG_SIZE, requestmsg[client_fd]);
 	// std::cout << RED << "{flag: " << flag << std::endl;
 	// std::cout << RED << "requestmsg: \n" << requestmsg[client_fd] << "}" << std::endl;
@@ -539,8 +551,8 @@ int	Director::read_from_client(int client_fd)
 				fdmax--;
 		}
 		ci->get_request()->clean();
-		nodes.erase(client_fd);
 		delete ci;
+		nodes.erase(client_fd);
 		close(client_fd);
 		requestmsg[client_fd].clear();
 		return 0;
@@ -584,7 +596,7 @@ int	Director::read_from_client(int client_fd)
 		std::stringstream ss;
 		ss << "Request: " << client_fd << " parsed: " << ci->get_request()->get_method();
 		ss << " " << ci->get_request()->get_path() << std::endl;
-		Log::log(ss.str(), STD_OUT);	
+		Log::log(LLIGHT_RED+ss.str() + RESET, STD_OUT);	
 
 		// virtual servers, we go throug the servers and match the host name / server name 
 		std::vector<Server*> servers = config->get_servers();
@@ -646,7 +658,7 @@ int	Director::write_to_client(int fd)
 		num_bytes = write(fd, content.c_str(), sz);
 	else
 		num_bytes = write(fd, content.c_str(), MSG_SIZE);
-
+	// WRITE FAILES
 	if (num_bytes < 0)
 	{
 		std::stringstream ss;
@@ -665,11 +677,12 @@ int	Director::write_to_client(int fd)
 		close(fd);
 		nodes.erase(fd);
 	}
+	// FINISHED WRITING
 	else if (num_bytes == (int)(content.size()) || num_bytes == 0)
 	{
 		std::stringstream ss;
 		ss << "Response " << cl->get_request()->get_path() << " send to socket:" << fd << std::endl;
-		Log::log(ss.str(), STD_OUT);
+		Log::log(RED + ss.str() + RESET, STD_OUT);
 		//cl->get_request()->get_header("KEEP-ALIVE") != "keep-alive" ||
 		if(	cl->get_request()->get_errcode() || cl->is_cgi())
 		{
@@ -691,15 +704,15 @@ int	Director::write_to_client(int fd)
 		}
 		else
 		{
-			if (FD_ISSET(fd, &write_fds))
-			{
-				FD_CLR(fd, &write_fds);
-				if (fd == fdmax) { fdmax--; }  
-			}
+			FD_CLR(fd, &write_fds);
+			if (fd == fdmax) { fdmax--; }  
 			FD_SET(fd, &read_fds);
-			if (fd == fdmax) { fdmax=fd; }  
+			if (fd > fdmax) { fdmax=fd; } 
+			// if (FD_ISSET(fd, &read_fds))
+			// 	std::cout << LYELLOW << fd << " set to read" << RESET << std::endl;
+			// std::cout << fd << RED << "set to read" << RESET << std::endl; 
 			cl->get_request()->clean();
-			cl->get_server()->reset();
+			// cl->get_server()->reset();
 			cl->clear_response();
 		}
 	}

@@ -433,9 +433,9 @@ namespace Utils
 		std::string	client_ip_str = inet_ntoa(((struct sockaddr_in*)&client_addr)->sin_addr);
 		std::string	client_port = Utils::itoa(ntohs(((struct sockaddr_in*)&client_addr)->sin_port));
 
-		Log::log("Accept Connection: " + client_ip_str +
+		Log::log(GREEN "Accept Connection: " + client_ip_str +
 			":" + client_port + ": " +
-			socket + "->" + server_name + "\n", STD_OUT | ACCEPT_FILE);
+			socket + "->" + server_name + "\n" RESET, STD_OUT | ACCEPT_FILE);
 //			" (" + server_ip + ":" + server_port + ")\n", STD_OUT | ACCEPT_FILE);
 	}
 
@@ -446,6 +446,8 @@ namespace Utils
 
 		return uri.substr(start_pos, end_pos);
 	}
+
+
 
 	std::string	to_lower(const std::string& str)
 	{

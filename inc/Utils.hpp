@@ -35,6 +35,8 @@ namespace Utils
 	void											notify_client_connection(Server* server, int client_socket, struct sockaddr_storage client_addr);
 	std::string										get_cgi_script_name(const std::string& uri);
 	std::string										to_lower(const std::string& str);
+	template <typename T>
+	std::string										to_string(const T val);
 };
 
 #define UNCLOSED_QUOTE "unclosed quote sequence"
