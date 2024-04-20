@@ -525,9 +525,9 @@ int	Director::read_from_client(int client_fd)
 	ClientInfo								*ci;
 
 	ci = dynamic_cast<ClientInfo *>(nodes[client_fd]);
-	std::stringstream ss;
-	ss << "read: got socket " << client_fd << std::endl;
-	Log::log(LLIGHT_BLUE + ss.str() + RESET, STD_OUT);
+	// std::stringstream ss;
+	// ss << "read: got socket " << client_fd << std::endl;
+	// Log::log(LLIGHT_BLUE + ss.str() + RESET, STD_OUT);
 	flag = Request::read_request(client_fd, MSG_SIZE, requestmsg[client_fd]);
 	// std::cout << RED << "{flag: " << flag << std::endl;
 	// std::cout << RED << "requestmsg: \n" << requestmsg[client_fd] << "}" << std::endl;
