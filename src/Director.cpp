@@ -668,7 +668,7 @@ int	Director::write_to_client(int fd)
 	else if (num_bytes == (int)(content.size()) || num_bytes == 0)
 	{
 		std::stringstream ss;
-		ss << "Response sent to socket:" << fd << std::endl;;
+		ss << "Response " << " send to socket:" << fd << std::endl;
 		Log::log(ss.str(), STD_OUT);
 		//cl->get_request()->get_header("KEEP-ALIVE") != "keep-alive" ||
 		if(	cl->get_request()->get_errcode() || cl->is_cgi())
@@ -679,7 +679,7 @@ int	Director::write_to_client(int fd)
 			if (FD_ISSET(fd, &write_fds))
 			{
 				FD_CLR(fd, &write_fds);
-				if (fd == fdmax) { fdmax--; }  
+				if (fd == fdmax) { fdmax--; }
 			}
 			if (FD_ISSET(fd, &read_fds))
 			{
@@ -698,6 +698,7 @@ int	Director::write_to_client(int fd)
 			}
 			FD_SET(fd, &read_fds);
 			if (fd == fdmax) { fdmax=fd; }  
+			cl->get_request()->clean();
 			cl->get_server()->reset();
 			cl->clear_response();
 		}

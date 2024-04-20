@@ -8,7 +8,8 @@ ClientInfo::ClientInfo()
 
 ClientInfo::~ClientInfo()
 {
-
+	if (_cgi)
+		delete _cgi;
 }
 
 ClientInfo::ClientInfo(int tfd, const struct sockaddr_storage& address, size_t taddrlen) :
@@ -134,3 +135,13 @@ void	ClientInfo::set_fin(bool f)
 // {
 // 	return request;
 // }
+
+void	ClientInfo::clean()
+{
+	_response.clear();
+	if (_cgi)
+		delete _cgi;
+	_isCGI = false;
+	_pid = -1;
+	_fin = false;
+}

@@ -13,7 +13,7 @@ Server::Server()
 {
 	_init_status_strings();
 	_init_content_types();
-	_cgi = NULL;
+	// _cgi = NULL;
 	_autoindex = false;
 	_errcode = 0;
 	_autoindex = false;
@@ -38,8 +38,8 @@ Server::~Server()
 	{
 		delete *it;
 	}
-	if (_cgi)
-		delete _cgi;
+	// if (_cgi)
+	// 	delete _cgi;
 }
 
 
@@ -48,7 +48,7 @@ Server::Server(int tfd, struct sockaddr_storage ss, size_t taddr_len):
 {
 	_init_status_strings();
 	_init_content_types(); 
-	_cgi = NULL;
+	// _cgi = NULL;
 	_autoindex = false;
 	_errcode = 0;
 	_autoindex = false;
@@ -224,15 +224,15 @@ Director*	Server::get_director() const
 }
 
 
-std::string Server::get_response() const
-{
-	return _response;
-}
+// std::string Server::get_response() const
+// {
+// 	return _response;
+// }
 
-void	Server::set_response(const std::string& rs)
-{
-	_response = rs;
-}
+// void	Server::set_response(const std::string& rs)
+// {
+// 	_response = rs;
+// }
 
 std::string Server::get_relocation() const
 {
@@ -387,14 +387,14 @@ void	Server::create_response(Request& rq, ClientInfo* client_info)
 	}
 	ss << "\r\n";
 	if (!body.empty())
-		ss << body;
-	std::ofstream f("show.txt", std::ios::out);
-	if (!f.is_open())
-	{
-		std::cerr << "Error op file" << std::endl;
-	}
-	f << ss.str();
-	f.close();
+		ss << body << std::flush;
+	// std::ofstream f("show.txt", std::ios::out);
+	// if (!f.is_open())
+	// {
+	// 	std::cerr << "Error op file" << std::endl;
+	// }
+	// f << ss.str();
+	// f.close();
 
 	client_info->set_response(ss.str());
 }
@@ -720,6 +720,11 @@ void	Server::reset()
 	_autoindex = false;
 	_errcode = 0;
 	_reloc.clear();
-	_response.clear();
+	_listing = false;
+	// if (_cgi)
+	// 	delete _cgi;
+	// _cgi = NULL;
+
+	// _response.clear();
 }
 

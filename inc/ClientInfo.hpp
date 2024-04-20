@@ -41,6 +41,7 @@ class ClientInfo : public Node
 		void						set_response(const std::string& res);
 		void						clear_response();
 		void						clear_request(); 
+		void						clean();
 
 	private:
 		Server*						_server;
