@@ -190,6 +190,10 @@ void	Config::configure_locations(const _map& server, Server*& new_server)
 	}
 	if (new_location != NULL)
 	{
+		if (new_location->get_cgi() == true)
+		{
+			new_location->set_path("/cgi-bin");
+		}
 		_locations.push_back(new_location);
 	}
 	new_server->add_locations(_locations);
@@ -212,6 +216,10 @@ Config::location_setter_map::iterator	Config::configure_cgi(std::string key, Loc
 	{
 		if (cgi_name != new_location->get_path())
 		{
+			if (new_location->get_cgi() == true)
+			{
+				new_location->set_path("/cgi-bin");
+			}
 			_locations.push_back(new_location);
 			new_location = new LocationInfo;
 		}

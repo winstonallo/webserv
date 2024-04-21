@@ -8,7 +8,7 @@
 
 Director::Director(const std::string& config_path):fdmax(-1), config(new Config(config_path))
 {
-
+	std::cout << *config;
 }
 
 Director::~Director()
