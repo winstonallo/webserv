@@ -52,7 +52,7 @@ char** CGI::set_arguments(const std::string& command, LocationInfo*& location)
     strcpy(arguments[0], location->get_cgi_handler().c_str());
 
     arguments[1] = new char[command.size() + 1];
-    strcpy(arguments[2], command.c_str());
+    strcpy(arguments[1], command.c_str());
 
     arguments[2] = NULL;
 
@@ -244,4 +244,14 @@ void    CGI::clear()
 CGI::~CGI()
 {
     delete_char_array(_env);
+}
+
+std::string& CGI::get_path()
+{
+	return _path;
+}
+
+void	CGI::set_path(const std::string& pa)
+{
+	_path = pa;
 }

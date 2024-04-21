@@ -40,6 +40,7 @@ class Request
         int get_errcode() const{ return this->errcode;}
         std::string get_header(const std::string& key) const;
         static int read_request(int client_fd, int size,std::string& requestmsg);
+        std::string 					body;
 
 
 	private:
@@ -48,7 +49,6 @@ class Request
         std::string 					method;
         std::string 					uri;
         std::map <std::string, std::string>             headers;
-        std::string 					body;
         std::string 					userinfo;
         std::string 					host;
         std::string 					port;

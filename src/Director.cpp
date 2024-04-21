@@ -8,7 +8,7 @@
 
 Director::Director(const std::string& config_path):fdmax(-1), config(new Config(config_path))
 {
-	std::cout << *config;
+	//std::cout << *config;
 }
 
 Director::~Director()
@@ -235,12 +235,12 @@ int	Director::run_servers()
 		{
 			std::stringstream ss;
 			ss << "Error while select: " << strerror(errno) << std::endl;
-			Log::log(ss.str(), ERROR_FILE | STD_ERR);
+			Log::log(RED + ss.str() + RESET, ERROR_FILE | STD_ERR);
 			return -1;
 		}
 		for (int i = 0; i <= fdmax; i++)
 		{
-
+			// std::cout << LYELLOW << i << RESET << std::endl;
 			// std::cout << LYELLOW << i << "is processed" << RESET << std::endl;
 			if (nodes.find(i) != nodes.end())
 			{
@@ -277,9 +277,7 @@ int	Director::run_servers()
 					if (FD_ISSET(i, &writefds_backup))
 					{
 						// give request body to CGI
-
-						// std::cout << i << GREEN << "writing to " << RESET << std::endl; 
-						if (cl->is_cgi() && FD_ISSET(cl->get_cgi()->request_fd[1], &writefds_backup))
+						if (cl->is_cgi() && FD_ISSET(cl->get_cgi()->request_fd[1], &writefds_backup) && !cl->get_fin())
 						{
 							int send;
 
@@ -295,21 +293,20 @@ int	Director::run_servers()
 								std::stringstream ss;
 								ss << "Error sending request body to CGI: " << strerror(errno);
 								Log::log(ss.str(), STD_ERR | ERROR_FILE);
-								FD_CLR(cl->get_cgi()->request_fd[1], &writefds_backup);
+								FD_CLR(cl->get_cgi()->request_fd[1], &write_fds);
 								if (cl->get_cgi()->request_fd[1] == fdmax)
 									fdmax--;
 								close(cl->get_cgi()->request_fd[1]);
-								close(cl->get_cgi()->request_fd[0]);
+								close(cl->get_cgi()->response_fd[1]);
 								//send error page back
 							}
 							else if (send == 0 || (size_t) send == reqb.size())
 							{
-								FD_CLR(cl->get_cgi()->request_fd[1], &writefds_backup);
+								FD_CLR(cl->get_cgi()->request_fd[1], &write_fds);
 								if (cl->get_cgi()->request_fd[1] == fdmax)
 									fdmax--;
-								
 								close(cl->get_cgi()->request_fd[1]);
-								close(cl->get_cgi()->request_fd[0]);
+								close(cl->get_cgi()->response_fd[1]);
 							}
 							else
 							{
@@ -318,7 +315,7 @@ int	Director::run_servers()
 							}
 						}
 						//return from cgi
-						else if (cl->get_cgi() && FD_ISSET(cl->get_cgi()->response_fd[0], &readfds_backup))
+						else if (cl->get_cgi() && FD_ISSET(cl->get_cgi()->response_fd[0], &readfds_backup) && !cl->get_fin())
 						{
 							char	msg[MSG_SIZE * 4];
 							int		receive = 0;
@@ -328,34 +325,33 @@ int	Director::run_servers()
 
 							if (receive == 0)
 							{
-								FD_CLR(cl->get_cgi()->response_fd[0], &readfds_backup);
+								FD_CLR(cl->get_cgi()->response_fd[0], &read_fds);
 								if (cl->get_cgi()->response_fd[0] == fdmax)
 									fdmax--;
+								close(cl->get_cgi()->request_fd[0]);
 								close(cl->get_cgi()->response_fd[0]);
-								close(cl->get_cgi()->response_fd[1]);
 								waitpid(cl->get_pid(), &status, 0);
-								if (WIFEXITED(status) != 0)
+								if (WEXITSTATUS(status) != 0)
 								{
 									//cl->set_error_response(502);
 								}
 								cl->set_fin(true);
 								if (cl->get_response().find("HTTP/1.1") == std::string::npos)
 									cl->get_response().insert(0, "HTTP/1.1 200 OK\r\n");
-								return 0;
 							}
 							else if (receive < 0)
 							{
 								std::stringstream ss;
 								ss << "Error reading CGI response: " << strerror(errno);
 								Log::log(ss.str(), STD_ERR | ERROR_FILE);
-								FD_CLR(cl->get_cgi()->response_fd[0], &readfds_backup);
+								FD_CLR(cl->get_cgi()->response_fd[0], &read_fds);
 								if (cl->get_cgi()->response_fd[0] == fdmax)
 									fdmax--;
 								close(cl->get_cgi()->request_fd[0]);
 								close(cl->get_cgi()->response_fd[0]);
 								cl->set_fin(true);
 								//cl->set_error_response();
-								return -1;
+								//return -1;
 							}
 							else
 							{
@@ -364,7 +360,7 @@ int	Director::run_servers()
 								memset(msg, 0, sizeof(msg));
 							}
 						}
-						else if ((cl->is_cgi() == false || cl->get_fin() == true) && FD_ISSET(i, &writefds_backup))
+						else if ((cl->is_cgi() == false || cl->get_fin()) && FD_ISSET(i, &writefds_backup))
 						{
 							if(write_to_client(i) < 0)
 							{
@@ -525,19 +521,14 @@ int	Director::read_from_client(int client_fd)
 	ClientInfo								*ci;
 
 	ci = dynamic_cast<ClientInfo *>(nodes[client_fd]);
-	// std::stringstream ss;
-	// ss << "read: got socket " << client_fd << std::endl;
-	// Log::log(LLIGHT_BLUE + ss.str() + RESET, STD_OUT);
 	flag = Request::read_request(client_fd, MSG_SIZE, requestmsg[client_fd]);
-	// std::cout << RED << "{flag: " << flag << std::endl;
-	// std::cout << RED << "requestmsg: \n" << requestmsg[client_fd] << "}" << std::endl;
 	if (!flag)
 	{
 		std::stringstream ss;
 		ss << "Connection closed by " << inet_ntop(AF_INET, get_in_addr((struct sockaddr *)&ci->get_addr()),
 						remoteIP, INET6_ADDRSTRLEN);
 		ss << " on socket " << client_fd << std::endl;
-		Log::log(ss.str(), ACCEPT_FILE | STD_OUT);
+		Log::log(LLIGHT_BLUE + ss.str() + RESET, ACCEPT_FILE | STD_OUT);
 		if (FD_ISSET(client_fd, &write_fds))
 		{
 			FD_CLR(client_fd, &write_fds);
@@ -596,15 +587,13 @@ int	Director::read_from_client(int client_fd)
 		std::stringstream ss;
 		ss << "Request: " << client_fd << " parsed: " << ci->get_request()->get_method();
 		ss << " " << ci->get_request()->get_path() << std::endl;
-		Log::log(LLIGHT_RED+ss.str() + RESET, STD_OUT);	
+		Log::log(ss.str(), STD_OUT);	
 
 		// virtual servers, we go throug the servers and match the host name / server name 
 		std::vector<Server*> servers = config->get_servers();
 		std::vector<Server*>::iterator it;
 		for (it = servers.begin(); it != servers.end(); it++)
 		{
-			// std::cout << (*it)->get_host_address().s_addr << " " << (*it)->get_port();
-			// std::cout << " " << (*it)->get_server_name()[0] << ",host: " << ci->get_request()->get_header("HOST") <<  std::endl;
 			if ((*it)->get_host_address().s_addr == ci->get_server()->get_host_address().s_addr &&
 			(*it)->get_port() == ci->get_server()->get_port())
 			{
@@ -618,6 +607,7 @@ int	Director::read_from_client(int client_fd)
 				}
 			}
 		}
+		// create the response
 		ci->get_server()->create_response(*ci->get_request(), ci);
 		if (ci->is_cgi())
 		{
@@ -682,13 +672,13 @@ int	Director::write_to_client(int fd)
 	{
 		std::stringstream ss;
 		ss << "Response " << cl->get_request()->get_path() << " send to socket:" << fd << std::endl;
-		Log::log(RED + ss.str() + RESET, STD_OUT);
+		Log::log(ss.str(), STD_OUT);
 		//cl->get_request()->get_header("KEEP-ALIVE") != "keep-alive" ||
 		if(	cl->get_request()->get_errcode() || cl->is_cgi())
 		{
 			std::stringstream ss;
-			ss << "Closing client connection on: " << fd;
-			Log::log(ss.str(), STD_OUT );
+			ss << "Closing client connection on: " << fd << std::endl;
+			Log::log(RED + ss.str() + RESET, STD_OUT );
 			if (FD_ISSET(fd, &write_fds))
 			{
 				FD_CLR(fd, &write_fds);
