@@ -265,12 +265,18 @@ int	Director::run_servers()
 					// READING
 					if (FD_ISSET(i, &readfds_backup))
 					{
-						// std::cout << i << GREEN << "reading from" << RESET << std::endl; 
-						if(read_from_client(i) < 0)
+						try
 						{
-							std::stringstream ss;
-							ss << "Error reading from client: " << std::endl;
-							Log::log(ss.str(), ERROR_FILE | STD_ERR);
+							if (read_from_client(i) < 0)
+							{
+								std::stringstream ss;
+								ss << "Error reading from client: " << std::endl;
+								Log::log(ss.str(), ERROR_FILE | STD_ERR);
+							}
+						}
+						catch(const std::exception& e)
+						{
+							Log::log("Error reading from client: " + std::string(e.what()) + "\n", STD_ERR | ERROR_FILE);
 						}
 					}
 					// WRITING
