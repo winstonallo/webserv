@@ -407,7 +407,9 @@ namespace Utils
 		struct stat	buff;
 		if (stat(path.c_str(), &buff) < 0)
 		{
-			Log::log("Error. Stat failed in is_file function", STD_ERR | ERROR_FILE);
+			std::stringstream ss;
+			ss <<  "Error. Stat for " << path << " failed in 'is_file' function" << std::endl;
+			Log::log(RED + ss.str() + RESET, STD_ERR | ERROR_FILE);
 			return false;
 		}
 		return (buff.st_mode & S_IFREG);
@@ -418,7 +420,7 @@ namespace Utils
 		struct stat	buff;
 		if (stat(path.c_str(), &buff) < 0)
 		{
-			Log::log("Error. Stat failed in is_file function", STD_ERR | ERROR_FILE);
+			Log::log("Error. Stat failed in is_directory function\n", STD_ERR | ERROR_FILE);
 			return false;
 		}
 		return (buff.st_mode & S_IFDIR);

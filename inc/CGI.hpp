@@ -21,6 +21,8 @@ class CGI
 		int										request_fd[2];
 		int										response_fd[2];
 		int 									get_error_code() const;
+		std::string&							get_path();
+		void									set_path(const std::string& pa);
 
     private:
 
@@ -30,6 +32,7 @@ class CGI
         std::map <std::string, std::string>     _env_map;
 		int										_errcode;
 		int										_exit_status;
+		std::string								_path;
 
         void                                    set_pipes(int request_fd[2], int response_fd[2]);
         void                                    delete_char_array(char** arguments);

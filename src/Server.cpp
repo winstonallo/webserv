@@ -497,11 +497,11 @@ int		Server::_process(Request& rq, ClientInfo* ci, std::string& ret_file)
 		std::vector<std::string> vec = loc_info.get_allowed_methods();
 		std::vector<std::string>::iterator end = vec.end();
 		std::vector<std::string>::iterator begin = vec.begin();
-		if(std::find(begin,	end, rq.get_method()) != end)
+		if(std::find(begin,	end, rq.get_method()) == end)
 		{	
 			std::stringstream ss;
 			ss << "Error. Method \"" << rq.get_method() << "\" not allowed.\n";
-			Log::log(ss.str(), STD_ERR | ERROR_FILE);
+			Log::log(RED + ss.str() + RESET, STD_ERR | ERROR_FILE);
 			return (_errcode = 405);
 		}
 		// return handler
@@ -514,9 +514,13 @@ int		Server::_process(Request& rq, ClientInfo* ci, std::string& ret_file)
 		if (loc_info.get_path().find("cgi-bin") != std::string::npos)
 		{
 			std::string script_file_path;
-
 			script_file_path = rq.get_path();
 			script_file_path.erase(0, 1); //erase leading '/'
+			if (!loc_info.get_root().empty())
+				script_file_path = loc_info.get_root() + script_file_path;
+			else if (!ci->get_server()->get_root().empty())
+				script_file_path = ci->get_server()->get_root() + script_file_path;
+			// std::cout << script_file_path << std::endl;
 			if (script_file_path == "cgi-bin")
 				script_file_path.append("/" + loc_info.get_index_path()); 
 			else if (script_file_path == "cgi-bin/")
@@ -529,12 +533,13 @@ int		Server::_process(Request& rq, ClientInfo* ci, std::string& ret_file)
 				return (_errcode = 404);
 			if (access(script_file_path.c_str(), X_OK) == -1 || access(script_file_path.c_str(), X_OK | R_OK) == -1)
 				return (_errcode = 403);
-			std::vector<std::string> allowed_methods = loc_info.get_allowed_methods();
-			if (std::find(allowed_methods.begin(), allowed_methods.end(), rq.get_method()) != allowed_methods.end())
-				return (_errcode = 405);
+			// std::vector<std::string> allowed_methods = loc_info.get_allowed_methods();
+			// if (std::find(allowed_methods.begin(), allowed_methods.end(), rq.get_method()) != allowed_methods.end())
+			// 	return (_errcode = 405);
 			ci->set_cgi(new CGI());
 			ci->get_cgi()->clear();
 			ci->set_is_cgi(true);
+			ci->get_cgi()->set_path(script_file_path);
 			ci->get_cgi()->initialize_environment_map(rq);
 			ci->set_pid(ci->get_cgi()->execute(_locations, script_file_path));
 			return 0;

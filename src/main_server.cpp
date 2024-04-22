@@ -1,5 +1,6 @@
 #include "Server.hpp"
 #include "Director.hpp"
+#include <exception>
 
 void	pipe_signal_handler(int signal)
 {
@@ -9,7 +10,7 @@ void	pipe_signal_handler(int signal)
 
 int main(int argc, char **argv)
 {
-	try
+	try 
 	{
 		if (argc != 1 && argc != 2)
 		{
@@ -38,8 +39,9 @@ int main(int argc, char **argv)
 			}
 		}
 	}
-	catch (std::exception& e)
+	catch (const std::exception& e)
 	{
+		std::cerr << "Error: " << e.what() << std::endl;
 		return 1;
 	}
 	return 0;
