@@ -16,7 +16,7 @@ class Server;
 //
 // this class is responsible for the final configuration of the server
 // 
-// it uses the parsed configuration file to create the ServerInfo &
+// uses the parsed configuration file to create the ServerInfo &
 // LocationInfo objects, fill them, and to set the error pages
 class Config
 {
@@ -29,7 +29,7 @@ class Config
 		typedef std::map <std::string, server_setter> server_setter_map;
 
 		std::string								get_error_page(const int key);
-		std::vector <Server *>					get_servers() const {return _servers; }
+		std::vector <Server *>					get_servers() const { return _servers; }
 
 		Config(const std::string& config_path="config_files/webserv.conf");
 		~Config();
@@ -51,13 +51,19 @@ class Config
 
 		std::vector <Server *>					_servers;
 		std::map <int, std::string>				_error_pages;
-		
+
 		std::vector <LocationInfo *>			_locations;
+
+		// error status codes - error message
+		// key/value pairs
 		std::map <int, std::string>             _error_status_codes;
 
+		// maps used to set the location and server attributes
 		location_setter_map						_location_setters;
 		server_setter_map						_server_setters;
 
+		// vector of server names
+		// used to check if a server name is unique
 		std::vector <std::string>				_server_names;
 
 		Config(const Config&) {}

@@ -8,6 +8,7 @@
 #include <map>
 
 class Server;
+class LocationInfo;
 
 namespace Utils
 {
@@ -37,6 +38,9 @@ namespace Utils
 	std::string										to_lower(const std::string& str);
 	template <typename T>
 	std::string										to_string(const T val);
+	void											print_server_info(std::ostream& out, Server* server);
+	void											print_location_info(std::ostream& out, LocationInfo* location);
+
 };
 
 #define UNCLOSED_QUOTE "unclosed quote sequence"

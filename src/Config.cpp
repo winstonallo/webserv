@@ -350,56 +350,13 @@ Config::~Config()
 std::ostream &operator<<(std::ostream &out, const Config &config)
 {
 	std::vector <Server *> servers = config.get_servers();
-	for (std::vector <Server *>::iterator it = servers.begin(); it != servers.end(); it++)
+	for (std::vector <Server *>::iterator server = servers.begin(); server != servers.end(); server++)
 	{
-		std::cout << "host: " << inet_ntoa((*it)->get_host_address()) << std::endl;
-		std::cout << "port: " << (*it)->get_port() << std::endl;
-		std::cout << "server_name: " << (*it)->get_server_name()[0] << std::endl;
-		std::cout << "root: " << (*it)->get_root() << std::endl;
-		std::cout << "index: " << (*it)->get_index_path() << std::endl;
-		std::cout << "autoindex: " << (*it)->get_auto_index() << std::endl;
-		std::vector <std::string> server_name = (*it)->get_server_name();
-		for (std::vector <std::string>::iterator it = server_name.begin(); it != server_name.end(); it++)
+		Utils::print_server_info(out, *server);
+		std::vector <LocationInfo *> locations = (*server)->get_locations();
+		for (std::vector <LocationInfo *>::iterator location = locations.begin(); location != locations.end(); location++)
 		{
-			std::cout << *it << " ";
-		}
-		std::cout << std::endl;
-		std::cout << "access_log: " << (*it)->get_access_log() << std::endl;
-		std::cout << "client_max_body_size: " << (*it)->get_client_max_body_size() << std::endl;
-		std::cout << "locations: " << std::endl;
-		std::vector <LocationInfo *> locations = (*it)->get_locations();
-		for (std::vector <LocationInfo *>::iterator it = locations.begin(); it != locations.end(); it++)
-		{
-			std::cout << "\tname: " << (*it)->get_path() << std::endl;
-			std::cout << "\t\troot: " << (*it)->get_path() << std::endl;
-			if ((*it)->directory_listing_enabled() == true)
-			{
-				std::cout << "\t\tdirectory listing: enabled" << std::endl;
-			}
-			else
-			{
-				std::cout << "\t\tdirectory listing: disabled" << std::endl;
-			}
-			if ((*it)->get_autoindex() == true)
-			{
-				std::cout << "\t\tautoindex: enabled" << std::endl;
-			}
-			else
-			{
-				std::cout << "\t\tautoindex: disabled" << std::endl;
-			}
-			std::cout << "\t\tallowed_methods: ";
-			std::vector <std::string> allowed_methods = (*it)->get_allowed_methods();
-			for (std::vector <std::string>::iterator it = allowed_methods.begin(); it != allowed_methods.end(); it++)
-			{
-				std::cout << *it << " ";
-			}
-			std::cout << std::endl;
-			if ((*it)->get_cgi() == true)
-			{
-				std::cout << "\t\tcgi_handler: " << (*it)->get_cgi_handler() << std::endl;
-				std::cout << "\t\tcgi_extension: " << (*it)->get_cgi_extensions()[0] << std::endl;
-			}
+			Utils::print_location_info(out, *location);
 		}
 	}
 	return out;

@@ -458,4 +458,42 @@ namespace Utils
 		}
 		return res;
 	}
+
+	void	print_server_info(std::ostream& out, Server* server)
+	{
+		out << "host: " << inet_ntoa(server->get_host_address()) << std::endl;
+		out << "port: " << server->get_port() << std::endl;
+		out << "server_name: " << server->get_server_name()[0] << std::endl;
+		out << "root: " << server->get_root() << std::endl;
+		out << "index: " << server->get_index_path() << std::endl;
+		out << "autoindex: " << server->get_auto_index() << std::endl;
+
+		std::vector <std::string> server_name = server->get_server_name();
+		for (std::vector <std::string>::iterator it = server_name.begin(); it != server_name.end(); it++) { out << *it << " "; }
+		out << std::endl;
+
+		out << "access_log: " << server->get_access_log() << std::endl;
+		out << "client_max_body_size: " << server->get_client_max_body_size() << std::endl;
+		out << "locations: " << std::endl;
+	}
+
+	void	print_location_info(std::ostream& out, LocationInfo* location)
+	{
+		out << "root: " << location->get_path() << std::endl;
+		out << "\tdirectory_listing: " << (location->get_directory_listing() ? "enabled" : "disabled") << std::endl;
+		out << "\tautoindex: " << (location->get_autoindex() ? "enabled" : "disabled") << std::endl;
+		out << "\tallowed_methods: ";
+
+		std::vector <std::string> allowed_methods = location->get_allowed_methods();
+		for (std::vector <std::string>::iterator it = allowed_methods.begin(); it != allowed_methods.end(); it++) { out << *it << " "; }
+		out << std::endl;
+
+		if (location->get_cgi() == true)
+		{
+			out << "\tcgi_handler: " << location->get_cgi_handler() << std::endl;
+			out << "\tcgi_extension: " << location->get_cgi_extensions()[0] << std::endl;
+		}
+
+		out << std::endl;
+	}
 }
