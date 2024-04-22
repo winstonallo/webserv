@@ -39,7 +39,7 @@ void 	ConfigParser::load_config_from_file(const std::string& path)
 
 	if (config_file.is_open() == false)
 	{
-		throw std::runtime_error(error(NOT_FOUND));
+		Utils::config_error_on_line(0, error(NOT_FOUND), THROW);
 	}
 
     buffer << config_file.rdbuf();

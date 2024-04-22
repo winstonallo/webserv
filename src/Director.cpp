@@ -6,8 +6,16 @@
 #include "Log.hpp"
 #include "Utils.hpp"
 
-Director::Director(const std::string& config_path):fdmax(-1), config(new Config(config_path))
+Director::Director(const std::string& config_path):fdmax(-1)
 {
+	try
+	{
+		config = new Config(config_path);
+	}
+	catch(const std::exception& e)
+	{
+		throw e;
+	}
 	std::cout << *config;
 }
 

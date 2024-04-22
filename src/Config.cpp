@@ -213,7 +213,6 @@ void	Config::configure_host(_map& server, Server*& new_server)
 	}
 
 	std::string host = server["host"].first[0];
-	std::cout << "host: " << host << std::endl;
 
 	struct in_addr	ip_address;
 

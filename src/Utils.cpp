@@ -513,7 +513,7 @@ namespace Utils
 	{
 		if (line_number != -1)
 		{
-			Log::log("Config file line " + Utils::itoa(line_number) + ": Error: " + error_message + "\n");
+			Log::log("Config file (line " + Utils::itoa(line_number) + "): Error: " + error_message + "\n");
 		}
 
 		else
