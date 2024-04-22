@@ -509,4 +509,9 @@ namespace Utils
 		cgi_identifier =  "/" + cgi_identifier.substr(0, cgi_identifier.find_first_of(":"));
 		return cgi_identifier;
 	}
+
+	void config_error_on_line(int line_number, const std::string& error_message)
+	{
+		Log::log("Config file line " + Utils::itoa(line_number - 1) + ": Error: " + error_message + "\n");
+	}
 }

@@ -9,25 +9,25 @@
 class ConfigDispatcher
 {
     public:
+        typedef std::map <std::string, std::pair <std::vector <std::string>, int> > map_with_line;
+        void                                                                	dispatch_values();
 
-        void                                                                			dispatch_values();
+        void                                                                	handle_error_page(const std::pair<std::string, std::pair <std::vector<std::string>, int> >& key_value);
+		void																	handle_server(const std::string& key);
+		void																	handle_route(const std::string& key);
 
-        void                                                                			handle_error_page(const std::pair <std::string, std::vector <std::string> >& key_value);
-		void																			handle_server(const std::string& key);
-		void																			handle_route(const std::string& key);
+		std::map <int, std::string>                                      		get_error_pages() const { return _error_pages; }
+		std::map <int, map_with_line >				                            get_servers() const { return _servers; }
 
-		std::map <int, std::string>                                      				get_error_pages() const { return _error_pages; }
-		std::map <int, std::map <std::string, std::vector <std::string> > >				get_servers() const { return _servers; }
-
-        ConfigDispatcher(const std::map <std::string, std::vector <std::string> >& raw_config);
+        ConfigDispatcher(const map_with_line& raw_config);
         ~ConfigDispatcher() {}
 
     private:
 
-        std::map <std::string, std::vector <std::string> >                  			_raw_config;
+        map_with_line                                                       	_raw_config;
 
-        std::map <int, std::map <std::string, std::vector <std::string> > > 			_servers;
-        std::map <int, std::string>                                         			_error_pages;
+        std::map <int, map_with_line >			                                _servers;
+        std::map <int, std::string>                                         	_error_pages;
 
         ConfigDispatcher(const ConfigDispatcher&) {}
         ConfigDispatcher& operator=(const ConfigDispatcher&) { return *this; }

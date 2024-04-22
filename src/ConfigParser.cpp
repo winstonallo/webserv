@@ -54,15 +54,6 @@ void 	ConfigParser::load_config_from_file(const std::string& path)
 	parse_config_from_vector(Utils::split_keep_delimiters(remove_comments(buffer.str()), "{};"));
 }
 
-// loops through the config and dispatches the lines for processing based on delimiters
-//
-// @param config:	config file as a vector of pairs (line & line_number), split by (including) delimiters & without comments
-//
-// 1.	validates the config header
-// 2.	pushes key to the stack when entering scope
-// 3.	pops stack when leaving scope
-// 4.	stores values when reaching bottom level
-// 5.	validates correct number of braces
 void	ConfigParser::parse_config_from_vector(const std::vector <std::pair <std::string, int> >& config)
 {
 	validate_config_header(config);
@@ -98,15 +89,14 @@ void	ConfigParser::store_key_value_pairs(const std::pair <std::string, int> line
 
 	_nesting_level.push(_nesting_level.top() + ":" + bottom_pair[0]);
 
-	for (size_t j = 1; j < bottom_pair.size(); j++)
-	{
-		_config[_nesting_level.top()].push_back(bottom_pair[j]);
-	}
+	std::vector <std::string> value = bottom_pair;
+	value.erase(value.begin());
+	_config[_nesting_level.top()] = std::make_pair(value, line.second + 1);
 
 	if (_nesting_level.top().substr(0, 20) == "webserv:error_pages:")
 	{
 		int status_code = std::atoi(_nesting_level.top().substr(_nesting_level.top().size() - 3).c_str());
-		_error_pages[status_code] = _config[_nesting_level.top()][0];
+		_error_pages[status_code] = _config[_nesting_level.top()].first[0];
 	}
 
 	_nesting_level.pop();

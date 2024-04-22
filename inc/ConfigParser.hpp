@@ -15,7 +15,7 @@ class ConfigParser
 		ConfigParser(const std::string& path="config_files/webserv.conf");
 		~ConfigParser() {}
 
-		std::map <std::string, std::vector <std::string> >						get_config() const { return _config; }
+		std::map <std::string, std::pair <std::vector <std::string>, int> >		get_config() const { return _config; }
 		std::map <int, std::string>												get_error_pages() { return _error_pages; }
 		std::map <int, std::map <std::string, std::vector <std::string> > >		get_servers() { return _servers; }
 
@@ -40,7 +40,7 @@ class ConfigParser
 		std::stack <std::string> 												_nesting_level;
 		size_t																	_server_count;
 
-		std::map <std::string, std::vector <std::string> >						_config;
+		std::map <std::string, std::pair <std::vector <std::string> , int> >	_config;
 
 		std::map <int, std::map <std::string, std::vector <std::string> > >		_servers;
 		std::map <int, std::string>												_error_pages;

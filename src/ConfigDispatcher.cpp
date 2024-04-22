@@ -1,19 +1,19 @@
-#include "ConfigDispatcher.hpp"
 #include <cstdlib>
 #include <cstddef>
 #include <string>
 #include <utility>
-#include "Utils.hpp"
 #include <map>
 #include <cstdlib>
 #include <cstring>
+#include "ConfigDispatcher.hpp"
+#include "Utils.hpp"
 #include "Log.hpp"
 #include "Utils.hpp"
 
 // default constructor, checks if config map is empty, then dipatches it
 //
 // @param raw_config:	config map from the parser
-ConfigDispatcher::ConfigDispatcher(const std::map <std::string, std::vector <std::string> >& raw_config)
+ConfigDispatcher::ConfigDispatcher(const std::map <std::string, std::pair <std::vector <std::string>, int> >& raw_config)
 {
     if (raw_config.empty() == true)
     {
@@ -29,7 +29,7 @@ ConfigDispatcher::ConfigDispatcher(const std::map <std::string, std::vector <std
 // loops through the config and assignes the values to their corresponding maps
 void	ConfigDispatcher::dispatch_values() 
 {
-	for (std::map <std::string, std::vector <std::string> >::iterator it = _raw_config.begin(); it != _raw_config.end(); it++)
+	for (std::map <std::string, std::pair <std::vector <std::string>, int> >::iterator it = _raw_config.begin(); it != _raw_config.end(); it++)
 	{
 		handle_server(it->first);
 		handle_error_page(std::make_pair(it->first, it->second));
@@ -74,22 +74,22 @@ void	ConfigDispatcher::handle_server(const std::string& key)
 //				erase corresponding status code from default status codes
 //			else:
 //				log error and fall back to default value (fallback to be implemented)
-void ConfigDispatcher::handle_error_page(const std::pair<std::string, std::vector<std::string> >& key_value)
+void ConfigDispatcher::handle_error_page(const std::pair<std::string, std::pair <std::vector<std::string>, int> >& key_value)
 {
     std::string file_path = key_value.first.substr(0, key_value.first.find_last_of(":"));
-    std::string error_page = key_value.second[0];
 
     if (file_path == ERROR_PAGE_PREFIX)
     {
+    	std::string error_page = key_value.second.first[0];
 		int status_code = std::atoi(key_value.first.substr(key_value.first.size() - 3).c_str());
 
 		if (error_page == ".html")
 		{
-			Log::log("error: " + file_path + ": invalid file - hidden files not accepted, falling back to default\n", ERROR_FILE | STD_ERR);
+			Utils::config_error_on_line(key_value.second.second, file_path +  ": invalid file - hidden files not accepted, falling back to default\n");
 		}
 		else if (error_page.size() < 6 || error_page.substr(error_page.size() - 5) != ".html")
 		{
-			Log::log("error: " + file_path + ": invalid file - expecting .html, falling back to default\n", ERROR_FILE | STD_ERR);
+			Utils::config_error_on_line(key_value.second.second, file_path + ": invalid file - expecting .html, falling back to default\n");
 		}
 		else if (Utils::file_exists(error_page))
 		{
@@ -97,7 +97,7 @@ void ConfigDispatcher::handle_error_page(const std::pair<std::string, std::vecto
 		}
 		else
 		{
-			Log::log("error: " + error_page + ": file not found, falling back to default\n", ERROR_FILE | STD_ERR);
+			Utils::config_error_on_line(key_value.second.second, file_path + ": file not found, falling back to default\n");
 		}
     }
 }

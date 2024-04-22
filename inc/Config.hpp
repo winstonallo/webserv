@@ -22,7 +22,7 @@ class Config
 {
 	public:
 
-		typedef std::map <std::string, std::vector <std::string> > _map;
+		typedef std::map <std::string, std::pair <std::vector <std::string>, int> > _map;
 		typedef void (*location_setter)(const std::vector <std::string>&, LocationInfo*&);
 		typedef std::map <std::string, location_setter> location_setter_map;
 		typedef void (*server_setter)(const std::vector <std::string>&, Server*&);
