@@ -6,9 +6,9 @@
 #include "Log.hpp"
 #include "Utils.hpp"
 
-Director::Director(const std::string& config_path):fdmax(-1), config(new Config(config_path))
+Director::Director(const std::string& config_path):fdmax(-1)
 {
-	//std::cout << *config;
+	config = new Config(config_path);
 }
 
 Director::~Director()
