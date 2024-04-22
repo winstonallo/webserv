@@ -6,28 +6,36 @@
 #include <string>
 #include <vector>
 
+/// @brief ConfigDispatcher class
+///
+/// This class is responsible for structuring the configuration file
+/// into a map of servers and error pages
+///
+/// The ConfigDispatcher class is used by the Config class to
+/// parse the configuration file into logical parts
 class ConfigDispatcher
 {
     public:
-        typedef std::map <std::string, std::pair <std::vector <std::string>, int> > map_with_line;
-        void                                                                	dispatch_values();
+        typedef std::map <std::string, std::pair <std::vector <std::string>, int> > line_count_map;
 
-        void                                                                	handle_error_page(const std::pair<std::string, std::pair <std::vector<std::string>, int> >& key_value);
-		void																	handle_server(const std::string& key);
-		void																	handle_route(const std::string& key);
+        void                                                                	    dispatch_values();
 
-		std::map <int, std::string>                                      		get_error_pages() const { return _error_pages; }
-		std::map <int, map_with_line >				                            get_servers() const { return _servers; }
+        void                                                                        handle_error_page(const std::pair<std::string, std::pair<std::vector<std::string>, int> >& key_value);
+		void																	    handle_server(const std::string& key);
+		void																	    handle_route(const std::string& key);
 
-        ConfigDispatcher(const map_with_line& raw_config);
+		std::map <int, std::string>                                      		    get_error_pages() const { return _error_pages; }
+		std::map <int, line_count_map>				                                get_servers() const { return _servers; }
+
+        ConfigDispatcher(const line_count_map& raw_config);
         ~ConfigDispatcher() {}
 
     private:
 
-        map_with_line                                                       	_raw_config;
+        line_count_map                                                       	    _raw_config;
 
-        std::map <int, map_with_line >			                                _servers;
-        std::map <int, std::string>                                         	_error_pages;
+        std::map <int, line_count_map>			                                    _servers;
+        std::map <int, std::string>                                         	    _error_pages;
 
         ConfigDispatcher(const ConfigDispatcher&) {}
         ConfigDispatcher& operator=(const ConfigDispatcher&) { return *this; }
