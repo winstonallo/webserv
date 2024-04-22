@@ -57,15 +57,6 @@ Config::Config(const std::string& config_path)
 	set_servers(servers);
 }
 
-// takes the parsed servers from the config dispatcher and initializes the servers one by one
-//
-// if:	any of the required fields are missing
-//		->	log error & fall back to default values
-//
-// else:
-//		->	initialize the server
-//		->	add the server to the list of servers
-//		->	add the unique values to the list of unique values
 void	Config::set_servers(std::map <int, std::map <std::string, std::vector <std::string> > >& raw_servers)
 {
 	Server* new_server;
@@ -122,12 +113,6 @@ void	Config::add_location(LocationInfo*& new_location, Server* new_server, bool 
 	}
 }
 
-// initializes the location before setting the values
-//
-// if:	the new_location is NULL or the name of the current map key is different from the new_location name
-//		->	initialize a new location
-//
-//	->	return the setter for the current map key
 Config::location_setter_map::iterator	Config::initialize_location(const std::string& name, const std::string& key, LocationInfo*& new_location)
 {
 	if (new_location == NULL || name != new_location->get_path())
@@ -152,14 +137,6 @@ Config::location_setter_map::iterator	Config::initialize_location(const std::str
 	return setter;
 }
 
-// initializes the locations for a server
-//
-// if:		current server key contains the string "location":
-//			-> look for the value in the location setter function map
-//			if found:
-//				-> add/update new location
-//			else:
-//				-> invalid config setting -> log error and continue
 void	Config::configure_locations(const _map& server, Server*& new_server)
 {
 	LocationInfo*					new_location = NULL;
