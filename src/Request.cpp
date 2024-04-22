@@ -5,7 +5,7 @@
 
 Request::~Request(){}
 
-std::ostream& operator<<(std::ostream& os, const Request& req)
+std::ostream& operator<<(std::ostream& os, Request& req)
 {
     // print request with name in red
     os << RED << "~FULL REQUEST~ " << std::endl;
@@ -191,7 +191,7 @@ static std::string dechunk(std::string chunked, int &flag)
     return dechunked;
 }
 
-int read_request(int client_fd, int size,std::string& requestmsg)
+int Request::read_request(int client_fd, int size,std::string& requestmsg)
 {
 	int num = 0;
     int first_read = 1;
@@ -204,7 +204,7 @@ int read_request(int client_fd, int size,std::string& requestmsg)
     if (requestmsg.find("\r\n\r\n") == std::string::npos  && buff.find("\r\n\r\n") == std::string::npos)
     {
         requestmsg.append(buff);
-        return 2;
+        return NOTREAD;
     }
     std::string chunked;
     if (requestmsg.find("Transfer-Encoding: chunked\r\n") != std::string::npos)
@@ -228,13 +228,13 @@ int read_request(int client_fd, int size,std::string& requestmsg)
 				unsigned int content_length_int = std::atoi(content_length.c_str());
 				//check if the body is complete
 				if (requestmsg.length() - requestmsg.find("\r\n\r\n") - 4 < content_length_int)
-					return 2;
+					return NOTREAD;
 				else if (requestmsg.length() - requestmsg.find("\r\n\r\n") - 4 > content_length_int)
                     {
                         // delete message after content-length
                         requestmsg = requestmsg.substr(0, requestmsg.find("\r\n\r\n") + 4 + content_length_int);
                     }
-				return 12;
+				return READ;
 			}
 			else if (requestmsg.find("Transfer-Encoding: chunked\r\n") != std::string::npos)
 			{
@@ -243,7 +243,7 @@ int read_request(int client_fd, int size,std::string& requestmsg)
                 size_t pos = requestmsg.find("\r\n\r\n");
                 //if not found send 13
                 if (pos == std::string::npos)
-                    return 13;
+                    return READ;
                 //if \r\n\r\n is not at the end of the message take the chunked part and dechunk it
                 if (pos != requestmsg.size() - 4 && first_read == 1)
                 {
@@ -261,12 +261,12 @@ int read_request(int client_fd, int size,std::string& requestmsg)
                     chunked.clear();
                 }
                 if (flag == 1)
-                    return 17;
-                return 2;
+                    return READ;
+                return NOTREAD;
 			}
 		}
 	}
-	return 14;
+	return READ;
 }
 void Request::pct_decode()
 {
@@ -402,6 +402,41 @@ void Request::validate_uri(void)
         }
         this->path = path;
     }
+
+    //read path and count .. so it does not go out of root
+    // split path by /
+    std::vector<std::string> path_parts;
+    std::istringstream iss(this->path);
+    std::string part;
+    while (std::getline(iss, part, '/'))
+    {
+        //std::cout <<"{" <<part <<"}" <<std::endl;
+        path_parts.push_back(part);
+    }
+    int count = 0;
+    // add +1 if  element is not .. and -1 if it is
+    for (size_t i = 0; i < path_parts.size(); i++)
+    {
+        if (path_parts[i] == "..")
+        {
+            count--;
+        }
+        else if (path_parts[i] != "")
+        {
+            count++;
+        }
+        if (count < 0)
+        {
+            this->errcode = 400;
+            throw std::runtime_error("Invalid path: .. goes out of root");
+        }
+    }
+
+
+
+
+
+
     /* std::cout << "~Reading uri~ " << std::endl;
     std::cout << "userinfo: " <<    this->userinfo << std::endl;
     std::cout << "host: " <<        this->host << std::endl;
@@ -475,17 +510,17 @@ void Request::check_headers()
         this->headers["CONNECTION"] = "keep-alive";
     }
     // check that host is present
-    if (this->headers.find("HOST") == this->headers.end())
-    {
-        this->errcode = 400;
-        throw std::runtime_error("Invalid request: Host header is missing");
-    }
-    // check that host is not empty
-    if (this->headers["HOST"].size() == 0)
-    {
-        this->errcode = 400;
-        throw std::runtime_error("Invalid request: Host header is empty");
-    }
+    // if (this->headers.find("HOST") == this->headers.end())
+    // {
+    //     this->errcode = 400;
+    //     throw std::runtime_error("Invalid request: Host header is missing");
+    // }
+    // // check that host is not empty
+    // if (this->headers["HOST"].size() == 0)
+    // {
+    //     this->errcode = 400;
+    //     throw std::runtime_error("Invalid request: Host header is empty");
+    // }
     // split into host and port by :
     if (this->headers["HOST"].find(":") != std::string::npos)
     {
@@ -537,6 +572,18 @@ void Request::init(std::string request)
 }
 void Request::clean(void)
 {
+    this->method.clear();
+    this->uri.clear();
+    this->protocol.clear();
+    this->headers.clear();
+    this->body.clear();
+    this->host.clear();
+    this->port.clear();
+    this->path.clear();
+    this->query.clear();
+    this->fragment.clear();
+    this->userinfo.clear();
+    this->errcode = 0;
 }
 Request::Request(){
 

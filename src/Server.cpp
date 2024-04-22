@@ -13,7 +13,7 @@ Server::Server()
 {
 	_init_status_strings();
 	_init_content_types();
-	_cgi = NULL;
+	// _cgi = NULL;
 	_autoindex = false;
 	_errcode = 0;
 	_autoindex = false;
@@ -38,8 +38,8 @@ Server::~Server()
 	{
 		delete *it;
 	}
-	if (_cgi)
-		delete _cgi;
+	// if (_cgi)
+	// 	delete _cgi;
 }
 
 
@@ -48,7 +48,7 @@ Server::Server(int tfd, struct sockaddr_storage ss, size_t taddr_len):
 {
 	_init_status_strings();
 	_init_content_types(); 
-	_cgi = NULL;
+	// _cgi = NULL;
 	_autoindex = false;
 	_errcode = 0;
 	_autoindex = false;
@@ -224,15 +224,15 @@ Director*	Server::get_director() const
 }
 
 
-std::string Server::get_response() const
-{
-	return _response;
-}
+// std::string Server::get_response() const
+// {
+// 	return _response;
+// }
 
-void	Server::set_response(const std::string& rs)
-{
-	_response = rs;
-}
+// void	Server::set_response(const std::string& rs)
+// {
+// 	_response = rs;
+// }
 
 std::string Server::get_relocation() const
 {
@@ -320,7 +320,7 @@ void	Server::_init_content_types()
     _content_type[".mp3"] 	= 	"audio/mp3";
 }
 
-void	Server::create_response(Request& rq, CGI& cgi, ClientInfo* client_info)
+void	Server::create_response(Request& rq, ClientInfo* client_info)
 {
 	std::stringstream 	ss;
 	std::string 		ex;
@@ -332,18 +332,9 @@ void	Server::create_response(Request& rq, CGI& cgi, ClientInfo* client_info)
 	{
 		try
 		{
-			if (rq.get_uri().find("/cgi-bin/") != std::string::npos)
-			{
-
-				cgi.initialize_environment_map(rq);
-			    body =  cgi.execute(client_info->get_server()->get_locations()) + "]";
-				cgi.clear();
-				
-			}
-			else 
-			{
-				body = _get_body(rq);
-			}
+			body = _get_body(rq, client_info);
+			if (client_info->is_cgi())
+				return ;
 		}
 		catch(const std::exception& e)
 		{
@@ -373,57 +364,58 @@ void	Server::create_response(Request& rq, CGI& cgi, ClientInfo* client_info)
 		body = ss.str();
 	}
 	
-//	std::cout << "got HTTP" << std::endl;
 	ss << "HTTP/1.1 " << _errcode << " " << _status_string[_errcode]  << "\r\n";
 	time_t	curr_time = time(NULL);
 	struct tm tim = *gmtime(&curr_time);
 	strftime(buf, sizeof(buf), "%a, %d, %b %Y %H:%M:%S %Z", &tim);
 	ss << "Date: " << buf << "\r\n";
-//	std::cout << "got date" << std::endl;
-
 	ss << "Server: Awesome SAD Server/1.0" << "\r\n";
-//	std::cout << "got server" << std::endl;
-
-	ss << "Content-Length: " << body.length()<< "\r\n";
-//	std::cout << "got content-length" << std::endl;
-
+	ss << "Content-Length: " << body.length() << "\r\n";
 	if (!_reloc.empty())
 	{
 		ss << "Location: " << _reloc << "\r\n";
-//		std::cout << "got location" << std::endl;
 	}
 	ex = Utils::get_file_extension(rq.get_path()); 
 	if (_errcode != 200 || ex == "")
 		ex = "default";
 	ss << "Content-Type: " << _content_type[ex] << "\r\n";
-//	std::cout << "Content-Type: " << _content_type[ex] << "\r\n";
-//	std::cout << "got content-type" << std::endl;
-//	std::cout << rq.get_header("CONNECTION") << std::endl;
 	if (rq.get_header("CONNECTION").empty())
 	{
-		std::cout << "got in connections" << std::endl;
+		// std::cout << "got in connections" << std::endl;
 		ss << "Connection: " << rq.get_header("CONNECTION") << "\r\n";
-		std::cout << "got connection" << std::endl;
+		// std::cout << "got connection" << std::endl;
 	}
 	ss << "\r\n";
 	if (!body.empty())
 		ss << body;
+	// std::ofstream f("show.txt", std::ios::out);
+	// if (!f.is_open())
+	// {
+	// 	std::cerr << "Error op file" << std::endl;
+	// }
+	// f << ss.str();
+	// f.close();
+
 	client_info->set_response(ss.str());
-	// _response = ss.str();
 }
 
-std::string		Server::_get_body(Request& rq)
+std::string		Server::_get_body(Request& rq, ClientInfo *ci)
 {
 	std::string	loc_path;
 	std::string listing_body;
 
-	_errcode = _process(rq, loc_path);
+	_errcode = _process(rq, ci, loc_path);
 	if (_errcode)
 	{
 		throw std::runtime_error("error");
 	}
+	if (ci->is_cgi())
+	{
+		return "";
+	}
 	if (rq.get_method() == "GET" || rq.get_method() == "HEAD")
 	{
+		//directory listing
 		if (_listing)
 		{
 			if (_get_directory_list(loc_path, listing_body) < 0)
@@ -436,11 +428,13 @@ std::string		Server::_get_body(Request& rq)
 			_errcode = 200;
  			return listing_body;	
 		}
+
+		// 
 		std::ifstream file(loc_path.c_str());
 		if (file.fail())
 		{
 			_errcode = 400;
-			Log::log("Error reading request file", STD_ERR | ERROR_FILE); 
+			Log::log("Error reading request file\n", STD_ERR | ERROR_FILE); 
 			throw std::runtime_error("error");
 		}
 		std::ostringstream ss;
@@ -484,7 +478,7 @@ std::string		Server::_get_body(Request& rq)
 	return "";
 }
 
-int		Server::_process(Request& rq, std::string& ret_file)
+int		Server::_process(Request& rq, ClientInfo* ci, std::string& ret_file)
 {
 	//std::string ret_file;
 	LocationInfo loc_info;
@@ -538,8 +532,12 @@ int		Server::_process(Request& rq, std::string& ret_file)
 			std::vector<std::string> allowed_methods = loc_info.get_allowed_methods();
 			if (std::find(allowed_methods.begin(), allowed_methods.end(), rq.get_method()) != allowed_methods.end())
 				return (_errcode = 405);
-
-			
+			ci->set_cgi(new CGI());
+			ci->get_cgi()->clear();
+			ci->set_is_cgi(true);
+			ci->get_cgi()->initialize_environment_map(rq);
+			ci->set_pid(ci->get_cgi()->execute(_locations, script_file_path));
+			return 0;
 		}
 		// handle alias || create loc_path path
 		if (loc_info.get_alias().empty() == false) 
@@ -722,6 +720,11 @@ void	Server::reset()
 	_autoindex = false;
 	_errcode = 0;
 	_reloc.clear();
-	_response.clear();
+	_listing = false;
+	// if (_cgi)
+	// 	delete _cgi;
+	// _cgi = NULL;
+
+	// _response.clear();
 }
 

@@ -7,6 +7,16 @@
 #include <sstream>
 #include <sys/time.h>
 #include <map>
+#define LRESET          "\033[0m"
+#define LLIGHT_BLUE     "\033[34m"
+#define LWHITE          "\033[37m"
+#define LBLINK           "\033[5m"
+#define LYELLOW         "\033[33m"
+#define LCYAN           "\033[36m"
+#define LLIGHT_RED      "\033[91m"
+#define LRED            "\033[31m"
+#define LDARK_GREY      "\033[90m"
+#define LLIGHTMAGENTA   "\033[95m"
 
 enum LogDest
 {

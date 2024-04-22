@@ -19,7 +19,7 @@
 #include "ClientInfo.hpp"
 #include "Config.hpp"
 
-#define MSG_SIZE 50000
+#define MSG_SIZE 20000
 #define TIMEOUT_TIME 30
 
 // purpose:	class that handles all connections wit select(ing) the 
@@ -48,7 +48,6 @@ class Director
 		Config*							config;
 		std::map<int, Node*>			nodes;
 		fd_set							read_fds, write_fds;
-		CGI								_cgi;
 };
 
 #endif

@@ -35,8 +35,7 @@
 // ConfigDispatcher:
 //		1. 	splits the config into logical parts
 //			a. servers
-//			b. routes
-//			c. error pages
+//			b. error pages
 //
 // Config:
 // 		1. 	gets error pages (already fully parsed in ConfigDispatcher 
@@ -50,7 +49,6 @@ Config::Config(const std::string& config_path)
 	ConfigDispatcher 	dispatcher(parser.get_config());
 
 	std::map <int, _map> servers = dispatcher.get_servers();
-	std::map <std::string, _map> routes = dispatcher.get_routes();
 
 	_error_pages = dispatcher.get_error_pages();
 	_error_status_codes = Utils::get_error_status_codes();
@@ -59,19 +57,7 @@ Config::Config(const std::string& config_path)
 	set_servers(servers);
 }
 
-// takes the parsed servers from the config dispatcher and initializes the servers one by one
-//
-// if:	any of the required fields are missing
-//		->	log error & fall back to default values
-//
-// else if: a unique value is already taken (host, port, server name)
-//		->	log error & skip the server
-//
-// else:
-//		->	initialize the server
-//		->	add the server to the list of servers
-//		->	add the unique values to the list of unique values
-void	Config::set_servers(std::map <int, std::map <std::string, std::vector <std::string> > >& raw_servers)
+void	Config::set_servers(std::map <int, _map>& raw_servers)
 {
 	Server* new_server;
 
@@ -95,36 +81,38 @@ void	Config::set_servers(std::map <int, std::map <std::string, std::vector <std:
 				{
 					continue ;
 				}
-				(_server_setters[map_it->first])(map_it->second, new_server);
+				(_server_setters[map_it->first])(map_it->second.first, new_server);
 			}
 
 			_servers.push_back(new_server);
 		}
 		catch (const std::exception& e)
 		{
-			Log::log(e.what(), STD_ERR | ERROR_FILE);
 			delete new_server;
 			continue ;
 		}
 	}
 }
 
-// extracts the location path from the current map key
-//
-// if:		"location" in key
-//			->	return the path
-//
-// else:
-//			->	return empty string
+void	Config::add_location(LocationInfo*& new_location, Server* new_server, bool add_to_server)
+{
+	if (new_location != NULL)
+	{
+		if (new_location->get_cgi() == true)
+		{
+			new_location->set_path("/cgi-bin");
+		}
+		_locations.push_back(new_location);
+		new_location = NULL;
+	}
+	if (add_to_server == true)
+	{
+		new_server->add_locations(_locations);
+		_locations.clear();
+	}
+}
 
-
-// initializes the location before setting the values
-//
-// if:	the new_location is NULL or the name of the current map key is different from the new_location name
-//		->	initialize a new location
-//
-//	->	return the setter for the current map key
-Config::location_setter_map::iterator	Config::initialize_location(const std::string& name, const std::string& key, LocationInfo*& new_location)
+Config::location_setter_map::iterator	Config::initialize_location(int line_count, const std::string& key, const std::string& name, LocationInfo*& new_location)
 {
 	if (new_location == NULL || name != new_location->get_path())
 	{
@@ -139,7 +127,7 @@ Config::location_setter_map::iterator	Config::initialize_location(const std::str
 		}
 		else 
 		{
-			return configure_cgi(key, new_location);
+			return configure_cgi(line_count, key, new_location);
 		}
 	}
 	std::string current_key = key.substr(key.find_first_of(":") + 1);
@@ -148,14 +136,6 @@ Config::location_setter_map::iterator	Config::initialize_location(const std::str
 	return setter;
 }
 
-// initializes the locations for a server
-//
-// if:		current server key contains the string "location":
-//			-> look for the value in the location setter function map
-//			if found:
-//				-> add/update new location
-//			else:
-//				-> invalid config setting -> log error and continue
 void	Config::configure_locations(const _map& server, Server*& new_server)
 {
 	LocationInfo*					new_location = NULL;
@@ -170,13 +150,13 @@ void	Config::configure_locations(const _map& server, Server*& new_server)
 			continue ;
 		}
 
-		location_setter_map::iterator setter = initialize_location(name, it->first, new_location);
+		location_setter_map::iterator setter = initialize_location(it->second.second, it->first, name, new_location);
 		
 		if (setter != _location_setters.end())
 		{
 			try 
 			{
-				(setter->second)(it->second, new_location);
+				(setter->second)(it->second.first, new_location);
 			}
 			catch (const std::exception& e)
 			{
@@ -185,34 +165,19 @@ void	Config::configure_locations(const _map& server, Server*& new_server)
 		}
 		else
 		{
-			Log::log("error: '" + it->first + "' is not a valid location setting\n", STD_ERR | ERROR_FILE);
+			Utils::config_error_on_line(it->second.second, "'" + it->first + "' is not a valid location setting\n", LOG);
 		}
 	}
-	if (new_location != NULL)
-	{
-		_locations.push_back(new_location);
-	}
-	new_server->add_locations(_locations);
-	_locations.clear();
+	add_location(new_location, new_server, true);
 }
 
-// initializes the CGI before setting the values
-//
-// if:	the new_cgi is NULL or the name of the current map key is different from the new_cgi name
-//		->	initialize a new CGI
-//
-//	->	return the setter for the current map key
-Config::location_setter_map::iterator	Config::configure_cgi(std::string key, LocationInfo*& new_location)
+void	Config::initialize_cgi(LocationInfo*& new_location, const std::string& identifier)
 {
-	std::string cgi_prefix = "location /cgi-bin";
-	std::string cgi_name = key.substr(cgi_prefix.size() + 1);
-	cgi_name =  "/" + cgi_name.substr(0, cgi_name.find_first_of(":"));
-
 	if (new_location != NULL)
 	{
-		if (cgi_name != new_location->get_path())
+		if (identifier != new_location->get_path())
 		{
-			_locations.push_back(new_location);
+			add_location(new_location);
 			new_location = new LocationInfo;
 		}
 	}
@@ -220,7 +185,19 @@ Config::location_setter_map::iterator	Config::configure_cgi(std::string key, Loc
 	{
 		new_location = new LocationInfo;
 	}
-	new_location->set_path(cgi_name);
+}
+
+Config::location_setter_map::iterator	Config::configure_cgi(int line_count, const std::string key, LocationInfo*& new_location)
+{
+	std::string cgi_identifier = Utils::extract_cgi_identifier(key);
+	if (cgi_identifier.empty() == true)
+	{
+		Utils::config_error_on_line(line_count, "missing CGI identifier in location '" + key + "', location will not be initialized\n", LOG);
+		return _location_setters.end();
+	}
+
+	initialize_cgi(new_location, cgi_identifier);
+	new_location->set_path(cgi_identifier);
 	new_location->set_cgi(true);
 
 	std::string current_key = key.substr(key.find_last_of(":") + 1);
@@ -230,12 +207,12 @@ Config::location_setter_map::iterator	Config::configure_cgi(std::string key, Loc
 
 void	Config::configure_host(_map& server, Server*& new_server)
 {
-	if (server.find("host") == server.end() or server["host"].empty() == true)
+	if (server.find("host") == server.end() or server["host"].first.empty() == true)
 	{
-		throw std::runtime_error("error: missing host in server '" + new_server->get_server_name()[0] + "', server will not be initialized\n");
+		Utils::config_error_on_line(-1, "missing host in server '" + new_server->get_server_name()[0] + "', server will not be initialized\n", THROW);
 	}
 
-	std::string host = server["host"][0];
+	std::string host = server["host"].first[0];
 
 	struct in_addr	ip_address;
 
@@ -246,40 +223,26 @@ void	Config::configure_host(_map& server, Server*& new_server)
 	
 	if (inet_pton(AF_INET, host.c_str(), &ip_address) != 1)
 	{
-		throw std::runtime_error("error: '" + host + "' is not a valid IPv4 address, server will not be initialized\n");
+		Utils::config_error_on_line(server["host"].second, "'" + host + "' is not a valid IPv4 address, server will not be initialized\n", THROW);
 	}
 
 	new_server->set_host_address(ip_address);
-
-	std::cout << inet_ntoa((new_server)->get_host_address()) << std::endl;
 }
 
-// finds the server_name(s) in the server map and performs some error handling on them 
-// before storing them in the current Server
-//
-//	if:		no server name in config
-//			-> skip server in initialization
-//
-//	if:		server name already given to another server
-//			-> skip server in initialization
-//
-//	else:	
-//			-> add server name(s) to vector of unique values
-//			-> set server name(s) of current Server object
 void	Config::configure_server_names(_map& server, Server*& new_server)
 {
-	if (server.find("server_name") == server.end() or server["server_name"].empty() == true)
+	if (server.find("server_name") == server.end() or server["server_name"].first.empty() == true)
 	{
-		throw std::runtime_error("error: missing server_name, server will not be initialized\n");
+		Utils::config_error_on_line(-1, "missing server_name in server '" + new_server->get_server_name()[0] + "', server will not be initialized\n", THROW);
 	}
 
-	std::vector <std::string> new_server_names = server["server_name"];
+	std::vector <std::string> new_server_names = server["server_name"].first;
 
 	for (std::vector <std::string>::const_iterator it = new_server_names.begin(); it != new_server_names.end(); it++)
 	{
 		if (std::find(_server_names.begin(), _server_names.end(), *it) != _server_names.end())
 		{
-			throw std::runtime_error("error: on server: '" + *it + "': name already taken, server will not be initialized\n");
+			Utils::config_error_on_line(server["server_name"].second, "on server: '" + *it + "': name already taken, server will not be initialized\n", THROW);
 		}
 	}
 
@@ -289,34 +252,16 @@ void	Config::configure_server_names(_map& server, Server*& new_server)
 
 }
 
-// finds the port in the server map and performs some error handling on it before storing it in the current Server
-//
-//	if:		no port in config
-//			-> skip server in initialization
-//
-//	if:		port already given to another server
-//			-> skip server in initialization
-//
-//	else:	
-//			-> add port to vector of unique values
-//			-> set port of current Server object
 void	Config::configure_port(_map& server, Server*& new_server)
 {
-	if (server.find("port") == server.end() or server["port"].empty() == true)
+	if (server.find("port") == server.end() or server["port"].first.empty() == true)
 	{
-		throw std::runtime_error("error: missing port in server '" + new_server->get_server_name()[0] + "', server will not be initialized\n");
+		Utils::config_error_on_line(-1, "missing port in server '" + new_server->get_server_name()[0] + "', server will not be initialized\n", THROW);	
 	}
 
-	std::string port = server["port"][0];
+	std::string port = server["port"].first[0];
 
 	new_server->set_port(std::atoi(port.c_str()));
-}
-
-
-
-std::vector <Server *>	Config::get_servers() const
-{
-	return _servers;
 }
 
 std::string	Config::get_error_page(const int key)
@@ -361,71 +306,16 @@ Config::~Config()
 	}
 }
 
-Config::Config(const Config& rhs) {*this = rhs;}
-
-Config	&Config::operator=(const Config& rhs)
-{
-	if (this != &rhs)
-	{
-		_servers = rhs._servers;
-		_error_pages = rhs._error_pages;
-	}
-	return *this;
-}
-
 std::ostream &operator<<(std::ostream &out, const Config &config)
 {
 	std::vector <Server *> servers = config.get_servers();
-	for (std::vector <Server *>::iterator it = servers.begin(); it != servers.end(); it++)
+	for (std::vector <Server *>::iterator server = servers.begin(); server != servers.end(); server++)
 	{
-		std::cout << "host: " << inet_ntoa((*it)->get_host_address()) << std::endl;
-		std::cout << "port: " << (*it)->get_port() << std::endl;
-		std::cout << "server_name: " << (*it)->get_server_name()[0] << std::endl;
-		std::cout << "root: " << (*it)->get_root() << std::endl;
-		std::cout << "index: " << (*it)->get_index_path() << std::endl;
-		std::cout << "autoindex: " << (*it)->get_auto_index() << std::endl;
-		std::vector <std::string> server_name = (*it)->get_server_name();
-		for (std::vector <std::string>::iterator it = server_name.begin(); it != server_name.end(); it++)
+		Utils::print_server_info(out, *server);
+		std::vector <LocationInfo *> locations = (*server)->get_locations();
+		for (std::vector <LocationInfo *>::iterator location = locations.begin(); location != locations.end(); location++)
 		{
-			std::cout << *it << " ";
-		}
-		std::cout << std::endl;
-		std::cout << "access_log: " << (*it)->get_access_log() << std::endl;
-		std::cout << "client_max_body_size: " << (*it)->get_client_max_body_size() << std::endl;
-		std::cout << "locations: " << std::endl;
-		std::vector <LocationInfo *> locations = (*it)->get_locations();
-		for (std::vector <LocationInfo *>::iterator it = locations.begin(); it != locations.end(); it++)
-		{
-			std::cout << "\tname: " << (*it)->get_path() << std::endl;
-			std::cout << "\t\troot: " << (*it)->get_path() << std::endl;
-			if ((*it)->directory_listing_enabled() == true)
-			{
-				std::cout << "\t\tdirectory listing: enabled" << std::endl;
-			}
-			else
-			{
-				std::cout << "\t\tdirectory listing: disabled" << std::endl;
-			}
-			if ((*it)->get_autoindex() == true)
-			{
-				std::cout << "\t\tautoindex: enabled" << std::endl;
-			}
-			else
-			{
-				std::cout << "\t\tautoindex: disabled" << std::endl;
-			}
-			std::cout << "\t\tallowed_methods: ";
-			std::vector <std::string> allowed_methods = (*it)->get_allowed_methods();
-			for (std::vector <std::string>::iterator it = allowed_methods.begin(); it != allowed_methods.end(); it++)
-			{
-				std::cout << *it << " ";
-			}
-			std::cout << std::endl;
-			if ((*it)->get_cgi() == true)
-			{
-				std::cout << "\t\tcgi_handler: " << (*it)->get_cgi_handler() << std::endl;
-				std::cout << "\t\tcgi_extension: " << (*it)->get_cgi_extensions()[0] << std::endl;
-			}
+			Utils::print_location_info(out, *location);
 		}
 	}
 	return out;

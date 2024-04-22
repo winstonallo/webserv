@@ -12,12 +12,15 @@ class CGI
 {
     public:
 
-        std::string                             execute(std::vector <LocationInfo *> locations);
+        pid_t		                            execute(std::vector <LocationInfo *> locations, const std::string& sfp);
         void                                    initialize_environment_map(Request& request);
         void                                    clear();
 
         CGI(char** env=NULL);
         ~CGI();
+		int										request_fd[2];
+		int										response_fd[2];
+		int 									get_error_code() const;
 
     private:
 
@@ -25,6 +28,8 @@ class CGI
         std::vector <LocationInfo*>             _locations;
         std::string                             _response_body;
         std::map <std::string, std::string>     _env_map;
+		int										_errcode;
+		int										_exit_status;
 
         void                                    set_pipes(int request_fd[2], int response_fd[2]);
         void                                    delete_char_array(char** arguments);

@@ -29,7 +29,7 @@ namespace Setters
             }
             else 
             {
-                Log::log("error: invalid value for boolean config, use enabled/disabled\n", STD_ERR | ERROR_FILE);
+                Utils::config_error_on_line(-1, "value for boolean config, use enabled/disabled\n", LOG);
             }
         }
     }
@@ -142,7 +142,7 @@ namespace Setters
     {
         if (body_size_vector.empty() == true)
         {
-            Log::log("no client max body size config in server '" + new_server->get_server_name()[0] + "', falling back to default (1M)\n", STD_ERR | ERROR_FILE);
+            Utils::config_error_on_line(-1, "no client max body size config in server '" + new_server->get_server_name()[0] + "', falling back to default (1M)\n", LOG);
             new_server->set_client_max_body_size(CLIENT_MAX_BODY_SIZE_DEFAULT);
             return ;
         }
@@ -152,12 +152,12 @@ namespace Setters
 
         if (size > CLIENT_MAX_BODY_SIZE_MAX)
         {
-            Log::log("error: " + client_max_body_size + ": client max body size too high, capping to 10M\n", STD_ERR | ERROR_FILE);
+            Utils::config_error_on_line(-1, "client max body size too high, capping to 10M\n", LOG);
             size = CLIENT_MAX_BODY_SIZE_MAX;
         }
         else if (size < 0)
         {
-            Log::log("error: client max body size '" + client_max_body_size + "' is not valid, falling back to default (1M)\n", STD_ERR | ERROR_FILE);
+            Utils::config_error_on_line(-1, "client max body size '" + client_max_body_size + "' is not valid, falling back to default (1M)\n", LOG);
             size = CLIENT_MAX_BODY_SIZE_DEFAULT;
         }
         new_server->set_client_max_body_size(size);

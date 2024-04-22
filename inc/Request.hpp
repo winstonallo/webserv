@@ -7,6 +7,8 @@
 #include <algorithm>
 
 #include "Utils.hpp"
+#define READ 5
+#define NOTREAD 2
 
 
 class Request
@@ -27,8 +29,8 @@ class Request
         std::map <std::string, std::string> get_headers() const{ return this->headers;}
         std::string get_method() const{ return this->method;}
         std::string get_uri() const{ return this->uri;}
+        std::string& get_body() { return this->body;}
         std::string get_protocol() const{ return this->protocol;}
-        std::string get_body() const{ return this->body;}
         std::string get_userinfo() const{ return this->userinfo;}
         std::string get_host() const{ return this->host;}
         std::string get_port() const{ return this->port;}
@@ -37,6 +39,7 @@ class Request
         std::string get_fragment() const{ return this->fragment;}
         int get_errcode() const{ return this->errcode;}
         std::string get_header(const std::string& key) const;
+        static int read_request(int client_fd, int size,std::string& requestmsg);
 
 
 	private:

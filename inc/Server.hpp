@@ -10,6 +10,7 @@
 #include <netdb.h>
 #include <sys/stat.h>
 #include <dirent.h>
+#include <signal.h>
 #include "Node.hpp"
 #include "Request.hpp"
 #include "LocationInfo.hpp"
@@ -64,9 +65,9 @@ class Server : public Node
 		void								set_error_code(int err);
 		std::string							get_relocation() const;
 		void								set_relocation(const std::string& rel);
-		std::string							get_response() const;
-		void								set_response(const std::string& rs);
-		void								create_response(Request&, CGI& cgi, ClientInfo* client_info);
+		// std::string						get_response() const;
+		// void								set_response(const std::string& rs);
+		void								create_response(Request&, ClientInfo* client_info);
 		void								reset();
 
 	private:
@@ -78,7 +79,7 @@ class Server : public Node
 // in_addr_t							_host_address;
 //		struct sockaddr_in					address;
 		bool								_autoindex;
-		std::string							_response;
+		// std::string							_response;
 		std::string							_index;
 		std::string							_root;
 		std::string							_error_log;
@@ -86,12 +87,12 @@ class Server : public Node
 		std::string							_reloc;
 		std::map<int, std::string>			_error_pages;
 		std::vector<LocationInfo*>			_locations;
-		CGI*								_cgi;
+		// CGI*								_cgi;
 //Server
 		void								_init_status_strings();
 		void								_init_content_types();
-		std::string							_get_body(Request& rq);
-		int									_process(Request &rq, std::string& loc_path);
+		std::string							_get_body(Request& rq, ClientInfo *ci);
+		int									_process(Request &rq, ClientInfo* ci, std::string& loc_path);
 		void								_get_best_location_match(std::vector<LocationInfo*> locs, 
 														Request& rq, std::string& best_match, 
 														LocationInfo* locinfo);

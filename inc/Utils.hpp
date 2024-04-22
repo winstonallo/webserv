@@ -6,8 +6,16 @@
 #include <string>
 #include <unistd.h>
 #include <map>
+#include <stdbool.h>
 
 class Server;
+class LocationInfo;
+
+typedef enum e_exception
+{
+	THROW,
+	LOG
+} e_exception;
 
 namespace Utils
 {
@@ -35,6 +43,12 @@ namespace Utils
 	void											notify_client_connection(Server* server, int client_socket, struct sockaddr_storage client_addr);
 	std::string										get_cgi_script_name(const std::string& uri);
 	std::string										to_lower(const std::string& str);
+	template <typename T>
+	std::string										to_string(const T val);
+	void											print_server_info(std::ostream& out, Server* server);
+	void											print_location_info(std::ostream& out, LocationInfo* location);
+	std::string										extract_cgi_identifier(const std::string& key);
+	void											config_error_on_line(int line_number, const std::string& error_message, e_exception throw_exception=LOG);
 };
 
 #define UNCLOSED_QUOTE "unclosed quote sequence"

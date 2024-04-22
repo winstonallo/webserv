@@ -433,10 +433,10 @@ namespace Utils
 		std::string	client_ip_str = inet_ntoa(((struct sockaddr_in*)&client_addr)->sin_addr);
 		std::string	client_port = Utils::itoa(ntohs(((struct sockaddr_in*)&client_addr)->sin_port));
 
-		Log::log("client connection from " + client_ip_str +
-			":" + client_port + " on socket " +
-			socket + " for server " + server_name +
-			" (" + server_ip + ":" + server_port + ")\n", STD_OUT | ACCEPT_FILE);
+		Log::log(GREEN "Accept Connection: " + client_ip_str +
+			":" + client_port + ": " +
+			socket + "->" + server_name + "\n" RESET, STD_OUT | ACCEPT_FILE);
+//			" (" + server_ip + ":" + server_port + ")\n", STD_OUT | ACCEPT_FILE);
 	}
 
 	std::string	get_cgi_script_name(const std::string &uri)
@@ -447,6 +447,8 @@ namespace Utils
 		return uri.substr(start_pos, end_pos);
 	}
 
+
+
 	std::string	to_lower(const std::string& str)
 	{
 		std::string res = str;
@@ -455,5 +457,73 @@ namespace Utils
 			res[i] = std::tolower(res[i]);	
 		}
 		return res;
+	}
+
+	void	print_server_info(std::ostream& out, Server* server)
+	{
+		out << "host: " << inet_ntoa(server->get_host_address()) << std::endl;
+		out << "port: " << server->get_port() << std::endl;
+		out << "server_name: " << server->get_server_name()[0] << std::endl;
+		out << "root: " << server->get_root() << std::endl;
+		out << "index: " << server->get_index_path() << std::endl;
+		out << "autoindex: " << server->get_auto_index() << std::endl;
+
+		std::vector <std::string> server_name = server->get_server_name();
+		for (std::vector <std::string>::iterator it = server_name.begin(); it != server_name.end(); it++) { out << *it << " "; }
+		out << std::endl;
+
+		out << "access_log: " << server->get_access_log() << std::endl;
+		out << "client_max_body_size: " << server->get_client_max_body_size() << std::endl;
+		out << "locations: " << std::endl;
+	}
+
+	void	print_location_info(std::ostream& out, LocationInfo* location)
+	{
+		out << "root: " << location->get_path() << std::endl;
+		out << "\tdirectory_listing: " << (location->get_directory_listing() ? "enabled" : "disabled") << std::endl;
+		out << "\tautoindex: " << (location->get_autoindex() ? "enabled" : "disabled") << std::endl;
+		out << "\tallowed_methods: ";
+
+		std::vector <std::string> allowed_methods = location->get_allowed_methods();
+		for (std::vector <std::string>::iterator it = allowed_methods.begin(); it != allowed_methods.end(); it++) { out << *it << " "; }
+		out << std::endl;
+
+		if (location->get_cgi() == true)
+		{
+			out << "\tcgi_handler: " << location->get_cgi_handler() << std::endl;
+			out << "\tcgi_extension: " << location->get_cgi_extensions()[0] << std::endl;
+		}
+
+		out << std::endl;
+	}
+
+	std::string	extract_cgi_identifier(const std::string& key)
+	{
+		if (std::count(key.begin(), key.end(), ':') < 2)
+		{
+			return "";
+		}
+		std::string cgi_prefix = "location /cgi-bin";
+		std::string cgi_identifier = key.substr(cgi_prefix.size() + 1);
+		cgi_identifier =  "/" + cgi_identifier.substr(0, cgi_identifier.find_first_of(":"));
+		return cgi_identifier;
+	}
+
+	void config_error_on_line(int line_number, const std::string& error_message, e_exception throw_exception)
+	{
+		if (line_number != -1)
+		{
+			Log::log("Config file (line " + Utils::itoa(line_number) + "): Error: " + error_message + "\n");
+		}
+
+		else
+		{
+			Log::log("Config file: Error: " + error_message + "\n");
+		}
+
+		if (throw_exception == THROW)
+		{
+			throw std::runtime_error("");
+		}
 	}
 }
