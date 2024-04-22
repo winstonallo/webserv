@@ -1,5 +1,3 @@
-// class responsible for the validation & loading of parsed values into their corresponding object
-// eg: Server, LocationInfo, etc
 
 #ifndef CONFIGDISPATCHER_HPP
 #define CONFIGDISPATCHER_HPP
@@ -30,7 +28,6 @@ class ConfigDispatcher
 
         std::map <int, std::map <std::string, std::vector <std::string> > > 			_servers;
         std::map <int, std::string>                                         			_error_pages;
-		std::map <std::string, std::map <std::string, std::vector <std::string> > > 	_routes;
 
         ConfigDispatcher(const ConfigDispatcher&) {}
         ConfigDispatcher& operator=(const ConfigDispatcher&) { return *this; }

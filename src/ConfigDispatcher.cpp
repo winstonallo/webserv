@@ -33,31 +33,6 @@ void	ConfigDispatcher::dispatch_values()
 	{
 		handle_server(it->first);
 		handle_error_page(std::make_pair(it->first, it->second));
-		handle_route(it->first);
-	}
-}
-
-// handles route config values
-//
-// @param key:	current config key
-//
-// if routes prefix ("webserv:routes") in key:
-//		1. removes the prefix
-// 		2. separates the top key (ex: "/admin", "/cgi-bin") from the rest of the substring
-//		3. gets the final value key (full route - top key)
-//		4. stores corresponding _raw_config values into the _routes map
-void 	ConfigDispatcher::handle_route(const std::string& key)
-{
-	size_t routes_prefix_size = std::string(ROUTES_PREFIX).size();
-
-	if (key.substr(0, routes_prefix_size) == ROUTES_PREFIX)
-	{
-		std::string full_route = key.substr(routes_prefix_size + 1);
-		std::string route_key = full_route.substr(0, full_route.find_first_of(":"));
-		size_t value_start_pos = route_key.length() + 1;
-		std::string route_value_key = full_route.substr(value_start_pos);
-		
-		_routes[route_key][route_value_key] = _raw_config[key];
 	}
 }
 
