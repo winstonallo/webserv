@@ -510,8 +510,13 @@ namespace Utils
 		return cgi_identifier;
 	}
 
-	void config_error_on_line(int line_number, const std::string& error_message)
+	void config_error_on_line(int line_number, const std::string& error_message, e_exception throw_exception)
 	{
-		Log::log("Config file line " + Utils::itoa(line_number - 1) + ": Error: " + error_message + "\n");
+		Log::log("Config file line " + Utils::itoa(line_number) + ": Error: " + error_message + "\n");
+
+		if (throw_exception == THROW)
+		{
+			throw std::runtime_error("");
+		}
 	}
 }

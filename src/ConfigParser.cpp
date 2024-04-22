@@ -13,7 +13,7 @@ ConfigParser::ConfigParser(const std::string& path) : _config_file_path(path), _
 	}
 	if (_config_file_path.substr(_config_file_path.size() - 5) != EXPECTED_EXT)
 	{
-		throw std::runtime_error(error_on_line(INVALID_EXT, 0));
+		Utils::config_error_on_line(0, INVALID_EXT, THROW);
 	}
 
 	load_config_from_file(_config_file_path);
@@ -46,7 +46,7 @@ void 	ConfigParser::load_config_from_file(const std::string& path)
 
 	if (buffer.str().empty() == true)
 	{
-		throw std::runtime_error(error_on_line(EMPTY, 0));
+		Utils::config_error_on_line(0, EMPTY, THROW);
 	}
 
     config_file.close();
@@ -82,7 +82,7 @@ void	ConfigParser::store_key_value_pairs(const std::pair <std::string, int> line
 {
 	if (line.first.find("\n") != std::string::npos)
 	{
-		throw std::runtime_error(error_on_line(UNEXPECTED_NL, line.second + 1));
+		Utils::config_error_on_line(line.second + 1, UNEXPECTED_NL, THROW);
 	}
 
 	std::vector <std::string> bottom_pair = Utils::split_keep_quoted_words(line.first, " \t");
@@ -91,7 +91,7 @@ void	ConfigParser::store_key_value_pairs(const std::pair <std::string, int> line
 
 	std::vector <std::string> value = bottom_pair;
 	value.erase(value.begin());
-	_config[_nesting_level.top()] = std::make_pair(value, line.second + 1);
+	_config[_nesting_level.top()] = std::make_pair(value, line.second);
 
 	if (_nesting_level.top().substr(0, 20) == "webserv:error_pages:")
 	{
@@ -113,7 +113,7 @@ void	ConfigParser::handle_opening_brace(const std::pair <std::string, int>& prev
 	}
 	if (prev_line.first.find_first_of(";{}") != std::string::npos)
 	{
-		throw std::runtime_error(error_on_line(UNINITIALIZED_SCOPE, prev_line.second + 1));
+		Utils::config_error_on_line(prev_line.second + 1, UNINITIALIZED_SCOPE, THROW);
 	}
 	_nesting_level.push(_nesting_level.top() + ":" + name);
 }
@@ -122,11 +122,11 @@ void	ConfigParser::handle_closing_brace(const std::pair <std::string, int>& prev
 {
 	if (_nesting_level.empty() == true)
 	{
-		throw std::runtime_error(error_on_line(EXTRA_CLOSING_BRACE, prev_line.second + 1));
+		Utils::config_error_on_line(prev_line.second + 1, EXTRA_CLOSING_BRACE, THROW);
 	}
 	else if (prev_line.first.find_first_of("{};") == std::string::npos)
 	{
-		throw std::runtime_error(error_on_line(UNTERM_VALUE_SCOPE, prev_line.second + 1));
+		Utils::config_error_on_line(prev_line.second + 1, UNTERM_VALUE_SCOPE, THROW);
 	}
 	_nesting_level.pop();
 }
@@ -135,16 +135,17 @@ void	ConfigParser::validate_config_header(const std::vector <std::pair <std::str
 {
 	if (config[0].first == UNCLOSED_QUOTE)
 	{
-		throw std::runtime_error(error_on_line(UNCLOSED_QUOTE, config[0].second));
+		Utils::config_error_on_line(config[0].second, UNCLOSED_QUOTE, THROW);
 	}
+
 	if (Utils::trim(config[0].first.substr(0, 7), " \t\n") != "webserv")
 	{
-        throw std::runtime_error(error_on_line(INV_HEADER, config[0].second));
+		Utils::config_error_on_line(config[0].second, INV_HEADER, THROW);
 	}
 
 	if (config[1].first != "{")
 	{
-		throw std::runtime_error(error_on_line(MISSING_OPENING_BRACE, config[1].second));
+		Utils::config_error_on_line(config[1].second, MISSING_OPENING_BRACE, THROW);
 	}
 }
 
@@ -152,7 +153,7 @@ void	ConfigParser::validate_nesting(int line_count)
 {
 	if (_nesting_level.empty() == false)
 	{
-		throw std::runtime_error(error_on_line(MISSING_CLOSING_BRACE, line_count));
+		Utils::config_error_on_line(line_count, MISSING_CLOSING_BRACE, THROW);
 	}
 }
 
@@ -166,13 +167,4 @@ std::string	ConfigParser::error(const std::string& message)
 	}
 
 	return _config_file_path + ": " + message + ": " + error;
-}
-
-std::string	ConfigParser::error_on_line(const std::string& issue, int line_count)
-{
-	std::ostringstream oss;
-
-	oss << _config_file_path << " (line " << line_count << "): ";
-	oss << issue;
-	return oss.str();
 }
