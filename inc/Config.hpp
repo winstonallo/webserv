@@ -42,9 +42,11 @@ class Config
 		void									configure_port(_map& server, Server*& new_server);
 		void									configure_server_names(_map& server, Server*& new_server);
 		void									configure_host(_map& server, Server*& new_server);
+		void									initialize_cgi(LocationInfo*& new_location, const std::string& identifier);
 		location_setter_map::iterator			configure_cgi(std::string key, LocationInfo*& new_location);
 		location_setter_map::iterator			initialize_location(const std::string& name, const std::string& key, LocationInfo*& new_location);
 		void									configure_locations(const _map& server, Server*& new_server);
+		void									add_location(LocationInfo*& new_location, Server* new_server=NULL, bool add_to_server=false);
 
 		void									initialize_location_setters();
 		void									initialize_server_setters();
@@ -54,8 +56,6 @@ class Config
 
 		std::vector <LocationInfo *>			_locations;
 
-		// error status codes - error message
-		// key/value pairs
 		std::map <int, std::string>             _error_status_codes;
 
 		// maps used to set the location and server attributes

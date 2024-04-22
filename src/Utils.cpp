@@ -496,4 +496,17 @@ namespace Utils
 
 		out << std::endl;
 	}
+
+	std::string	extract_cgi_identifier(const std::string& key)
+	{
+		if (std::count(key.begin(), key.end(), ':') < 2)
+		{
+			Log::log("error: no identifier found for cgi block\n", STD_ERR | ERROR_FILE);
+			return "";
+		}
+		std::string cgi_prefix = "location /cgi-bin";
+		std::string cgi_identifier = key.substr(cgi_prefix.size() + 1);
+		cgi_identifier =  "/" + cgi_identifier.substr(0, cgi_identifier.find_first_of(":"));
+		return cgi_identifier;
+	}
 }

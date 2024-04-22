@@ -104,6 +104,24 @@ void	Config::set_servers(std::map <int, std::map <std::string, std::vector <std:
 	}
 }
 
+void	Config::add_location(LocationInfo*& new_location, Server* new_server, bool add_to_server)
+{
+	if (new_location != NULL)
+	{
+		if (new_location->get_cgi() == true)
+		{
+			new_location->set_path("/cgi-bin");
+		}
+		_locations.push_back(new_location);
+		new_location = NULL;
+	}
+	if (add_to_server == true)
+	{
+		new_server->add_locations(_locations);
+		_locations.clear();
+	}
+}
+
 // initializes the location before setting the values
 //
 // if:	the new_location is NULL or the name of the current map key is different from the new_location name
@@ -174,44 +192,16 @@ void	Config::configure_locations(const _map& server, Server*& new_server)
 			Log::log("error: '" + it->first + "' is not a valid location setting\n", STD_ERR | ERROR_FILE);
 		}
 	}
-	if (new_location != NULL)
-	{
-		if (new_location->get_cgi() == true)
-		{
-			new_location->set_path("/cgi-bin");
-		}
-		_locations.push_back(new_location);
-	}
-	new_server->add_locations(_locations);
-	_locations.clear();
+	add_location(new_location, new_server, true);
 }
 
-// initializes the CGI before setting the values
-//
-// if:	the new_cgi is NULL or the name of the current map key is different from the new_cgi name
-//		->	initialize a new CGI
-//
-//	->	return the setter for the current map key
-Config::location_setter_map::iterator	Config::configure_cgi(std::string key, LocationInfo*& new_location)
+void	Config::initialize_cgi(LocationInfo*& new_location, const std::string& identifier)
 {
-	if (std::count(key.begin(), key.end(), ':') < 2)
-	{
-		Log::log("error: no identifier found for cgi block\n", STD_ERR | ERROR_FILE);
-		return _location_setters.end();
-	}
-	std::string cgi_prefix = "location /cgi-bin";
-	std::string cgi_name = key.substr(cgi_prefix.size() + 1);
-	cgi_name =  "/" + cgi_name.substr(0, cgi_name.find_first_of(":"));
-
 	if (new_location != NULL)
 	{
-		if (cgi_name != new_location->get_path())
+		if (identifier != new_location->get_path())
 		{
-			if (new_location->get_cgi() == true)
-			{
-				new_location->set_path("/cgi-bin");
-			}
-			_locations.push_back(new_location);
+			add_location(new_location);
 			new_location = new LocationInfo;
 		}
 	}
@@ -219,7 +209,18 @@ Config::location_setter_map::iterator	Config::configure_cgi(std::string key, Loc
 	{
 		new_location = new LocationInfo;
 	}
-	new_location->set_path(cgi_name);
+}
+
+Config::location_setter_map::iterator	Config::configure_cgi(std::string key, LocationInfo*& new_location)
+{
+	std::string cgi_identifier = Utils::extract_cgi_identifier(key);
+	if (cgi_identifier.empty() == true)
+	{
+		return _location_setters.end();
+	}
+
+	initialize_cgi(new_location, cgi_identifier);
+	new_location->set_path(cgi_identifier);
 	new_location->set_cgi(true);
 
 	std::string current_key = key.substr(key.find_last_of(":") + 1);
@@ -251,18 +252,6 @@ void	Config::configure_host(_map& server, Server*& new_server)
 	new_server->set_host_address(ip_address);
 }
 
-// finds the server_name(s) in the server map and performs some error handling on them 
-// before storing them in the current Server
-//
-//	if:		no server name in config
-//			-> skip server in initialization
-//
-//	if:		server name already given to another server
-//			-> skip server in initialization
-//
-//	else:	
-//			-> add server name(s) to vector of unique values
-//			-> set server name(s) of current Server object
 void	Config::configure_server_names(_map& server, Server*& new_server)
 {
 	if (server.find("server_name") == server.end() or server["server_name"].empty() == true)
@@ -286,13 +275,6 @@ void	Config::configure_server_names(_map& server, Server*& new_server)
 
 }
 
-// finds the port in the server map and performs some error handling on it before storing it in the current Server
-//
-//	if:		no port in config
-//			-> skip server in initialization
-//
-//	else:	
-//			-> set port of current Server object
 void	Config::configure_port(_map& server, Server*& new_server)
 {
 	if (server.find("port") == server.end() or server["port"].empty() == true)
