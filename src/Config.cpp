@@ -35,8 +35,7 @@
 // ConfigDispatcher:
 //		1. 	splits the config into logical parts
 //			a. servers
-//			b. routes
-//			c. error pages
+//			b. error pages
 //
 // Config:
 // 		1. 	gets error pages (already fully parsed in ConfigDispatcher 
@@ -63,9 +62,6 @@ Config::Config(const std::string& config_path)
 //
 // if:	any of the required fields are missing
 //		->	log error & fall back to default values
-//
-// else if: a unique value is already taken (host, port, server name)
-//		->	log error & skip the server
 //
 // else:
 //		->	initialize the server
@@ -108,15 +104,6 @@ void	Config::set_servers(std::map <int, std::map <std::string, std::vector <std:
 		}
 	}
 }
-
-// extracts the location path from the current map key
-//
-// if:		"location" in key
-//			->	return the path
-//
-// else:
-//			->	return empty string
-
 
 // initializes the location before setting the values
 //
@@ -263,8 +250,6 @@ void	Config::configure_host(_map& server, Server*& new_server)
 	}
 
 	new_server->set_host_address(ip_address);
-
-	//std::cout << inet_ntoa((new_server)->get_host_address()) << std::endl;
 }
 
 // finds the server_name(s) in the server map and performs some error handling on them 
@@ -307,11 +292,7 @@ void	Config::configure_server_names(_map& server, Server*& new_server)
 //	if:		no port in config
 //			-> skip server in initialization
 //
-//	if:		port already given to another server
-//			-> skip server in initialization
-//
 //	else:	
-//			-> add port to vector of unique values
 //			-> set port of current Server object
 void	Config::configure_port(_map& server, Server*& new_server)
 {
@@ -323,13 +304,6 @@ void	Config::configure_port(_map& server, Server*& new_server)
 	std::string port = server["port"][0];
 
 	new_server->set_port(std::atoi(port.c_str()));
-}
-
-
-
-std::vector <Server *>	Config::get_servers() const
-{
-	return _servers;
 }
 
 std::string	Config::get_error_page(const int key)
