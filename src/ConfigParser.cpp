@@ -1,16 +1,9 @@
- // config class implementation
-// handles loading, parsing, and accessing config settings from .conf file
-
 
 #include "ConfigParser.hpp"
 #include "Utils.hpp"
 #include <sstream>
 #include <fstream>
 
-// default constructor: loads config from path
-// 
-// @param path: path to the configuration file (default: 'webserv.conf')
-//
 // checks the file extension against expected value and passes the file path to the parser
 ConfigParser::ConfigParser(const std::string& path) : _config_file_path(path), _server_count(0)
 {
@@ -26,9 +19,6 @@ ConfigParser::ConfigParser(const std::string& path) : _config_file_path(path), _
 	load_config_from_file(_config_file_path);
 }
 
-// loops through the config and removes the comments from each line
-//
-// @param config:	unprocessed config file as a string
 std::string	ConfigParser::remove_comments(const std::string& config)
 {
 	std::string			cleaned_config;
@@ -42,10 +32,6 @@ std::string	ConfigParser::remove_comments(const std::string& config)
 	return cleaned_config;
 }
 
-// open config file
-// reads into string for easier splitting
-//
-// @param path: path to the configuration file (default: 'webserv.conf')
 void 	ConfigParser::load_config_from_file(const std::string& path)
 {
     std::ifstream 				config_file(path.c_str());
@@ -101,12 +87,6 @@ void	ConfigParser::parse_config_from_vector(const std::vector <std::pair <std::s
 	validate_nesting(config[config.size() - 1].second + 1);
 }
 
-// stores the key value pairs into the correct map position
-//
-// @param line: bottom (value level) pair line
-//
-// adds the first word of the line to map key
-// adds subsequent words to the value vector 
 void	ConfigParser::store_key_value_pairs(const std::pair <std::string, int> line)
 {
 	if (line.first.find("\n") != std::string::npos)
@@ -132,15 +112,6 @@ void	ConfigParser::store_key_value_pairs(const std::pair <std::string, int> line
 	_nesting_level.pop();
 }
 
-// pushes the new path to the stack to signify a new scope
-//
-// @param prev_line: 	previous token, used for the path initialization
-// 						& error handling
-// 
-// if the previous line is a delimiter, it means the current
-// scope was not initialized with a name -> throw error
-// 
-// else, update the stack
 void	ConfigParser::handle_opening_brace(const std::pair <std::string, int>& prev_line)
 {
 	std::string name = prev_line.first;
@@ -157,15 +128,6 @@ void	ConfigParser::handle_opening_brace(const std::pair <std::string, int>& prev
 	_nesting_level.push(_nesting_level.top() + ":" + name);
 }
 
-// updates the scope and performs some error handling
-//
-// @param prev_line: 	previous config token, used for error handling
-//
-// if the stack is empty before popping: error
-//
-// else if the previous line is neither a '}' nor a ';': previous scope not terminated: error
-//
-// else: pop top value from the stack and keep going
 void	ConfigParser::handle_closing_brace(const std::pair <std::string, int>& prev_line)
 {
 	if (_nesting_level.empty() == true)
@@ -179,11 +141,6 @@ void	ConfigParser::handle_closing_brace(const std::pair <std::string, int>& prev
 	_nesting_level.pop();
 }
 
-// validate header of the config file
-//
-// @param config: vector of strings with the split config
-//
-// checks whether the config has the right header and is opened by '{'
 void	ConfigParser::validate_config_header(const std::vector <std::pair <std::string, int> >& config)
 {
 	if (config[0].first == UNCLOSED_QUOTE)
@@ -201,32 +158,12 @@ void	ConfigParser::validate_config_header(const std::vector <std::pair <std::str
 	}
 }
 
-// ensures that no nesting scope is left open
 void	ConfigParser::validate_nesting(int line_count)
 {
 	if (_nesting_level.empty() == false)
 	{
 		throw std::runtime_error(error_on_line(MISSING_CLOSING_BRACE, line_count));
 	}
-}
-
-
-
-std::map <int, std::map <std::string, std::vector <std::string> > >	ConfigParser::get_servers()
-{
-	return _servers;
-}
-
-// @return:	error pages map
-std::map <int, std::string>	ConfigParser::get_error_pages()
-{
-	return _error_pages;
-}
-
-// @return: config map
-std::map <std::string, std::vector <std::string> >	ConfigParser::get_config() const
-{
-	return _config;
 }
 
 std::string	ConfigParser::error(const std::string& message)
@@ -248,15 +185,4 @@ std::string	ConfigParser::error_on_line(const std::string& issue, int line_count
 	oss << _config_file_path << " (line " << line_count << "): ";
 	oss << issue;
 	return oss.str();
-}
-
-ConfigParser::~ConfigParser() {}
-
-ConfigParser::ConfigParser(const ConfigParser& rhs) {*this = rhs;}
-
-ConfigParser&	ConfigParser::operator=(const ConfigParser& rhs)
-{
-	if (this != &rhs)
-		_config = rhs._config;
-	return (*this);
 }

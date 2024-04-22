@@ -13,11 +13,11 @@ class ConfigParser
 	public:
 	
 		ConfigParser(const std::string& path="config_files/webserv.conf");
-		~ConfigParser();
+		~ConfigParser() {}
 
-		std::map <std::string, std::vector <std::string> >						get_config() const;
-		std::map <int, std::string>												get_error_pages();
-		std::map <int, std::map <std::string, std::vector <std::string> > >		get_servers();
+		std::map <std::string, std::vector <std::string> >						get_config() const { return _config; }
+		std::map <int, std::string>												get_error_pages() { return _error_pages; }
+		std::map <int, std::map <std::string, std::vector <std::string> > >		get_servers() { return _servers; }
 
 	private:
 
@@ -37,7 +37,7 @@ class ConfigParser
 		void																	dispatch_values();
 	
 		std::string																_config_file_path;
-		std::stack <std::string> 												_nesting_level;		// keeps track of nesting level
+		std::stack <std::string> 												_nesting_level;
 		size_t																	_server_count;
 
 		std::map <std::string, std::vector <std::string> >						_config;
@@ -45,8 +45,8 @@ class ConfigParser
 		std::map <int, std::map <std::string, std::vector <std::string> > >		_servers;
 		std::map <int, std::string>												_error_pages;
 
-		ConfigParser(const ConfigParser& rhs);
-		ConfigParser&	operator=(const ConfigParser& rhs);
+		ConfigParser(const ConfigParser&) {}
+		ConfigParser&	operator=(const ConfigParser&) { return *this; }
 };
 
 #define EXPECTED_EXT ".conf"
