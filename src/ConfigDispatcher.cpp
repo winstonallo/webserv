@@ -126,33 +126,3 @@ void ConfigDispatcher::handle_error_page(const std::pair<std::string, std::vecto
 		}
     }
 }
-
-std::map <int, std::string>		ConfigDispatcher::get_error_pages() const
-{
-	return _error_pages;
-}
-
-std::map <int, std::map <std::string, std::vector <std::string> > >		ConfigDispatcher::get_servers() const
-{
-	return _servers;
-}
-
-std::map <std::string, std::map <std::string, std::vector <std::string> > > ConfigDispatcher::get_routes() const
-{
-	return _routes;
-}
-
-ConfigDispatcher::~ConfigDispatcher() {}
-
-ConfigDispatcher::ConfigDispatcher(const ConfigDispatcher& rhs) {*this = rhs;}
-
-ConfigDispatcher    &ConfigDispatcher::operator=(const ConfigDispatcher& rhs)
-{
-    if (this != &rhs)
-    {
-        _raw_config = rhs._raw_config;
-        _servers = rhs._servers;
-        _error_pages = rhs._error_pages;
-    }
-    return *this;
-}

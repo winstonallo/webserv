@@ -18,12 +18,11 @@ class ConfigDispatcher
 		void																			handle_server(const std::string& key);
 		void																			handle_route(const std::string& key);
 
-		std::map <int, std::string>                                      				get_error_pages() const;
-		std::map <int, std::map <std::string, std::vector <std::string> > >				get_servers() const;
-		std::map <std::string, std::map <std::string, std::vector <std::string> > >		get_routes() const;
+		std::map <int, std::string>                                      				get_error_pages() const { return _error_pages; }
+		std::map <int, std::map <std::string, std::vector <std::string> > >				get_servers() const { return _servers; }
 
         ConfigDispatcher(const std::map <std::string, std::vector <std::string> >& raw_config);
-        ~ConfigDispatcher();
+        ~ConfigDispatcher() {}
 
     private:
 
@@ -33,8 +32,8 @@ class ConfigDispatcher
         std::map <int, std::string>                                         			_error_pages;
 		std::map <std::string, std::map <std::string, std::vector <std::string> > > 	_routes;
 
-        ConfigDispatcher(const ConfigDispatcher& rhs);
-        ConfigDispatcher& operator=(const ConfigDispatcher& rhs);
+        ConfigDispatcher(const ConfigDispatcher&) {}
+        ConfigDispatcher& operator=(const ConfigDispatcher&) { return *this; }
 };
 
 #define SERVER_PREFIX "webserv:server"

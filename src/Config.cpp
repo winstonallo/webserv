@@ -49,7 +49,6 @@ Config::Config(const std::string& config_path)
 	ConfigDispatcher 	dispatcher(parser.get_config());
 
 	std::map <int, _map> servers = dispatcher.get_servers();
-	std::map <std::string, _map> routes = dispatcher.get_routes();
 
 	_error_pages = dispatcher.get_error_pages();
 	_error_status_codes = Utils::get_error_status_codes();
