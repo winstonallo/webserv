@@ -8,14 +8,7 @@
 
 Director::Director(const std::string& config_path):fdmax(-1)
 {
-	try
-	{
-		config = new Config(config_path);
-	}
-	catch(const std::exception& e)
-	{
-		throw e;
-	}
+	config = new Config(config_path);
 	std::cout << *config;
 }
 
