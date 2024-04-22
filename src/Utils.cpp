@@ -501,7 +501,6 @@ namespace Utils
 	{
 		if (std::count(key.begin(), key.end(), ':') < 2)
 		{
-			Log::log("error: no identifier found for cgi block\n", STD_ERR | ERROR_FILE);
 			return "";
 		}
 		std::string cgi_prefix = "location /cgi-bin";
@@ -512,7 +511,15 @@ namespace Utils
 
 	void config_error_on_line(int line_number, const std::string& error_message, e_exception throw_exception)
 	{
-		Log::log("Config file line " + Utils::itoa(line_number) + ": Error: " + error_message + "\n");
+		if (line_number != -1)
+		{
+			Log::log("Config file line " + Utils::itoa(line_number) + ": Error: " + error_message + "\n");
+		}
+
+		else
+		{
+			Log::log("Config file: Error: " + error_message + "\n");
+		}
 
 		if (throw_exception == THROW)
 		{

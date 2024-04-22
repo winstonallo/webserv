@@ -88,10 +88,6 @@ void	Config::set_servers(std::map <int, _map>& raw_servers)
 		}
 		catch (const std::exception& e)
 		{
-			if (std::string(e.what()).empty() == false)
-			{
-				Log::log(e.what(), STD_ERR | ERROR_FILE);
-			}
 			delete new_server;
 			continue ;
 		}
@@ -116,7 +112,7 @@ void	Config::add_location(LocationInfo*& new_location, Server* new_server, bool 
 	}
 }
 
-Config::location_setter_map::iterator	Config::initialize_location(const std::string& name, const std::string& key, LocationInfo*& new_location)
+Config::location_setter_map::iterator	Config::initialize_location(int line_count, const std::string& key, const std::string& name, LocationInfo*& new_location)
 {
 	if (new_location == NULL || name != new_location->get_path())
 	{
@@ -131,7 +127,7 @@ Config::location_setter_map::iterator	Config::initialize_location(const std::str
 		}
 		else 
 		{
-			return configure_cgi(key, new_location);
+			return configure_cgi(line_count, key, new_location);
 		}
 	}
 	std::string current_key = key.substr(key.find_first_of(":") + 1);
@@ -154,7 +150,7 @@ void	Config::configure_locations(const _map& server, Server*& new_server)
 			continue ;
 		}
 
-		location_setter_map::iterator setter = initialize_location(name, it->first, new_location);
+		location_setter_map::iterator setter = initialize_location(it->second.second, it->first, name, new_location);
 		
 		if (setter != _location_setters.end())
 		{
@@ -169,7 +165,7 @@ void	Config::configure_locations(const _map& server, Server*& new_server)
 		}
 		else
 		{
-			Utils::config_error_on_line(it->second.second, "'" + it->first + "' is not a valid location setting\n");
+			Utils::config_error_on_line(it->second.second, "'" + it->first + "' is not a valid location setting\n", LOG);
 		}
 	}
 	add_location(new_location, new_server, true);
@@ -191,11 +187,12 @@ void	Config::initialize_cgi(LocationInfo*& new_location, const std::string& iden
 	}
 }
 
-Config::location_setter_map::iterator	Config::configure_cgi(std::string key, LocationInfo*& new_location)
+Config::location_setter_map::iterator	Config::configure_cgi(int line_count, const std::string key, LocationInfo*& new_location)
 {
 	std::string cgi_identifier = Utils::extract_cgi_identifier(key);
 	if (cgi_identifier.empty() == true)
 	{
+		Utils::config_error_on_line(line_count, "missing CGI identifier in location '" + key + "', location will not be initialized\n", LOG);
 		return _location_setters.end();
 	}
 
@@ -212,7 +209,7 @@ void	Config::configure_host(_map& server, Server*& new_server)
 {
 	if (server.find("host") == server.end() or server["host"].first.empty() == true)
 	{
-		throw std::runtime_error("error: missing host in server '" + new_server->get_server_name()[0] + "', server will not be initialized\n");
+		Utils::config_error_on_line(-1, "missing host in server '" + new_server->get_server_name()[0] + "', server will not be initialized\n", THROW);
 	}
 
 	std::string host = server["host"].first[0];
@@ -227,8 +224,7 @@ void	Config::configure_host(_map& server, Server*& new_server)
 	
 	if (inet_pton(AF_INET, host.c_str(), &ip_address) != 1)
 	{
-		Utils::config_error_on_line(server["host"].second, "'" + host + "' is not a valid IPv4 address, server will not be initialized\n");
-		throw std::runtime_error("");
+		Utils::config_error_on_line(server["host"].second, "'" + host + "' is not a valid IPv4 address, server will not be initialized\n", THROW);
 	}
 
 	new_server->set_host_address(ip_address);
@@ -238,7 +234,7 @@ void	Config::configure_server_names(_map& server, Server*& new_server)
 {
 	if (server.find("server_name") == server.end() or server["server_name"].first.empty() == true)
 	{
-		throw std::runtime_error("Error: missing server_name, server will not be initialized\n");
+		Utils::config_error_on_line(-1, "missing server_name in server '" + new_server->get_server_name()[0] + "', server will not be initialized\n", THROW);
 	}
 
 	std::vector <std::string> new_server_names = server["server_name"].first;
@@ -247,8 +243,7 @@ void	Config::configure_server_names(_map& server, Server*& new_server)
 	{
 		if (std::find(_server_names.begin(), _server_names.end(), *it) != _server_names.end())
 		{
-			Utils::config_error_on_line(server["server_name"].second, "on server: '" + *it + "': name already taken, server will not be initialized\n");
-			throw std::runtime_error("");
+			Utils::config_error_on_line(server["server_name"].second, "on server: '" + *it + "': name already taken, server will not be initialized\n", THROW);
 		}
 	}
 
@@ -262,7 +257,7 @@ void	Config::configure_port(_map& server, Server*& new_server)
 {
 	if (server.find("port") == server.end() or server["port"].first.empty() == true)
 	{
-		throw std::runtime_error("error: missing port in server '" + new_server->get_server_name()[0] + "', server will not be initialized\n");
+		Utils::config_error_on_line(-1, "missing port in server '" + new_server->get_server_name()[0] + "', server will not be initialized\n", THROW);	
 	}
 
 	std::string port = server["port"].first[0];
