@@ -208,6 +208,11 @@ void	Config::configure_locations(const _map& server, Server*& new_server)
 //	->	return the setter for the current map key
 Config::location_setter_map::iterator	Config::configure_cgi(std::string key, LocationInfo*& new_location)
 {
+	if (std::count(key.begin(), key.end(), ':') < 2)
+	{
+		Log::log("error: no identifier found for cgi block\n", STD_ERR | ERROR_FILE);
+		return _location_setters.end();
+	}
 	std::string cgi_prefix = "location /cgi-bin";
 	std::string cgi_name = key.substr(cgi_prefix.size() + 1);
 	cgi_name =  "/" + cgi_name.substr(0, cgi_name.find_first_of(":"));
