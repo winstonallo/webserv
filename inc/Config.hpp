@@ -60,8 +60,8 @@ class Config
 
 		std::vector <std::string>				_server_names;
 
-		Config(const Config& rhs);
-		Config &operator=(const Config& rhs);
+		Config(const Config&) {}
+		Config &operator=(const Config&) { return *this; };
 };
 
 std::ostream& operator<<(std::ostream& out, const Config& config);

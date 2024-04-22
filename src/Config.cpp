@@ -348,18 +348,6 @@ Config::~Config()
 	}
 }
 
-Config::Config(const Config& rhs) {*this = rhs;}
-
-Config	&Config::operator=(const Config& rhs)
-{
-	if (this != &rhs)
-	{
-		_servers = rhs._servers;
-		_error_pages = rhs._error_pages;
-	}
-	return *this;
-}
-
 std::ostream &operator<<(std::ostream &out, const Config &config)
 {
 	std::vector <Server *> servers = config.get_servers();
