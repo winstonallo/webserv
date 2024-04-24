@@ -528,6 +528,8 @@ int	Director::read_from_client(int client_fd)
 
 	ci = dynamic_cast<ClientInfo *>(nodes[client_fd]);
 	flag = Request::read_request(client_fd, MSG_SIZE, requestmsg[client_fd]);
+	// std::cout << RED<< "flag: " << flag << std::endl;
+	// std::cout << "requestmsg: " << requestmsg[client_fd] << RESET<< std::endl;
 	if (!flag)
 	{
 		std::stringstream ss;
@@ -586,8 +588,7 @@ int	Director::read_from_client(int client_fd)
 		}
 		catch(const std::exception& e)
 		{
-			std::cerr << e.what() << '\n';
-			return -1;
+			//std::cerr << e.what() << '\n';
 		}
 		// print Request parsed log
 		std::stringstream ss;
