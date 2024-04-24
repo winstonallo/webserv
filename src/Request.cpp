@@ -201,7 +201,9 @@ int Request::read_request(int client_fd, int size,std::string& requestmsg)
     buff.append(buf, num);
 	if (num < 1)
 		return num;
-    if (requestmsg.find("\r\n\r\n") == std::string::npos  && buff.find("\r\n\r\n") == std::string::npos)
+    std::string check = requestmsg;
+    check.append(buff);
+    if (check.find("\r\n\r\n") == std::string::npos)
     {
         requestmsg.append(buff);
         return NOTREAD;
@@ -509,19 +511,17 @@ void Request::check_headers()
     {
         this->headers["CONNECTION"] = "keep-alive";
     }
-    // check that host is present
-    // if (this->headers.find("HOST") == this->headers.end())
-    // {
-    //     this->errcode = 400;
-    //     throw std::runtime_error("Invalid request: Host header is missing");
-    // }
-    // // check that host is not empty
-    // if (this->headers["HOST"].size() == 0)
-    // {
-    //     this->errcode = 400;
-    //     throw std::runtime_error("Invalid request: Host header is empty");
-    // }
-    // split into host and port by :
+    if (this->headers.find("HOST") == this->headers.end())
+    {
+        this->errcode = 400;
+        throw std::runtime_error("Invalid request: Host header is missing");
+    }
+    // check that host is not empty
+    if (this->headers["HOST"].size() == 0)
+    {
+        this->errcode = 400;
+        throw std::runtime_error("Invalid request: Host header is empty");
+    }
     if (this->headers["HOST"].find(":") != std::string::npos)
     {
         this->host = this->headers["HOST"].substr(0, this->headers["HOST"].find(":"));
