@@ -1,3 +1,4 @@
+#include "Log.hpp"
 #include "Server.hpp"
 #include "Director.hpp"
 #include <exception>
@@ -12,10 +13,7 @@ int main(int argc, char **argv)
 {
 	try 
 	{
-		if (mkdir("./logs", 0755) == false)
-		{
-			std::cerr << "Error creating log directory." << std::endl;
-		}
+		Log::create_logs_directory();
 		if (argc != 1 && argc != 2)
 		{
 			std::cerr << "Error. Invalid number of arguments." << std::endl;

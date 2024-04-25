@@ -37,6 +37,7 @@ class Log
 		static void				set_error_file(const std::string& ferror);
 		static std::string		get_accept_file();
 		static void				set_accept_file(const std::string& faccept);
+		static void				create_logs_directory();
 
 	private:
 								Log();

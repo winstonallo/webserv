@@ -74,6 +74,17 @@ std::ofstream	Log::logfile;
 std::string		Log::error_file = "./logs/error.log";
 std::string		Log::accept_file = "./logs/accept.log";
 
+void	Log::create_logs_directory()
+{
+	if (mkdir("./logs", 0755) == -1)
+	{
+		if (errno != EEXIST)
+		{
+			std::cerr << "Error creating log directory." << std::endl;
+		}
+	}
+}
+
 //purpose: The logging of various error, accept, information
 //			messages to different outputs. You can output to several outputs
 //			by (OR)ing the bit flags. e.g. STD_ERR | ERROR_FILE
