@@ -479,13 +479,15 @@ std::string		Server::_get_body(Request& rq, ClientInfo *ci)
 	}
 	else if (rq.get_method() == "DELETE")
 	{
-		if (Utils::file_exists(loc_path) == false)
+        std::string filename = rq.get_uri().substr(rq.get_uri().find_last_of("=") + 1);
+        filename = loc_path.substr(0, loc_path.find_last_of("/") + 1) + filename;
+		if (Utils::file_exists(filename) == false)
 		{
 			_errcode = 404;
 			Log::log("Error. File to be deleted doesn't exist.\n", STD_ERR | ERROR_FILE);
 			throw std::runtime_error("error");
 		}
-		if (remove(loc_path.c_str()) != 0)
+		if (remove(filename.c_str()) != 0)
 		{
 			_errcode = 500;
 			Log::log("Error. Couldn't remove file to be removed.\n", STD_ERR | ERROR_FILE);
