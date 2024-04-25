@@ -23,7 +23,7 @@
 </div>
 <div id="main_part_inner">
 	<div id="main_part_inner_in">
-	  <h2>Login</h2>
+	  <h2>Register</h2>
   </div>
 </div>
 <div id="content_inner">
@@ -60,19 +60,23 @@
         }
     </style>
  	<div class="container">
-        <form action="login.py" method="POST">
+        <form action="register.py" method="POST">
             <label for="username">Username</label>
             <input type="text" id="username" name="username" required>
+
 
             <label for="password">Password</label>
             <input type="password" id="password" name="password" required>
 
-            <input type="submit" value="Login">
+            <label for="confirm-password">Confirm Password</label>
+            <input type="password" id="confirm-password" name="confirm-password" required>
+
+            <input type="submit" value="Register">
         </form>
-        <div class="register-link">
-            <p>Not registered yet? <a href="/session_reg.html">Register here</a>.</p>
+        <div class="login-link">
+            <p>Already registered? <a href="/session.html">Login here</a>.</p>
         </div>
-    </div>   
+    </div>
 </div>
 </body>
 </html>

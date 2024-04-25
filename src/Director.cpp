@@ -210,6 +210,7 @@ int	Director::init_servers()
 	return 0;
 }
 
+extern bool is_running;
 // purpose: In a loop we poll (with select) the statuses of the sockets.
 // 			if they are ready for reading they create a new client sockets (if 
 // 			its a server) and handle incoming or outgoing messages (if it's a client)
@@ -225,7 +226,7 @@ int	Director::run_servers()
 	struct timeval 				timeout_time;
 	ClientInfo* 				cl;
 
-	while (true)
+	while (is_running)
 	{
 		readfds_backup = read_fds;
 		writefds_backup = write_fds;
