@@ -304,7 +304,9 @@ int	Director::run_servers()
 									fdmax--;
 								close(cl->get_cgi()->request_fd[1]);
 								close(cl->get_cgi()->response_fd[1]);
-								//send error page back
+								cl->get_request()->set_errcode(500);
+								cl->get_server()->create_response(*cl->get_request(), cl);
+								
 							}
 							else if (send == 0 || (size_t) send == reqb.size())
 							{
@@ -339,7 +341,8 @@ int	Director::run_servers()
 								waitpid(cl->get_pid(), &status, 0);
 								if (WEXITSTATUS(status) != 0)
 								{
-									//cl->set_error_response(502);
+									cl->get_request()->set_errcode(500);
+									cl->get_server()->create_response(*cl->get_request(), cl);
 								}
 								cl->set_fin(true);
 								if (cl->get_response().find("HTTP/1.1") == std::string::npos)
@@ -356,8 +359,8 @@ int	Director::run_servers()
 								close(cl->get_cgi()->request_fd[0]);
 								close(cl->get_cgi()->response_fd[0]);
 								cl->set_fin(true);
-								//cl->set_error_response();
-								//return -1;
+								cl->get_request()->set_errcode(500);
+								cl->get_server()->create_response(*cl->get_request(), cl);
 							}
 							else
 							{
