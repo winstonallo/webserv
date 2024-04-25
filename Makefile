@@ -59,6 +59,7 @@ debug	:
 	gdb --arg ./webserv config_files/simple.conf
 
 fclean	: clean
+		$(RM) ./logs/*
 		$(RM) $(NAME)
 		$(RM) $(TEST_OBJS_DIR)
 		$(RM) $(OBJS_DIR)
