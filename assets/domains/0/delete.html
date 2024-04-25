@@ -1,0 +1,69 @@
+<html>
+<head>
+    <title>Webserv | File Delete</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="styles/reset.css" type="text/css">
+    <link rel="stylesheet" href="styles/styl.css" type="text/css">
+    <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:200,400,600,700&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
+</head>
+<body>
+    <div id="header">
+        <div id="header_in">
+            <h1><a href="index.html"><b>WEBSERV</b></a></h1>
+            <div id="menu">
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="about.html">About</a></li>
+                <li><a href="tests.html">Server Tests</a></li>
+                <li><a href="session.html">Session</a></li>
+                <li><a href="contact.html">Contact</a></li>
+            </ul>
+            </div>
+        </div>
+    </div>
+    <div id="main_part_inner">
+        <div id="main_part_inner_in">
+            <h2>Delete a File</h2>
+        </div>
+    </div>
+    <div>
+        <h4>Enter the filename to delete and click the button:</h4>
+        <form onsubmit="return sendDeleteRequest(event)" class="formit">
+            <label for="filename">Filename:</label>
+            <input type="text" id="filename" name="filename" placeholder="Enter filename">
+            <input type="submit" class="button_submit" value="Delete File">
+        </form>
+    </div>
+
+    <script>
+        function sendDeleteRequest(event) {
+            event.preventDefault(); // Prevent default form submission
+            const filename = document.getElementById("filename").value.trim(); // Trim spaces
+    
+            if (!filename) { // Ensure filename is not empty
+                alert("Please enter a valid filename.");
+                return false;
+            }
+    
+            console.log("Deleting file:", filename);
+    
+            fetch(`/delete?filename=${encodeURIComponent(filename)}`, {
+                method: 'DELETE'
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('File deleted successfully!'); // Success message
+                } else {
+                    alert('Error deleting file. Please try again.'); // Failure message
+                }
+            })
+            .catch(error => {
+                console.error('Error deleting file:', error); // Error handling
+            });
+    
+            return false; // Prevent default form submission
+        }
+    </script>
+    
+</body>
+</html>

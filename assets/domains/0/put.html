@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>File Upload and Delete</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="styles/reset.css" type="text/css">
+    <link rel="stylesheet" href="styles/styl.css" type="text/css">
+    <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:200,400,600,700&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
+    <style>
+        .button-styled {
+            background-color: #f07808;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            text-transform: uppercase;
+            transition: background-color 0.3s;
+        }
+        .button-styled:hover {
+            background-color: #ff9900;
+        }
+        .file-upload {
+            position: relative;
+            display: inline-block;
+        }
+        .file-upload input[type="file"] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+    </style>
+    <script>
+    function uploadFile(event) {
+        event.preventDefault();
+        const input = document.getElementById("fileInput");
+        const file = input.files[0];
+
+        if (file) {
+            const reader = new FileReader();
+
+            reader.onload = (e) => {
+                const fileContent = e.target.result;
+
+                fetch("/", {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/octet-stream",
+                        "Content-Disposition": `attachment; filename="${file.name}"`,
+                    },
+                    body: fileContent,
+                })
+                .then((response) => {
+                    if (response.ok) {
+                        alert("File uploaded successfully!");
+                    } else {
+                        alert("Failed to upload file.");
+                    }
+                })
+                .catch((error) => {
+                    console.error("Error uploading file:", error);
+                });
+            };
+
+            reader.readAsArrayBuffer(file);
+        } else {
+            alert("Please select a file to upload.");
+        }
+    }
+    </script>
+</head>
+<body>
+    <div id="header">
+        <div id="header_in">
+            <h1><a href="index.html"><b>WEBSERV</b></a></h1>
+            <div id="menu">
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="about.html">About</a></li>
+                    <li><a href="tests.html">Server Tests</a></li>
+                    <li><a href="session.html">Session</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div id="main_part_inner">
+        <div id="main_part_inner_in">
+            <h2>File Upload</h2>
+        </div>
+    </div>
+
+    <div>
+        <h4>Upload a File</h4>
+        <form onsubmit="uploadFile(event)" class="formit">
+            <div class="file-upload">
+                <button type="button" class="button-styled">Choose File</button>
+                <input type="file" id="fileInput" name="file" />
+            </div>
+            <button type="submit" class="button-styled">Upload</button>
+        </form>
+    </div>
+</body>
+</html>
