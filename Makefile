@@ -11,7 +11,7 @@ TEST_DIR	= config_tests
 OBJS_DIR		= obj
 TEST_OBJS_DIR	= test_objs
 
-CXXFLAGS	= -Wall -Wextra -Werror -MP -MD -std=c++98 -g -Iinc -I$(GTEST_DIR)/include -fsanitize=address
+CXXFLAGS	= -Wall -Wextra -Werror -MP -MD -std=c++98 -g -Iinc -I$(GTEST_DIR)/include
 
 
 TESTFLAGS	= -Wall -Wextra -Werror -MP -MD -g -Iinc -I$(GTEST_DIR)/include
@@ -53,7 +53,7 @@ $(OBJS_DIR)/%.o: $(SRCS_DIR)/%.cpp
 all		: $(NAME)
 
 run		:
-	./webserv config_files/simple.conf
+	./webserv assets/config/simple.conf
 
 debug	:
 	gdb --arg ./webserv config_files/simple.conf
