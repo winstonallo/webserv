@@ -235,7 +235,6 @@ void    CGI::delete_char_array(char** arr)
 
 void    CGI::clear()
 {
-	delete_char_array(_env);
     _response_body.clear();
     _locations.clear();
     _env_map.clear();
