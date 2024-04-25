@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>File Upload and Delete</title>
+    <script>
+        function uploadFile() {
+            const input = document.getElementById("fileInput");
+            const file = input.files[0];
+            
+            if (file) {
+                const formData = new FormData();
+                formData.append("file", file);
+                
+                fetch("/upload", {
+                    method: "PUT",
+                    body: formData
+                })
+                .then(response => {
+                    if (response.ok) {
+                        alert("File uploaded successfully!");
+                        listFiles();
+                    } else {
+                        alert("Failed to upload file.");
+                    }
+                })
+                .catch(error => {
+                    console.error("Error uploading file:", error);
+                });
+            } else {
+                alert("Please select a file to upload.");
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>File Upload and Delete</h1>
+    
+    <h2>Upload a File</h2>
+    <input type="file" id="fileInput" />
+    <button onclick="uploadFile()">Upload</button>
+    
+</body>
+</html>
