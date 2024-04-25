@@ -122,7 +122,7 @@ int	Director::init_server(Server *si)
 		// 	std::cout << "Port: " << ntohs(ipv4->sin_port) << std::endl;
 		// } 
 		// else if (address->sa_family == AF_INET6) 
-		// {
+		// /cgi-bin/do_shell.sh{
 		// 	struct sockaddr_in6 *ipv6 = reinterpret_cast<struct sockaddr_in6 *>(address);
 		// 	char ipstr[INET6_ADDRSTRLEN];
 		// 	inet_ntop(AF_INET6, &(ipv6->sin6_addr), ipstr, sizeof(ipstr));
