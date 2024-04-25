@@ -1,3 +1,4 @@
+#include "Log.hpp"
 #include "Server.hpp"
 #include "Director.hpp"
 #include <exception>
@@ -12,6 +13,7 @@ int main(int argc, char **argv)
 {
 	try 
 	{
+		Log::create_logs_directory();
 		if (argc != 1 && argc != 2)
 		{
 			std::cerr << "Error. Invalid number of arguments." << std::endl;
@@ -25,7 +27,7 @@ int main(int argc, char **argv)
 			if (argc == 2)
 				config_file = argv[1];
 			else
-				config_file = "config_files/simple.conf";
+				config_file = "assets/config/simple.conf";
 			Director director(config_file);
 			if(director.init_servers() < 0)
 			{

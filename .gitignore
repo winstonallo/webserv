@@ -1,12 +1,19 @@
+# Executable
 webserv
-obj
+
+# Object files
 *.o
 *.d
+
+# Log files
 *.log
-compile_flags.txt
+
+# OS generated files
 vgcore*
-.vscode
-notes
 webserv.dSYM
-compile_commands.json
 .cache*
+
+# User generated files
+compile_flags.txt
+*.json
+.vscode

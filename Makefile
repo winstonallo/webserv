@@ -11,7 +11,7 @@ TEST_DIR	= config_tests
 OBJS_DIR		= obj
 TEST_OBJS_DIR	= test_objs
 
-CXXFLAGS	= -Wall -Wextra -Werror -MP -MD -std=c++98 -g -Iinc -I$(GTEST_DIR)/include
+CXXFLAGS	= -Wall -Wextra -Werror -MP -MD -std=c++98 -g -Iinc -I$(GTEST_DIR)/include -fsanitize=address
 
 
 TESTFLAGS	= -Wall -Wextra -Werror -MP -MD -g -Iinc -I$(GTEST_DIR)/include
@@ -30,7 +30,7 @@ SRCS   	= \
         $(SRCS_DIR)/ConfigDispatcher.cpp \
         $(SRCS_DIR)/ConfigSetters.cpp \
         $(SRCS_DIR)/Utils.cpp \
-		$(SRCS_DIR)/main_server.cpp
+		$(SRCS_DIR)/main.cpp
 TESTS	= \
 
 OBJS		= $(SRCS:${SRCS_DIR}/%.cpp=${OBJS_DIR}/%.o)
@@ -59,6 +59,7 @@ debug	:
 	gdb --arg ./webserv config_files/simple.conf
 
 fclean	: clean
+		$(RM) ./logs/*
 		$(RM) $(NAME)
 		$(RM) $(TEST_OBJS_DIR)
 		$(RM) $(OBJS_DIR)
