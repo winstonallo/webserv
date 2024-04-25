@@ -1,4 +1,6 @@
 #include "Log.hpp"
+#include "Utils.hpp"
+#include <sys/stat.h>
 
 Log::Log()
 {}
@@ -15,7 +17,7 @@ Log& Log::operator=(const Log& rhs)
 {
 	if (this != &rhs)
 	{
-		
+
 	}
 	return (*this);
 }
@@ -42,10 +44,10 @@ void	Log::set_accept_file(const std::string& ferr)
 	accept_file = ferr;
 }
 
-//purpose:	to get the current time / date in a format 
+//purpose:	to get the current time / date in a format
 //			Year-Month-Day Hour:Minutes:Seconds
 //
-//return string -> Date string 
+//return string -> Date string
 std::string Log::get_time_stamp()
 {
 	time_t cur_time;
@@ -64,13 +66,13 @@ std::string Log::get_time_stamp()
 std::string Log::logmessage(const std::string& msg)
 {
 	std::stringstream ss;
-	ss << "[" << get_time_stamp() << "] - " << msg;	
+	ss << "[" << get_time_stamp() << "] - " << msg;
 	return ss.str();
 }
 
-std::ofstream	Log::logfile;	
-std::string		Log::error_file = "error.log";
-std::string		Log::accept_file = "accept.log";
+std::ofstream	Log::logfile;
+std::string		Log::error_file = "./logs/error.log";
+std::string		Log::accept_file = "./logs/accept.log";
 
 //purpose: The logging of various error, accept, information
 //			messages to different outputs. You can output to several outputs
@@ -82,7 +84,7 @@ std::string		Log::accept_file = "accept.log";
 //			for the output of the log
 //			STD_OUT for cout on the console
 //			STD_ERR for cerr on the console
-//			ERROR_FILE to log to the given error_file (default: error.log) 
+//			ERROR_FILE to log to the given error_file (default: error.log)
 //			ACCEPT_FILE to log to the given accept_file (defaul: accept.log)
 //
 //return: bool -> true if succeded or false if failed.
@@ -94,7 +96,7 @@ bool	Log::log(const std::string& msg, int output)
 	filemapping.insert(std::make_pair(ERROR_FILE, error_file));
 	filemapping.insert(std::make_pair(ACCEPT_FILE, accept_file));
 	std::map<int, std::string>::iterator e = filemapping.end();
-	std::map<int, std::string>::iterator it; 
+	std::map<int, std::string>::iterator it;
 	for (it = filemapping.begin(); it != e; it++)
 	{
 		if (output & it->first)
@@ -102,13 +104,13 @@ bool	Log::log(const std::string& msg, int output)
 			if (it->first == 1)
 			{
 				std::cout << logmessage(msg);
-				continue;	
-			} 
+				continue;
+			}
 			if (it->first == 2)
 			{
 				std::cerr << logmessage(msg);
-				continue;	
-			} 
+				continue;
+			}
 			logfile.open((it->second).c_str(), std::ios::app);
 			if (logfile.is_open())
 			{
@@ -124,4 +126,3 @@ bool	Log::log(const std::string& msg, int output)
 	}
 	return true;
 }
-

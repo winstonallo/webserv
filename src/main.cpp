@@ -12,6 +12,10 @@ int main(int argc, char **argv)
 {
 	try 
 	{
+		if (mkdir("./logs", 0755) == false)
+		{
+			std::cerr << "Error creating log directory." << std::endl;
+		}
 		if (argc != 1 && argc != 2)
 		{
 			std::cerr << "Error. Invalid number of arguments." << std::endl;
@@ -25,7 +29,7 @@ int main(int argc, char **argv)
 			if (argc == 2)
 				config_file = argv[1];
 			else
-				config_file = "config_files/simple.conf";
+				config_file = "assets/config/simple.conf";
 			Director director(config_file);
 			if(director.init_servers() < 0)
 			{
