@@ -1,6 +1,7 @@
 #ifndef DIRECTOR_HPP
 #define DIRECTOR_HPP
 
+#include <ctime>
 #include <map>
 #include <arpa/inet.h>
 #include <netinet/in.h>
@@ -13,7 +14,6 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <sys/time.h>
-#include "CGI.hpp"
 #include "Node.hpp"
 #include "Server.hpp"
 #include "ClientInfo.hpp"
@@ -29,6 +29,8 @@ class Config;
 class Director 
 {
 	public:
+		typedef std::map<int, std::pair <Node*, time_t> > timeout_node_map;
+
 										Director(const std::string& path);
 										~Director();
 		int								init_servers();
@@ -46,7 +48,7 @@ class Director
 
 		int								fdmax;
 		Config*							config;
-		std::map<int, Node*>			nodes;
+		timeout_node_map				nodes;
 		fd_set							read_fds, write_fds;
 };
 

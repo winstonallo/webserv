@@ -14,12 +14,12 @@ Director::Director(const std::string& config_path):fdmax(-1)
 
 Director::~Director()
 {
-	std::map<int, Node*>::iterator it;
+	timeout_node_map::iterator it;
 	for (it = nodes.begin(); it != nodes.end(); it++)
 	{
-		if (it->second->get_type() == CLIENT_NODE)
+		if (it->second.first->get_type() == CLIENT_NODE)
 		{
-			ClientInfo *ci = static_cast<ClientInfo *>(it->second);
+			ClientInfo *ci = static_cast<ClientInfo *>(it->second.first);
 			delete ci;
 		}
 	}
@@ -86,15 +86,6 @@ int	Director::init_server(Server *si)
 		Log::log(ss.str(), ERROR_FILE | STD_ERR);
 		return -1;
 	}
-	// for (p = ai; p != NULL; p = p->ai_next)
-	// {
-	// 	std::cout << "addrinfo" << std::endl; 
-	// 	std::cout << "ai_flags: " << p->ai_flags << std::endl;
-	// 	std::cout << "ai_family: " << p->ai_family << std::endl;
-	// 	std::cout << "ai_socktype: " << p->ai_socktype << std::endl;
-	// 	std::cout << "ai_protocol: " << p->ai_protocol << std::endl;
-	// 	std::cout << "ai_addrlen: " << p->ai_addrlen << std::endl;
-	// }
 	for (p = ai; p != NULL; p = p->ai_next)
 	{
 		listener = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
@@ -115,29 +106,10 @@ int	Director::init_server(Server *si)
 			continue;
 		}
 		si->set_fd(listener);
-		//si->set_addr(*((sockaddr_storage*)(p->ai_addr)));
-		//si->set_addr((struct in_addr)p->ai_addr);
 		si->set_addr_len((size_t)p->ai_addrlen);
 
 		std::cout << "Server created on localhost with domain name: " ;
 		std::cout << si->get_server_name()[0] << ", port: " << si->get_port() << std::endl;
-
-		//	print address
-		// struct sockaddr *address  = p->ai_addr;
-		// if (address->sa_family == AF_INET) 
-		// {
-		// 	struct sockaddr_in *ipv4 = reinterpret_cast<struct sockaddr_in *>(address);
-		// 	std::cout << "IPv4 Address: " << inet_ntoa(ipv4->sin_addr) << std::endl;
-		// 	std::cout << "Port: " << ntohs(ipv4->sin_port) << std::endl;
-		// } 
-		// else if (address->sa_family == AF_INET6) 
-		// /cgi-bin/do_shell.sh{
-		// 	struct sockaddr_in6 *ipv6 = reinterpret_cast<struct sockaddr_in6 *>(address);
-		// 	char ipstr[INET6_ADDRSTRLEN];
-		// 	inet_ntop(AF_INET6, &(ipv6->sin6_addr), ipstr, sizeof(ipstr));
-		// 	std::cout << "IPv6 Address: " << ipstr << std::endl;
-		// 	std::cout << "Port: " << ntohs(ipv6->sin6_port) << std::endl;
-		// }
 		break;
 	}
 
@@ -213,9 +185,9 @@ int	Director::init_servers()
 		}
 		FD_SET(listener, &read_fds);
 		if (fdmax < listener) fdmax = listener;
-		nodes[listener] = *it;
-		nodes[listener]->set_type(SERVER_NODE);
-		nodes[listener]->set_fd(listener);
+		nodes[listener].first = *it;
+		nodes[listener].first->set_type(SERVER_NODE);
+		nodes[listener].first->set_fd(listener);
 	}
 	return 0;
 }
@@ -251,12 +223,10 @@ int	Director::run_servers()
 		}
 		for (int i = 0; i <= fdmax; i++)
 		{
-			// std::cout << LYELLOW << i << RESET << std::endl;
-			// std::cout << LYELLOW << i << "is processed" << RESET << std::endl;
 			if (nodes.find(i) != nodes.end())
 			{
 				// FOR SERVERS
-				if (nodes[i]->get_type() == SERVER_NODE)
+				if (nodes[i].first->get_type() == SERVER_NODE)
 				{
 					if (FD_ISSET(i, &readfds_backup))
 					{
@@ -270,9 +240,9 @@ int	Director::run_servers()
 					}
 				}
 				// FOR CLIENTS
-				else if (nodes[i]->get_type() == CLIENT_NODE) 
+				else if (nodes[i].first->get_type() == CLIENT_NODE) 
 				{
-					cl = static_cast<ClientInfo*>(nodes[i]);
+					cl = static_cast<ClientInfo*>(nodes[i].first);
 					// READING
 					if (FD_ISSET(i, &readfds_backup))
 					{
@@ -491,8 +461,8 @@ int	Director::create_client_connection(int listener)
 		if (nodes.find(newfd) == nodes.end())
 		{
 			ClientInfo *newcl = new ClientInfo(newfd, remoteaddr, (size_t)addrlen);
-			newcl->set_server(dynamic_cast<Server*>(nodes[listener]));
-			nodes[newfd] = newcl;
+			newcl->set_server(dynamic_cast<Server*>(nodes[listener].first));
+			nodes[newfd].first = newcl;
 		}
 		else
 		{
@@ -508,13 +478,13 @@ int	Director::create_client_connection(int listener)
 						get_in_addr((struct sockaddr *)&remoteaddr),
 						remoteIP, INET6_ADDRSTRLEN);
 		ss2 << " on socket " << newfd << std::endl;
-		Utils::notify_client_connection(dynamic_cast<Server*>(nodes[listener]), newfd, remoteaddr);
+		Utils::notify_client_connection(dynamic_cast<Server*>(nodes[listener].first), newfd, remoteaddr);
 		if (fcntl(newfd, F_SETFL, O_NONBLOCK) < 0)
 		{
 			std::stringstream ss3;
 			ss3 << "Error while non-blocking: " << strerror(errno) << std::endl;
 			Log::log(ss3.str(), ERROR_FILE | STD_ERR);
-			delete nodes[newfd];
+			delete nodes[newfd].first;
 			nodes.erase(newfd);
 			close(newfd);
 		}
@@ -540,7 +510,7 @@ int	Director::read_from_client(int client_fd)
 	int										flag = 0;
 	ClientInfo								*ci;
 
-	ci = dynamic_cast<ClientInfo *>(nodes[client_fd]);
+	ci = dynamic_cast<ClientInfo *>(nodes[client_fd].first);
 	flag = Request::read_request(client_fd, MSG_SIZE, requestmsg[client_fd]);
 	// std::cout << RED<< "flag: " << flag << std::endl;
 	// std::cout << "requestmsg: " << requestmsg[client_fd] << RESET<< std::endl;
@@ -564,7 +534,7 @@ int	Director::read_from_client(int client_fd)
 				fdmax--;
 		}
 		ci->get_request()->clean();
-		delete nodes[client_fd];
+		delete nodes[client_fd].first;
 		nodes.erase(client_fd);
 		close(client_fd);
 		requestmsg[client_fd].clear();
@@ -587,7 +557,7 @@ int	Director::read_from_client(int client_fd)
 		ci->get_request()->clean();
 		nodes.erase(client_fd);
 		close(client_fd);
-		delete nodes[client_fd];
+		delete nodes[client_fd].first;
 		std::stringstream ss;
 		ss << "Error reading from socket: " << client_fd << std::endl;
 		Log::log(ss.str(), ERROR_FILE | STD_ERR);
@@ -659,7 +629,7 @@ int	Director::read_from_client(int client_fd)
 int	Director::write_to_client(int fd)
 {
 	int				num_bytes;
-	ClientInfo*		cl = dynamic_cast<ClientInfo*>(nodes[fd]);
+	ClientInfo*		cl = dynamic_cast<ClientInfo*>(nodes[fd].first);
 
 	std::string content = cl->get_response();
 	//std::cout << content;
@@ -687,7 +657,7 @@ int	Director::write_to_client(int fd)
 		}
 		close(fd);
 		nodes.erase(fd);
-		delete nodes[fd];
+		delete nodes[fd].first;
 	}
 	// FINISHED WRITING
 	else if (num_bytes == (int)(content.size()) || num_bytes == 0)
@@ -712,7 +682,7 @@ int	Director::write_to_client(int fd)
 				if (fd == fdmax) { fdmax--; }  
 			}
 			close(fd);
-			delete nodes[fd];
+			delete nodes[fd].first;
 			nodes.erase(fd);
 		}
 		else
