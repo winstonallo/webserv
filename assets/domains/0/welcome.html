@@ -23,18 +23,23 @@
 </div>
 <div id="main_part_inner">
 	<div id="main_part_inner_in">
-	  <h2>Register</h2>
+	  <h2>Login</h2>
   </div>
 </div>
 <div id="content_inner">
 	<style>
         .container {
             max-width: 400px;
-            margin: 40px auto;
+            margin: 60px auto;
             padding: 20px;
             background-color: #fff;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+		h2 {
+            text-align: center;
+            color: #e55e0d;
+			font-size: 22px;
         }
         input[type="text"],
         input[type="password"],
@@ -46,33 +51,30 @@
             border-radius: 4px;
             box-sizing: border-box;
         }
-        input[type="submit"] {
-            background-color: #e66e0d;
-            color: #fff;
-            cursor: pointer;
+		.welcome-message {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 18px;
         }
-        input[type="submit"]:hover {
-            background-color: #e55e0d;
-        }
-        .register-link {
+        .logout-link {
             text-align: center;
             margin-top: 20px;
         }
+        .logout-link a {
+            color: #e55e0d;
+            text-decoration: none;
+        }
+        .logout-link a:hover {
+            text-decoration: underline;
+        }
     </style>
- 	<div class="container">
-        <form action="cgi-bin/session.py" method="POST">
-            <label for="username">Username*</label>
-            <input type="text" id="username" name="username" required>
-			<label for="username">Email*</label>
-            <input type="text" id="email" name="email" required>
-            <label for="password">Password*</label>
-            <input type="password" id="password" name="password" required>
-            <label for="confirm-password">Confirm Password*</label>
-            <input type="password" id="confirm-password" name="confirm-password" required>
-            <input type="submit" value="Register">
-        </form>
-        <div class="login-link">
-            <p>Already registered? <a href="/session.html">Login here</a>.</p>
+	<div class="container">
+        <h2>Welcome!</h2>
+        <div class="welcome-message">
+            <p>Hello, <strong>Username</strong>! Welcome to our website.</p>
+        </div>
+        <div class="logout-link">
+            <p>Not <strong>Username</strong>? <a href="logout.html">Logout</a>.</p>
         </div>
     </div>
 </div>

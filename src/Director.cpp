@@ -640,7 +640,6 @@ int	Director::read_from_client(int client_fd)
 	return 0;
 }
 
-
 // purpose: (TODO) after getting the request message, this function sends back
 // 			the answer, which in a simple case is the requested file or in case of a
 // 			cgi the generated file. 

@@ -6,7 +6,6 @@ import os
 import sys
 import datetime
 
-
 form = cgi.FieldStorage()
 date =	datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") 
 page = "HTTP/1.1 200 OK\r\n"

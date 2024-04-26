@@ -18,15 +18,16 @@ CGI::CGI(char** env)
 {
     _response_body = "";
     _env = env;
-	_env = new char *[8];
+	_env = new char *[9];
+    memset(_env, 0, 9 * sizeof(char*));
 	_errcode = 0;
 }
 
 void    CGI::initialize_environment_map(Request& request)
 {
     _env_map["GATEWAY_INTERFACE"] = "CGI/1.1";
-    _env_map["CONTENT_LENGTH"] = request.get_header("Content-length");
-    _env_map["CONTENT_TYPE"] = request.get_header("Content-Type");
+    _env_map["CONTENT_LENGTH"] = request.get_header("CONTENT-LENGTH");
+    _env_map["CONTENT_TYPE"] = request.get_header("CONTENT-TYPE");
     _env_map["QUERY_STRING"] = request.get_query();
     _env_map["REQUEST_METHOD"] = request.get_method();
     _env_map["SCRIPT_NAME"] = Utils::get_cgi_script_name(request.get_uri());
@@ -35,7 +36,7 @@ void    CGI::initialize_environment_map(Request& request)
 
     int i = 0;
 
-    for (std::map <std::string, std::string>::iterator it = _env_map.begin(); _env[i] && it != _env_map.end(); it++)
+    for (std::map <std::string, std::string>::iterator it = _env_map.begin(); it != _env_map.end(); it++)
     {
         std::string line = it->first + "=" + it->second;
         _env[i] = new char[line.size() + 1];
@@ -86,10 +87,10 @@ void    CGI::execute_script(int request_fd[2], int response_fd[2], char** argume
         _exit(errno);
     }
     close_pipes(2, response_fd[1], request_fd[0]);
-
     _exit_status = execve(arguments[0], arguments, _env);
     delete_char_array(arguments);
     exit(_exit_status);
+
 }
 
 void CGI::parent(pid_t pid, int request_fd[2], int response_fd[2], char** arguments)
@@ -222,16 +223,21 @@ void    CGI::close_pipes(int count, ...)
     va_end(args);
 }
 
+
+
 void    CGI::delete_char_array(char** arr)
 {
 	if (!arr)
 		return ;
     for (int i = 0; arr[i]; i++)
     {
-        delete[] arr[i];
+		delete[] arr[i];
     }
     delete[] arr;
 }
+
+
+
 
 void    CGI::clear()
 {
