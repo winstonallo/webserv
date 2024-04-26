@@ -17,3 +17,4 @@ webserv.dSYM
 compile_flags.txt
 *.json
 .vscode
+*uploads*

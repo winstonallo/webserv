@@ -38,6 +38,7 @@ class Request
         std::string get_query() const{ return this->query;}
         std::string get_fragment() const{ return this->fragment;}
         int get_errcode() const{ return this->errcode;}
+        void set_errcode(int code){ this->errcode = code;}
         std::string get_header(const std::string& key) const;
         static int read_request(int client_fd, int size,std::string& requestmsg);
         std::string 					body;

@@ -38,8 +38,6 @@ Server::~Server()
 	{
 		delete *it;
 	}
-	// if (_cgi)
-	// 	delete _cgi;
 }
 
 
@@ -415,7 +413,6 @@ std::string		Server::_get_body(Request& rq, ClientInfo *ci)
 	}
 	if (rq.get_method() == "GET" || rq.get_method() == "HEAD")
 	{
-		//directory listing
 		if (_listing)
 		{
 			if (_get_directory_list(loc_path, listing_body) < 0)
@@ -429,7 +426,6 @@ std::string		Server::_get_body(Request& rq, ClientInfo *ci)
  			return listing_body;	
 		}
 
-		// 
 		std::ifstream file(loc_path.c_str());
 		if (file.fail())
 		{
@@ -449,7 +445,26 @@ std::string		Server::_get_body(Request& rq, ClientInfo *ci)
 			_errcode = 204;
 			throw std::runtime_error("error");
 		}
-		std::ofstream file(loc_path.c_str(), std::ios::binary);
+        std::string upload_dir = loc_path.substr(0, loc_path.find_last_of("/") + 1);
+        if (Utils::file_exists(upload_dir) == false)
+        {
+            if (mkdir(upload_dir.c_str(), 0777) == -1)
+            {
+                _errcode = 500;
+                Log::log("Error. Couldn't create directory for file upload.\n", STD_ERR | ERROR_FILE);
+                throw std::runtime_error("error");
+            }
+        }
+		std::string filename = rq.get_header("CONTENT-DISPOSITION");
+		if (filename != "default")
+		{
+			filename = upload_dir + filename.substr(filename.find("filename=") + 10, filename.find_last_of("\"") - filename.find("filename=") - 10);
+		}
+		else 
+		{
+			filename = loc_path;
+		}
+		std::ofstream file(filename.c_str(), std::ios::binary);
 		if (file.fail())
 		{
 			_errcode = 404;
@@ -458,21 +473,25 @@ std::string		Server::_get_body(Request& rq, ClientInfo *ci)
 		}
 		_errcode = 200;
 		file.write(rq.get_body().c_str(), rq.get_body().size());
+		Log::log(filename + " uploaded successfully.\n", STD_OUT);
 	}
 	else if (rq.get_method() == "DELETE")
 	{
-		if (Utils::file_exists(loc_path) == false)
+        std::string filename = rq.get_uri().substr(rq.get_uri().find_last_of("=") + 1);
+        filename = loc_path.substr(0, loc_path.find_last_of("/") + 1) + filename;
+		if (Utils::file_exists(filename) == false)
 		{
 			_errcode = 404;
-			Log::log("Error. File to be deleted doesn't exist.\n", STD_ERR | ERROR_FILE);
+			Log::log("Error. " + filename + " not found.\n", STD_ERR | ERROR_FILE);
 			throw std::runtime_error("error");
 		}
-		if (remove(loc_path.c_str()) != 0)
+		if (remove(filename.c_str()) != 0)
 		{
 			_errcode = 500;
-			Log::log("Error. Couldn't remove file to be removed.\n", STD_ERR | ERROR_FILE);
+			Log::log("Error. Could not remove " + filename + ".\n", STD_ERR | ERROR_FILE);
 			throw std::runtime_error("error");
 		}
+		Log::log(filename + " deleted successfully.\n", STD_OUT);
 		_errcode = 200;
 	}
 	return "";
@@ -536,8 +555,14 @@ int		Server::_process(Request& rq, ClientInfo* ci, std::string& ret_file)
 			// std::vector<std::string> allowed_methods = loc_info.get_allowed_methods();
 			// if (std::find(allowed_methods.begin(), allowed_methods.end(), rq.get_method()) != allowed_methods.end())
 			// 	return (_errcode = 405);
-			ci->set_cgi(new CGI());
-			ci->get_cgi()->clear();
+			if (ci->get_cgi() == NULL)
+			{
+				ci->set_cgi(new CGI());
+			}
+			else
+			{
+				ci->get_cgi()->clear();
+			}
 			ci->set_is_cgi(true);
 			ci->get_cgi()->set_path(script_file_path);
 			ci->get_cgi()->initialize_environment_map(rq);
@@ -732,4 +757,3 @@ void	Server::reset()
 
 	// _response.clear();
 }
-

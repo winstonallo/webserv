@@ -28,15 +28,15 @@
   </div>
 </div>
 <div>
-	<h4>Click the button to get the current date:</h4>
+	<h3>Click the button to get the current date:</h3>
 	<form method="post" action="/cgi-bin/date.py" class="formit">
-		<input type="submit" class="button_submit" value="Get Current Date">
+		<input type="submit" class="button_submit" value="PYTHON SCRIPT: DATE">
 	</form>
 </div>
 <div>
-	<h4>Click the button to get my Name:</h4>
-	<form method="post" action="/cgi-bin/do_shell.py" class="formit">
-		<input type="submit" class="button_submit" value="Get Current Date">
+	<h3>Click the button to see ASCII Art:</h3>
+	<form method="post" action="/cgi-bin/do_shell.sh" class="formit">
+		<input type="submit" class="button_submit" value="SHELL SCRIPT: ASCII ART">
 	</form>
 	<div>
 	<pre>

@@ -48,11 +48,16 @@ page += '''<!DOCTYPE html>
 <div>
 	<h3>Click the button to get the current date:</h3>
 	<form method="post" action="/cgi-bin/date.py" class="formit">
-        <input type="submit" class="button_submit" value="Get Current Date">
+        <input type="submit" class="button_submit" value="PYTHON SCRIPT: DATE">
 		<input type="text" value="'''	
 page += date
 page +='''"></form>
 </div>
+<div>
+	<h3>Click the button to see ASCII Art:</h3>
+	<form method="post" action="/cgi-bin/do_shell.sh" class="formit">
+		<input type="submit" class="button_submit" value="SHELL SCRIPT: ASCII ART">
+	</form>	
 </body>
 </html>'''
 print(page);
