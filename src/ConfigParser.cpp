@@ -4,7 +4,6 @@
 #include <sstream>
 #include <fstream>
 
-// checks the file extension against expected value and passes the file path to the parser
 ConfigParser::ConfigParser(const std::string& path) : _config_file_path(path), _server_count(0)
 {
 	if (_config_file_path.size() < 5 or _config_file_path.substr(_config_file_path.size() - 5) != EXPECTED_EXT)

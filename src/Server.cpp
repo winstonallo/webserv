@@ -506,7 +506,10 @@ int		Server::_process(Request& rq, ClientInfo* ci, std::string& ret_file)
 	_get_best_location_match(_locations, rq, loc_path, &loc_info);
 	if (!loc_path.empty())
 	{
-		// is body smaller than max?
+		if (loc_info.get_client_max_body_size() == 0)
+		{
+			loc_info.set_client_max_body_size(_client_max_body_size);
+		}
 		if ((int)rq.get_body().size() > loc_info.get_client_max_body_size())
 		{
 			Log::log("Error. Client body is too big.\n", STD_ERR | ERROR_FILE);
