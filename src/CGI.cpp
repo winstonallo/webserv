@@ -18,7 +18,8 @@ CGI::CGI(char** env)
 {
     _response_body = "";
     _env = env;
-	_env = new char *[8];
+	_env = new char *[9];
+    memset(_env, 0, 9);
 	_errcode = 0;
 }
 
