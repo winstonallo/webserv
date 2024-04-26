@@ -462,6 +462,8 @@ int	Director::create_client_connection(int listener)
 		if (_nodes.find(newfd) == _nodes.end())
 		{
 			ClientInfo *newcl = new ClientInfo(newfd, remoteaddr, (size_t)addrlen);
+			_client_timeouts[newfd].last_activity = time(NULL);
+			_client_timeouts[newfd].client = newcl;
 			newcl->set_server(dynamic_cast<Server*>(_nodes[listener]));
 			_nodes[newfd] = newcl;
 		}
@@ -521,7 +523,7 @@ int	Director::read_from_client(int client_fd)
 		ss << "Connection closed by " << inet_ntop(AF_INET, get_in_addr((struct sockaddr *)&ci->get_addr()),
 						remoteIP, INET6_ADDRSTRLEN);
 		ss << " on socket " << client_fd << std::endl;
-		Log::log(LLIGHT_BLUE + ss.str() + RESET, ACCEPT_FILE | STD_OUT);
+		Log::log(ss.str(), ACCEPT_FILE | STD_OUT);
 		if (FD_ISSET(client_fd, &write_fds))
 		{
 			FD_CLR(client_fd, &write_fds);

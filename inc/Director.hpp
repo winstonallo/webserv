@@ -29,7 +29,7 @@ class Config;
 class Director 
 {
 	public:
-		struct ClientTimeoutInfo
+		struct TimeoutInfo
 		{
 			time_t last_activity;
 			ClientInfo* client;
@@ -52,6 +52,7 @@ class Director
 
 		int								fdmax;
 		Config*							config;
+		std::map <int, TimeoutInfo>		_client_timeouts;
 		std::map <int, Node*>			_nodes;
 		fd_set							read_fds, write_fds;
 };
