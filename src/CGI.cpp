@@ -93,76 +93,6 @@ void    CGI::execute_script(int request_fd[2], int response_fd[2], char** argume
     exit(_exit_status);
 }
 
-void CGI::parent(pid_t pid, int request_fd[2], int response_fd[2], char** arguments)
-{
-    delete_char_array(arguments);
-    close_pipes(1, request_fd[0]);
-    close_pipes(2, request_fd[1], response_fd[1]);
-
-    int status;
-    waitpid(pid, &status, 0);
-    if (WIFEXITED(status) && WEXITSTATUS(status) != 0)
-    {
-        throw std::runtime_error("CGI failed with exit status: " + Utils::itoa(WEXITSTATUS(status)) + ": " + strerror(errno) + " (CGI)\n");
-    }
-
-    fd_set read_fds;
-    FD_ZERO(&read_fds);
-    FD_SET(response_fd[0], &read_fds);
-
-    char buffer[1024];
-    while (true)
-    {
-        FD_ZERO(&read_fds);
-        FD_SET(response_fd[0], &read_fds);
-
-        struct timeval tv;
-        tv.tv_sec = 1;
-        tv.tv_usec = 0;
-
-        int ret = select(response_fd[0] + 1, &read_fds, NULL, NULL, &tv);
-        if (ret > 0)
-        {
-            if (FD_ISSET(response_fd[0], &read_fds))
-            {
-                std::memset(buffer, 0, 1024);
-                ssize_t bytes_read = read(response_fd[0], buffer, 1024);
-                if (bytes_read > 0)
-                {
-                    _response_body.append(buffer, bytes_read);
-                }
-                else if (bytes_read == 0)
-                {
-                    break;
-                }
-                else
-                {
-                    if (errno != EAGAIN && errno != EWOULDBLOCK)
-                    {
-                        break;
-                    }
-                }
-            }
-        }
-        else if (ret == 0)
-        {
-            std::cout << "Read timeout occurred" << std::endl;
-            break;
-        }
-        else
-        {
-            if (errno != EINTR)
-            {
-                std::cerr << "Select error: " << strerror(errno) << std::endl;
-                break;
-            }
-        }
-    }
-
-    close_pipes(1, response_fd[0]);
-}
-
-
 LocationInfo*    CGI::get_location(const std::string& script, std::vector <LocationInfo *> locations)
 {
     size_t extension_pos = script.find_last_of(".");
@@ -187,7 +117,6 @@ LocationInfo*    CGI::get_location(const std::string& script, std::vector <Locat
 pid_t	CGI::execute(std::vector <LocationInfo *> locations, const std::string& sfp)
 {
     LocationInfo* location = get_location(_env_map["SCRIPT_NAME"], locations);
-    char**       arguments = set_arguments(sfp, location);
 
     set_pipes(request_fd, response_fd);
     pid_t pid = fork();
@@ -197,15 +126,15 @@ pid_t	CGI::execute(std::vector <LocationInfo *> locations, const std::string& sf
     }
     else if (pid == 0)
     {
+        char**       arguments = set_arguments(sfp, location);
         execute_script(request_fd, response_fd, arguments);
-		return 0; // should never reach here
+		return 0;
     }
     else
     {
 		return pid;	
-    //    parent(pid, request_fd, response_fd, arguments);
     }
-	return pid; // should never reach here
+	return pid;
 }
 
 // variadic function to close pipes to avoid
