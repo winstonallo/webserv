@@ -5,6 +5,7 @@
 #include <map>
 #include <sys/wait.h>
 #include "Log.hpp"
+#include "Server.hpp"
 #include "Utils.hpp"
 
 Director::Director(const std::string& config_path):fdmax(-1)
@@ -14,12 +15,12 @@ Director::Director(const std::string& config_path):fdmax(-1)
 
 Director::~Director()
 {
-	timeout_node_map::iterator it;
+	std::map <int, Node*>::iterator it;
 	for (it = _nodes.begin(); it != _nodes.end(); it++)
 	{
-		if (it->second.first->get_type() == CLIENT_NODE)
+		if (it->second->get_type() == CLIENT_NODE)
 		{
-			ClientInfo *ci = static_cast<ClientInfo *>(it->second.first);
+			ClientInfo *ci = static_cast<ClientInfo *>(it->second);
 			delete ci;
 		}
 	}
@@ -185,9 +186,9 @@ int	Director::init_servers()
 		}
 		FD_SET(listener, &read_fds);
 		if (fdmax < listener) fdmax = listener;
-		_nodes[listener].first = *it;
-		_nodes[listener].first->set_type(SERVER_NODE);
-		_nodes[listener].first->set_fd(listener);
+		_nodes[listener] = *it;
+		_nodes[listener]->set_type(SERVER_NODE);
+		_nodes[listener]->set_fd(listener);
 	}
 	return 0;
 }
@@ -208,6 +209,7 @@ int	Director::run_servers()
 	struct timeval 				timeout_time;
 	ClientInfo* 				cl;
 
+
 	while (is_running)
 	{
 		readfds_backup = read_fds;
@@ -226,7 +228,7 @@ int	Director::run_servers()
 			if (_nodes.find(i) != _nodes.end())
 			{
 				// FOR SERVERS
-				if (_nodes[i].first->get_type() == SERVER_NODE)
+				if (_nodes[i]->get_type() == SERVER_NODE)
 				{
 					if (FD_ISSET(i, &readfds_backup))
 					{
@@ -240,33 +242,9 @@ int	Director::run_servers()
 					}
 				}
 				// FOR CLIENTS
-				else if (_nodes[i].first->get_type() == CLIENT_NODE)
+				else if (_nodes[i]->get_type() == CLIENT_NODE)
 				{
-					cl = static_cast<ClientInfo*>(_nodes[i].first);
-					if (_nodes[i].second + TIMEOUT_TIME < time(NULL))
-					{
-						std::stringstream ss;
-						ss << "Client: " << i << " timed out. Closing connection." << std::endl;
-						Log::log(ss.str(), ACCEPT_FILE | STD_OUT);
-						if (FD_ISSET(i, &write_fds))
-						{
-							FD_CLR(i, &write_fds);
-							if (i == fdmax)
-								fdmax--;
-						}
-						if (FD_ISSET(i, &read_fds))
-						{
-							FD_CLR(i, &read_fds);
-							if (i == fdmax)
-								fdmax--;
-						}
-						cl->get_request()->set_errcode(408);
-						cl->get_server()->create_response(*cl->get_request(), cl);
-						close(i);
-						delete cl;
-						_nodes.erase(i);
-						continue;
-					}
+					cl = static_cast<ClientInfo*>(_nodes[i]);
 					if (FD_ISSET(i, &readfds_backup))
 					{
 						try
@@ -342,7 +320,7 @@ int	Director::run_servers()
 									fdmax--;
 								close(cl->get_cgi()->request_fd[0]);
 								close(cl->get_cgi()->response_fd[0]);
-								waitpid(cl->get_pid(), &status, 0);
+								waitpid(cl->get_pid(), &status, WNOHANG);
 								if (WEXITSTATUS(status) != 0)
 								{
 									cl->get_request()->set_errcode(500);
@@ -484,9 +462,8 @@ int	Director::create_client_connection(int listener)
 		if (_nodes.find(newfd) == _nodes.end())
 		{
 			ClientInfo *newcl = new ClientInfo(newfd, remoteaddr, (size_t)addrlen);
-			newcl->set_server(dynamic_cast<Server*>(_nodes[listener].first));
-			_nodes[newfd].first = newcl;
-			_nodes[newfd].second = time(NULL);
+			newcl->set_server(dynamic_cast<Server*>(_nodes[listener]));
+			_nodes[newfd] = newcl;
 		}
 		else
 		{
@@ -502,13 +479,13 @@ int	Director::create_client_connection(int listener)
 						get_in_addr((struct sockaddr *)&remoteaddr),
 						remoteIP, INET6_ADDRSTRLEN);
 		ss2 << " on socket " << newfd << std::endl;
-		Utils::notify_client_connection(dynamic_cast<Server*>(_nodes[listener].first), newfd, remoteaddr);
+		Utils::notify_client_connection(dynamic_cast<Server*>(_nodes[listener]), newfd, remoteaddr);
 		if (fcntl(newfd, F_SETFL, O_NONBLOCK) < 0)
 		{
 			std::stringstream ss3;
 			ss3 << "Error while non-blocking: " << strerror(errno) << std::endl;
 			Log::log(ss3.str(), ERROR_FILE | STD_ERR);
-			delete _nodes[newfd].first;
+			delete _nodes[newfd];
 			_nodes.erase(newfd);
 			close(newfd);
 		}
@@ -534,7 +511,7 @@ int	Director::read_from_client(int client_fd)
 	int										flag = 0;
 	ClientInfo								*ci;
 
-	ci = dynamic_cast<ClientInfo *>(_nodes[client_fd].first);
+	ci = dynamic_cast<ClientInfo *>(_nodes[client_fd]);
 	flag = Request::read_request(client_fd, MSG_SIZE, requestmsg[client_fd]);
 	// std::cout << RED<< "flag: " << flag << std::endl;
 	// std::cout << "requestmsg: " << requestmsg[client_fd] << RESET<< std::endl;
@@ -558,7 +535,7 @@ int	Director::read_from_client(int client_fd)
 				fdmax--;
 		}
 		ci->get_request()->clean();
-		delete _nodes[client_fd].first;
+		delete _nodes[client_fd];
 		_nodes.erase(client_fd);
 		close(client_fd);
 		requestmsg[client_fd].clear();
@@ -581,7 +558,7 @@ int	Director::read_from_client(int client_fd)
 		ci->get_request()->clean();
 		_nodes.erase(client_fd);
 		close(client_fd);
-		delete _nodes[client_fd].first;
+		delete _nodes[client_fd];
 		std::stringstream ss;
 		ss << "Error reading from socket: " << client_fd << std::endl;
 		Log::log(ss.str(), ERROR_FILE | STD_ERR);
@@ -652,7 +629,7 @@ int	Director::read_from_client(int client_fd)
 int	Director::write_to_client(int fd)
 {
 	int				num_bytes;
-	ClientInfo*		cl = dynamic_cast<ClientInfo*>(_nodes[fd].first);
+	ClientInfo*		cl = dynamic_cast<ClientInfo*>(_nodes[fd]);
 
 	std::string content = cl->get_response();
 	int sz = content.size();
@@ -678,7 +655,7 @@ int	Director::write_to_client(int fd)
 		}
 		close(fd);
 		_nodes.erase(fd);
-		delete _nodes[fd].first;
+		delete _nodes[fd];
 	}
 	else if (num_bytes == (int)(content.size()) || num_bytes == 0)
 	{
@@ -701,7 +678,7 @@ int	Director::write_to_client(int fd)
 				if (fd == fdmax) { fdmax--; }  
 			}
 			close(fd);
-			delete _nodes[fd].first;
+			delete _nodes[fd];
 			_nodes.erase(fd);
 		}
 		else

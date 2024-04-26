@@ -355,13 +355,12 @@ void	Server::create_response(Request& rq, ClientInfo* client_info)
 		if (error_file.fail())
 		{
 			Log::log("Error reading error page file.\n", STD_ERR | ERROR_FILE);
-			body = DEFAULT_ERROR_PAGE; //TODO
+			body = DEFAULT_ERROR_PAGE;
 		}
 		std::stringstream ss;
 		ss << error_file.rdbuf();
 		body = ss.str();
 	}
-	
 	ss << "HTTP/1.1 " << _errcode << " " << _status_string[_errcode]  << "\r\n";
 	time_t	curr_time = time(NULL);
 	struct tm tim = *gmtime(&curr_time);
@@ -393,7 +392,6 @@ void	Server::create_response(Request& rq, ClientInfo* client_info)
 	// }
 	// f << ss.str();
 	// f.close();
-
 	client_info->set_response(ss.str());
 }
 

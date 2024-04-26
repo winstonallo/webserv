@@ -29,7 +29,11 @@ class Config;
 class Director 
 {
 	public:
-		typedef std::map<int, std::pair <Node*, time_t> > timeout_node_map;
+		struct ClientTimeoutInfo
+		{
+			time_t last_activity;
+			ClientInfo* client;
+		};
 
 										Director(const std::string& path);
 										~Director();
@@ -48,7 +52,7 @@ class Director
 
 		int								fdmax;
 		Config*							config;
-		timeout_node_map				_nodes;
+		std::map <int, Node*>			_nodes;
 		fd_set							read_fds, write_fds;
 };
 
