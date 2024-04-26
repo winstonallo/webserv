@@ -1,7 +1,7 @@
 #include "Log.hpp"
-#include <map>
 #include <iostream>
 #include <sstream>
+#include <map>
 #include <sys/stat.h>
 
 int Log::output_flag = 0;

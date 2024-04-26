@@ -1,10 +1,8 @@
 #ifndef LOG_HPP 
 #define LOG_HPP
 
-
 #include <fstream> 
 #include <string>
-
 #include <sys/time.h>
 
 #define LRESET          "\033[0m"
