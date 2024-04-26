@@ -608,7 +608,7 @@ int	Director::read_from_client(int client_fd)
 		std::stringstream ss;
 		ss << "Request: " << client_fd << " parsed: " << ci->get_request()->get_method();
 		ss << " " << ci->get_request()->get_path() << std::endl;
-		Log::log(ss.str(), STD_OUT);	
+		Log::log(ss.str(), STD_OUT);
 
 		// virtual servers, we go throug the servers and match the host name / server name 
 		std::vector<Server*> servers = config->get_servers();

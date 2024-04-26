@@ -1,8 +1,11 @@
 #include "Log.hpp"
+#include <map>
 #include <iostream>
 #include <sstream>
-#include <map>
 #include <sys/stat.h>
+#include <pthread.h>
+
+int Log::output_flag = 0;
 
 Log::Log()
 {}
@@ -87,55 +90,64 @@ void	Log::create_logs_directory()
 	}
 }
 
-//purpose: The logging of various error, accept, information
-//			messages to different outputs. You can output to several outputs
-//			by (OR)ing the bit flags. e.g. STD_ERR | ERROR_FILE
-//
-//argument: msg -> the message to be logged
-//
-//argument: output -> a bit flag (STD_OUT, STD_ERR, ERROR_FILE, ACCEPT_FILE)
-//			for the output of the log
-//			STD_OUT for cout on the console
-//			STD_ERR for cerr on the console
-//			ERROR_FILE to log to the given error_file (default: error.log)
-//			ACCEPT_FILE to log to the given accept_file (defaul: accept.log)
-//
-//return: bool -> true if succeded or false if failed.
-bool	Log::log(const std::string& msg, int output)
+void* async_log(void* args)
 {
-	std::map<int, std::string> filemapping;
-	filemapping.insert(std::make_pair(1, "stdout"));
-	filemapping.insert(std::make_pair(2, "stderr"));
-	filemapping.insert(std::make_pair(ERROR_FILE, error_file));
-	filemapping.insert(std::make_pair(ACCEPT_FILE, accept_file));
-	std::map<int, std::string>::iterator e = filemapping.end();
-	std::map<int, std::string>::iterator it;
-	for (it = filemapping.begin(); it != e; it++)
+    std::string* message = static_cast<std::string*>(args);
+    std::map<int, std::string> filemapping;
+    filemapping.insert(std::make_pair(STD_OUT, "stdout"));
+    filemapping.insert(std::make_pair(STD_ERR, "stderr"));
+    filemapping.insert(std::make_pair(ERROR_FILE, Log::get_error_file()));
+    filemapping.insert(std::make_pair(ACCEPT_FILE, Log::get_accept_file()));
+
+    for (std::map<int, std::string>::iterator it = filemapping.begin(); it != filemapping.end(); it++)
 	{
-		if (output & it->first)
+        if (Log::output_flag & it->first)
 		{
-			if (it->first == 1)
+            std::string log_msg = Log::logmessage(*message);
+			
+			if (it->first == STD_OUT)
 			{
-				std::cout << logmessage(msg);
-				continue;
-			}
-			if (it->first == 2)
+                std::cout << log_msg;
+            } 
+			else if (it->first == STD_ERR)
 			{
-				std::cerr << logmessage(msg);
-				continue;
-			}
-			logfile.open((it->second).c_str(), std::ios::app);
-			if (logfile.is_open())
+                std::cerr << log_msg;
+            }
+			else 
 			{
-				logfile << logmessage(msg);
-				logfile.close();
-			}
-			else
-			{
-				std::cerr << "Error opening error log file." << std::endl;
-				return false;
-			}
-		}
-	}
-	return true;
+                std::ofstream logfile;
+                logfile.open(it->second.c_str(), std::ios::app);
+				if (logfile.is_open()) 
+				{
+                    logfile << log_msg;
+                    logfile.close();
+                }
+				else 
+				{
+                    std::cerr << "Error opening log file: " << it->second << std::endl;
+                }
+            }
+        }
+    }
+    delete message;
+    return NULL;
+}
+
+bool Log::log(const std::string& msg, int output) 
+{
+    pthread_t logging_thread;
+    std::string* message = new std::string(msg);
+
+    Log::output_flag = output;
+
+    int result = pthread_create(&logging_thread, NULL, async_log, (void*)message);
+    if (result != 0)
+	{
+        std::cerr << "Error creating logging thread." << std::endl;
+        delete message;
+        return false;
+    }
+
+    pthread_join(logging_thread, NULL);
+    return true;
 }
