@@ -13,8 +13,6 @@ Director::Director(const std::string& config_path):fdmax(-1)
 
 Director::~Director()
 {
-	if (config)
-		delete config;
 	std::map<int, Node*>::iterator it;
 	for (it = nodes.begin(); it != nodes.end(); it++)
 	{
@@ -24,6 +22,7 @@ Director::~Director()
 			delete ci;
 		}
 	}
+	delete config;
 }
 
 Director::Director(const Director& rhs)
@@ -563,7 +562,7 @@ int	Director::read_from_client(int client_fd)
 				fdmax--;
 		}
 		ci->get_request()->clean();
-		delete ci;
+		delete nodes[client_fd];
 		nodes.erase(client_fd);
 		close(client_fd);
 		requestmsg[client_fd].clear();
@@ -586,7 +585,7 @@ int	Director::read_from_client(int client_fd)
 		ci->get_request()->clean();
 		nodes.erase(client_fd);
 		close(client_fd);
-		delete ci;
+		delete nodes[client_fd];
 		std::stringstream ss;
 		ss << "Error reading from socket: " << client_fd << std::endl;
 		Log::log(ss.str(), ERROR_FILE | STD_ERR);
@@ -686,6 +685,7 @@ int	Director::write_to_client(int fd)
 		}
 		close(fd);
 		nodes.erase(fd);
+		delete nodes[fd];
 	}
 	// FINISHED WRITING
 	else if (num_bytes == (int)(content.size()) || num_bytes == 0)
@@ -710,6 +710,7 @@ int	Director::write_to_client(int fd)
 				if (fd == fdmax) { fdmax--; }  
 			}
 			close(fd);
+			delete nodes[fd];
 			nodes.erase(fd);
 		}
 		else

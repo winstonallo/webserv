@@ -38,8 +38,6 @@ Server::~Server()
 	{
 		delete *it;
 	}
-	// if (_cgi)
-	// 	delete _cgi;
 }
 
 
