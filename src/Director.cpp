@@ -15,6 +15,15 @@ Director::~Director()
 {
 	if (config)
 		delete config;
+	std::map<int, Node*>::iterator it;
+	for (it = nodes.begin(); it != nodes.end(); it++)
+	{
+		if (it->second->get_type() == CLIENT_NODE)
+		{
+			ClientInfo *ci = static_cast<ClientInfo *>(it->second);
+			delete ci;
+		}
+	}
 }
 
 Director::Director(const Director& rhs)
