@@ -11,7 +11,6 @@
 #include <iostream>
 #include <netinet/in.h>
 #include <ostream>
-#include <stdexcept>
 #include <string>
 #include "Log.hpp"
 #include <cstdlib>

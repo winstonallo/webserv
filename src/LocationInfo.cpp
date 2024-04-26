@@ -15,7 +15,7 @@ LocationInfo::LocationInfo()
 	_cgi_ext = std::vector<std::string>();
 	_allowed_methods = std::vector<std::string>(); 
 	_directory_listing_enabled = false;
-	_client_max_body_size = 4098;
+	_client_max_body_size = 1000000;
 	_cgi = false;
 }
 

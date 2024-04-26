@@ -9,6 +9,13 @@ void	pipe_signal_handler(int signal)
 		return ;
 }
 
+bool is_running = true;
+
+void	ctrlhandler(int)
+{
+	is_running = false;
+}
+
 int main(int argc, char **argv)
 {
 	try 
@@ -23,6 +30,7 @@ int main(int argc, char **argv)
 		else
 		{
 			signal(SIGPIPE, pipe_signal_handler);
+			signal(SIGINT, ctrlhandler);
 			std::string	config_file;
 			if (argc == 2)
 				config_file = argv[1];

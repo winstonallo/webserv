@@ -1,4 +1,5 @@
 #include "Director.hpp"
+#include <netdb.h>
 #include <string.h>
 #include <string>
 #include <map>
@@ -13,8 +14,16 @@ Director::Director(const std::string& config_path):fdmax(-1)
 
 Director::~Director()
 {
-	if (config)
-		delete config;
+	std::map<int, Node*>::iterator it;
+	for (it = nodes.begin(); it != nodes.end(); it++)
+	{
+		if (it->second->get_type() == CLIENT_NODE)
+		{
+			ClientInfo *ci = static_cast<ClientInfo *>(it->second);
+			delete ci;
+		}
+	}
+	delete config;
 }
 
 Director::Director(const Director& rhs)
@@ -137,6 +146,7 @@ int	Director::init_server(Server *si)
 		std::stringstream ss;
 		ss << "Select server failed to bind." << std::endl;
 		Log::log(ss.str(), ERROR_FILE | STD_ERR);
+		freeaddrinfo(ai);
 		return -1;
 	}
 	si->set_fd(listener);
@@ -210,6 +220,7 @@ int	Director::init_servers()
 	return 0;
 }
 
+extern bool is_running;
 // purpose: In a loop we poll (with select) the statuses of the sockets.
 // 			if they are ready for reading they create a new client sockets (if 
 // 			its a server) and handle incoming or outgoing messages (if it's a client)
@@ -225,7 +236,7 @@ int	Director::run_servers()
 	struct timeval 				timeout_time;
 	ClientInfo* 				cl;
 
-	while (true)
+	while (is_running)
 	{
 		readfds_backup = read_fds;
 		writefds_backup = write_fds;
@@ -304,7 +315,9 @@ int	Director::run_servers()
 									fdmax--;
 								close(cl->get_cgi()->request_fd[1]);
 								close(cl->get_cgi()->response_fd[1]);
-								//send error page back
+								cl->get_request()->set_errcode(500);
+								cl->get_server()->create_response(*cl->get_request(), cl);
+								
 							}
 							else if (send == 0 || (size_t) send == reqb.size())
 							{
@@ -339,7 +352,8 @@ int	Director::run_servers()
 								waitpid(cl->get_pid(), &status, 0);
 								if (WEXITSTATUS(status) != 0)
 								{
-									//cl->set_error_response(502);
+									cl->get_request()->set_errcode(500);
+									cl->get_server()->create_response(*cl->get_request(), cl);
 								}
 								cl->set_fin(true);
 								if (cl->get_response().find("HTTP/1.1") == std::string::npos)
@@ -356,8 +370,8 @@ int	Director::run_servers()
 								close(cl->get_cgi()->request_fd[0]);
 								close(cl->get_cgi()->response_fd[0]);
 								cl->set_fin(true);
-								//cl->set_error_response();
-								//return -1;
+								cl->get_request()->set_errcode(500);
+								cl->get_server()->create_response(*cl->get_request(), cl);
 							}
 							else
 							{
@@ -550,7 +564,7 @@ int	Director::read_from_client(int client_fd)
 				fdmax--;
 		}
 		ci->get_request()->clean();
-		delete ci;
+		delete nodes[client_fd];
 		nodes.erase(client_fd);
 		close(client_fd);
 		requestmsg[client_fd].clear();
@@ -573,7 +587,7 @@ int	Director::read_from_client(int client_fd)
 		ci->get_request()->clean();
 		nodes.erase(client_fd);
 		close(client_fd);
-		delete ci;
+		delete nodes[client_fd];
 		std::stringstream ss;
 		ss << "Error reading from socket: " << client_fd << std::endl;
 		Log::log(ss.str(), ERROR_FILE | STD_ERR);
@@ -673,6 +687,7 @@ int	Director::write_to_client(int fd)
 		}
 		close(fd);
 		nodes.erase(fd);
+		delete nodes[fd];
 	}
 	// FINISHED WRITING
 	else if (num_bytes == (int)(content.size()) || num_bytes == 0)
@@ -697,6 +712,7 @@ int	Director::write_to_client(int fd)
 				if (fd == fdmax) { fdmax--; }  
 			}
 			close(fd);
+			delete nodes[fd];
 			nodes.erase(fd);
 		}
 		else
