@@ -1,4 +1,5 @@
 #include "Director.hpp"
+#include <netdb.h>
 #include <string.h>
 #include <string>
 #include <map>
@@ -145,6 +146,7 @@ int	Director::init_server(Server *si)
 		std::stringstream ss;
 		ss << "Select server failed to bind." << std::endl;
 		Log::log(ss.str(), ERROR_FILE | STD_ERR);
+		freeaddrinfo(ai);
 		return -1;
 	}
 	si->set_fd(listener);

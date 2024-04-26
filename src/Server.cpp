@@ -459,7 +459,6 @@ std::string		Server::_get_body(Request& rq, ClientInfo *ci)
 		if (filename != "default")
 		{
 			filename = upload_dir + filename.substr(filename.find("filename=") + 10, filename.find_last_of("\"") - filename.find("filename=") - 10);
-			std::cout << filename << std::endl;
 		}
 		else 
 		{
@@ -474,6 +473,7 @@ std::string		Server::_get_body(Request& rq, ClientInfo *ci)
 		}
 		_errcode = 200;
 		file.write(rq.get_body().c_str(), rq.get_body().size());
+		Log::log(filename + " uploaded successfully.\n", STD_OUT);
 	}
 	else if (rq.get_method() == "DELETE")
 	{
@@ -482,15 +482,16 @@ std::string		Server::_get_body(Request& rq, ClientInfo *ci)
 		if (Utils::file_exists(filename) == false)
 		{
 			_errcode = 404;
-			Log::log("Error. File to be deleted doesn't exist.\n", STD_ERR | ERROR_FILE);
+			Log::log("Error. " + filename + " not found.\n", STD_ERR | ERROR_FILE);
 			throw std::runtime_error("error");
 		}
 		if (remove(filename.c_str()) != 0)
 		{
 			_errcode = 500;
-			Log::log("Error. Couldn't remove file to be removed.\n", STD_ERR | ERROR_FILE);
+			Log::log("Error. Could not remove " + filename + ".\n", STD_ERR | ERROR_FILE);
 			throw std::runtime_error("error");
 		}
+		Log::log(filename + " deleted successfully.\n", STD_OUT);
 		_errcode = 200;
 	}
 	return "";
