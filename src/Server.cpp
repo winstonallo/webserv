@@ -499,7 +499,6 @@ std::string		Server::_get_body(Request& rq, ClientInfo *ci)
 
 int		Server::_process(Request& rq, ClientInfo* ci, std::string& ret_file)
 {
-	//std::string ret_file;
 	LocationInfo loc_info;
 	std::string loc_path;
 

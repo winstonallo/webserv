@@ -20,7 +20,7 @@
 #include "Config.hpp"
 
 #define MSG_SIZE 20000
-#define TIMEOUT_TIME 30
+#define TIMEOUT_TIME 5
 
 // purpose:	class that handles all connections wit select(ing) the 
 // 			the sockets that are ready to be readed or written.

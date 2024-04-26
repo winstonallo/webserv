@@ -243,7 +243,30 @@ int	Director::run_servers()
 				else if (_nodes[i].first->get_type() == CLIENT_NODE)
 				{
 					cl = static_cast<ClientInfo*>(_nodes[i].first);
-					// READING
+					if (_nodes[i].second + TIMEOUT_TIME < time(NULL))
+					{
+						std::stringstream ss;
+						ss << "Client: " << i << " timed out. Closing connection." << std::endl;
+						Log::log(ss.str(), ACCEPT_FILE | STD_OUT);
+						if (FD_ISSET(i, &write_fds))
+						{
+							FD_CLR(i, &write_fds);
+							if (i == fdmax)
+								fdmax--;
+						}
+						if (FD_ISSET(i, &read_fds))
+						{
+							FD_CLR(i, &read_fds);
+							if (i == fdmax)
+								fdmax--;
+						}
+						cl->get_request()->set_errcode(408);
+						cl->get_server()->create_response(*cl->get_request(), cl);
+						close(i);
+						delete cl;
+						_nodes.erase(i);
+						continue;
+					}
 					if (FD_ISSET(i, &readfds_backup))
 					{
 						try
