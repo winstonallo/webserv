@@ -1,8 +1,11 @@
 #include "Director.hpp"
+#include <cstddef>
 #include <netdb.h>
+#include <sstream>
 #include <string.h>
 #include <string>
 #include <map>
+#include <sys/select.h>
 #include <sys/wait.h>
 #include "Log.hpp"
 #include "Server.hpp"
@@ -122,6 +125,7 @@ int	Director::init_server(Server *si)
 		freeaddrinfo(ai);
 		return -1;
 	}
+									fdmax--;
 	si->set_fd(listener);
 	freeaddrinfo(ai);
 	return 0;
@@ -165,7 +169,7 @@ int	Director::init_servers()
 				return -1;
 		}
 	}
-	
+
 	//make servers non-blocking and listen
 	for (it = servers.begin(); it != e; it++)
 	{
@@ -208,6 +212,7 @@ int	Director::run_servers()
 	fd_set 						writefds_backup;
 	struct timeval 				timeout_time;
 	ClientInfo* 				cl;
+	int 						timeout_seconds = 5;
 
 
 	while (is_running)
@@ -216,6 +221,32 @@ int	Director::run_servers()
 		writefds_backup = write_fds;
 		timeout_time.tv_sec = 1;
 		timeout_time.tv_usec = 0;
+		time_t current_time = time(NULL);
+		std::vector <int> to_delete;
+		for (std::map <int, TimeoutInfo>::iterator it = _client_timeouts.begin(); it != _client_timeouts.end(); it++)
+		{
+			if ((current_time - it->second.last_activity) > timeout_seconds)
+			{
+				std::stringstream ss;
+				ss << "Client connection " << it->first << " timed out. Closing connection.\n";
+				Log::log(ss.str(), STD_OUT);
+				close(it->first);
+				to_delete.push_back(it->first);
+				delete _nodes[it->first];
+				_nodes.erase(it->first);
+				FD_CLR(it->first, &readfds_backup);
+				FD_CLR(it->first, &writefds_backup);
+				if (it->first == fdmax)
+					fdmax--;
+				write_fds = writefds_backup;
+				read_fds = readfds_backup;
+			}
+		}
+		for (size_t i = 0; i < to_delete.size(); i++)
+		{
+			_client_timeouts.erase(to_delete[i]);
+		}
+		to_delete.clear();
 		if ((ret = select(fdmax + 1, &readfds_backup, &writefds_backup, NULL, &timeout_time)) < 0 )
 		{
 			std::stringstream ss;
@@ -228,7 +259,7 @@ int	Director::run_servers()
 			if (_nodes.find(i) != _nodes.end())
 			{
 				// FOR SERVERS
-				if (_nodes[i]->get_type() == SERVER_NODE)
+				if (_nodes[i] != NULL and _nodes[i]->get_type() == SERVER_NODE)
 				{
 					if (FD_ISSET(i, &readfds_backup))
 					{
@@ -242,7 +273,7 @@ int	Director::run_servers()
 					}
 				}
 				// FOR CLIENTS
-				else if (_nodes[i]->get_type() == CLIENT_NODE)
+				else if (_nodes[i] != NULL and _nodes[i]->get_type() == CLIENT_NODE)
 				{
 					cl = static_cast<ClientInfo*>(_nodes[i]);
 					if (FD_ISSET(i, &readfds_backup))
@@ -569,6 +600,7 @@ int	Director::read_from_client(int client_fd)
 	}
 	else if (flag == READ)
 	{
+		_client_timeouts[client_fd].last_activity = time(NULL);
 		try
 		{
 			ci->get_request()->init(requestmsg[client_fd]);
