@@ -7,11 +7,7 @@
 // checks the file extension against expected value and passes the file path to the parser
 ConfigParser::ConfigParser(const std::string& path) : _config_file_path(path), _server_count(0)
 {
-	if (_config_file_path == "")
-	{
-		_config_file_path = "config/webserv.conf";
-	}
-	if (_config_file_path.substr(_config_file_path.size() - 5) != EXPECTED_EXT)
+	if (_config_file_path.size() < 5 or _config_file_path.substr(_config_file_path.size() - 5) != EXPECTED_EXT)
 	{
 		Utils::config_error_on_line(0, INVALID_EXT, THROW);
 	}
