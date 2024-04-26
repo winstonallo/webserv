@@ -556,8 +556,14 @@ int		Server::_process(Request& rq, ClientInfo* ci, std::string& ret_file)
 			// std::vector<std::string> allowed_methods = loc_info.get_allowed_methods();
 			// if (std::find(allowed_methods.begin(), allowed_methods.end(), rq.get_method()) != allowed_methods.end())
 			// 	return (_errcode = 405);
-			ci->set_cgi(new CGI());
-			ci->get_cgi()->clear();
+			if (ci->get_cgi() == NULL)
+			{
+				ci->set_cgi(new CGI());
+			}
+			else
+			{
+				ci->get_cgi()->clear();
+			}
 			ci->set_is_cgi(true);
 			ci->get_cgi()->set_path(script_file_path);
 			ci->get_cgi()->initialize_environment_map(rq);
