@@ -15,7 +15,7 @@ Director::Director(const std::string& config_path):fdmax(-1)
 Director::~Director()
 {
 	timeout_node_map::iterator it;
-	for (it = nodes.begin(); it != nodes.end(); it++)
+	for (it = _nodes.begin(); it != _nodes.end(); it++)
 	{
 		if (it->second.first->get_type() == CLIENT_NODE)
 		{
@@ -185,9 +185,9 @@ int	Director::init_servers()
 		}
 		FD_SET(listener, &read_fds);
 		if (fdmax < listener) fdmax = listener;
-		nodes[listener].first = *it;
-		nodes[listener].first->set_type(SERVER_NODE);
-		nodes[listener].first->set_fd(listener);
+		_nodes[listener].first = *it;
+		_nodes[listener].first->set_type(SERVER_NODE);
+		_nodes[listener].first->set_fd(listener);
 	}
 	return 0;
 }
@@ -223,10 +223,10 @@ int	Director::run_servers()
 		}
 		for (int i = 0; i <= fdmax; i++)
 		{
-			if (nodes.find(i) != nodes.end())
+			if (_nodes.find(i) != _nodes.end())
 			{
 				// FOR SERVERS
-				if (nodes[i].first->get_type() == SERVER_NODE)
+				if (_nodes[i].first->get_type() == SERVER_NODE)
 				{
 					if (FD_ISSET(i, &readfds_backup))
 					{
@@ -240,9 +240,9 @@ int	Director::run_servers()
 					}
 				}
 				// FOR CLIENTS
-				else if (nodes[i].first->get_type() == CLIENT_NODE) 
+				else if (_nodes[i].first->get_type() == CLIENT_NODE)
 				{
-					cl = static_cast<ClientInfo*>(nodes[i].first);
+					cl = static_cast<ClientInfo*>(_nodes[i].first);
 					// READING
 					if (FD_ISSET(i, &readfds_backup))
 					{
@@ -458,11 +458,11 @@ int	Director::create_client_connection(int listener)
 	{
 		if (fdmax < newfd)
 			fdmax = newfd;
-		if (nodes.find(newfd) == nodes.end())
+		if (_nodes.find(newfd) == _nodes.end())
 		{
 			ClientInfo *newcl = new ClientInfo(newfd, remoteaddr, (size_t)addrlen);
-			newcl->set_server(dynamic_cast<Server*>(nodes[listener].first));
-			nodes[newfd].first = newcl;
+			newcl->set_server(dynamic_cast<Server*>(_nodes[listener].first));
+			_nodes[newfd].first = newcl;
 		}
 		else
 		{
@@ -478,14 +478,14 @@ int	Director::create_client_connection(int listener)
 						get_in_addr((struct sockaddr *)&remoteaddr),
 						remoteIP, INET6_ADDRSTRLEN);
 		ss2 << " on socket " << newfd << std::endl;
-		Utils::notify_client_connection(dynamic_cast<Server*>(nodes[listener].first), newfd, remoteaddr);
+		Utils::notify_client_connection(dynamic_cast<Server*>(_nodes[listener].first), newfd, remoteaddr);
 		if (fcntl(newfd, F_SETFL, O_NONBLOCK) < 0)
 		{
 			std::stringstream ss3;
 			ss3 << "Error while non-blocking: " << strerror(errno) << std::endl;
 			Log::log(ss3.str(), ERROR_FILE | STD_ERR);
-			delete nodes[newfd].first;
-			nodes.erase(newfd);
+			delete _nodes[newfd].first;
+			_nodes.erase(newfd);
 			close(newfd);
 		}
 		FD_SET(newfd, &read_fds);
@@ -510,7 +510,7 @@ int	Director::read_from_client(int client_fd)
 	int										flag = 0;
 	ClientInfo								*ci;
 
-	ci = dynamic_cast<ClientInfo *>(nodes[client_fd].first);
+	ci = dynamic_cast<ClientInfo *>(_nodes[client_fd].first);
 	flag = Request::read_request(client_fd, MSG_SIZE, requestmsg[client_fd]);
 	// std::cout << RED<< "flag: " << flag << std::endl;
 	// std::cout << "requestmsg: " << requestmsg[client_fd] << RESET<< std::endl;
@@ -534,8 +534,8 @@ int	Director::read_from_client(int client_fd)
 				fdmax--;
 		}
 		ci->get_request()->clean();
-		delete nodes[client_fd].first;
-		nodes.erase(client_fd);
+		delete _nodes[client_fd].first;
+		_nodes.erase(client_fd);
 		close(client_fd);
 		requestmsg[client_fd].clear();
 		return 0;
@@ -555,9 +555,9 @@ int	Director::read_from_client(int client_fd)
 				fdmax--;
 		}
 		ci->get_request()->clean();
-		nodes.erase(client_fd);
+		_nodes.erase(client_fd);
 		close(client_fd);
-		delete nodes[client_fd].first;
+		delete _nodes[client_fd].first;
 		std::stringstream ss;
 		ss << "Error reading from socket: " << client_fd << std::endl;
 		Log::log(ss.str(), ERROR_FILE | STD_ERR);
@@ -598,7 +598,6 @@ int	Director::read_from_client(int client_fd)
 				}
 			}
 		}
-		// create the response
 		ci->get_server()->create_response(*ci->get_request(), ci);
 		if (ci->is_cgi())
 		{
@@ -616,7 +615,7 @@ int	Director::read_from_client(int client_fd)
 		// ci->get_request()->clean();
 		requestmsg[client_fd].clear();
 	}
-	ci->set_time(); //TODO this should be in the read request
+	ci->set_time();
 	return 0;
 }
 
@@ -629,17 +628,15 @@ int	Director::read_from_client(int client_fd)
 int	Director::write_to_client(int fd)
 {
 	int				num_bytes;
-	ClientInfo*		cl = dynamic_cast<ClientInfo*>(nodes[fd].first);
+	ClientInfo*		cl = dynamic_cast<ClientInfo*>(_nodes[fd].first);
 
 	std::string content = cl->get_response();
-	//std::cout << content;
 	int sz = content.size();
 
 	if (sz < MSG_SIZE)
 		num_bytes = write(fd, content.c_str(), sz);
 	else
 		num_bytes = write(fd, content.c_str(), MSG_SIZE);
-	// WRITE FAILES
 	if (num_bytes < 0)
 	{
 		std::stringstream ss;
@@ -656,16 +653,14 @@ int	Director::write_to_client(int fd)
 			if (fd == fdmax) { fdmax--; }  
 		}
 		close(fd);
-		nodes.erase(fd);
-		delete nodes[fd].first;
+		_nodes.erase(fd);
+		delete _nodes[fd].first;
 	}
-	// FINISHED WRITING
 	else if (num_bytes == (int)(content.size()) || num_bytes == 0)
 	{
 		std::stringstream ss;
 		ss << "Response " << cl->get_request()->get_path() << " send to socket:" << fd << std::endl;
 		Log::log(ss.str(), STD_OUT);
-		//cl->get_request()->get_header("KEEP-ALIVE") != "keep-alive" ||
 		if(	cl->get_request()->get_errcode() || cl->is_cgi())
 		{
 			std::stringstream ss;
@@ -682,8 +677,8 @@ int	Director::write_to_client(int fd)
 				if (fd == fdmax) { fdmax--; }  
 			}
 			close(fd);
-			delete nodes[fd].first;
-			nodes.erase(fd);
+			delete _nodes[fd].first;
+			_nodes.erase(fd);
 		}
 		else
 		{
@@ -691,11 +686,7 @@ int	Director::write_to_client(int fd)
 			if (fd == fdmax) { fdmax--; }  
 			FD_SET(fd, &read_fds);
 			if (fd > fdmax) { fdmax=fd; } 
-			// if (FD_ISSET(fd, &read_fds))
-			// 	std::cout << LYELLOW << fd << " set to read" << RESET << std::endl;
-			// std::cout << fd << RED << "set to read" << RESET << std::endl; 
 			cl->get_request()->clean();
-			// cl->get_server()->reset();
 			cl->clear_response();
 		}
 	}

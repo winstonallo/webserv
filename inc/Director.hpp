@@ -48,7 +48,7 @@ class Director
 
 		int								fdmax;
 		Config*							config;
-		timeout_node_map				nodes;
+		timeout_node_map				_nodes;
 		fd_set							read_fds, write_fds;
 };
 
