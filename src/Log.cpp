@@ -1,5 +1,7 @@
 #include "Log.hpp"
-#include "Utils.hpp"
+#include <iostream>
+#include <sstream>
+#include <map>
 #include <sys/stat.h>
 
 Log::Log()
