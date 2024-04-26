@@ -463,6 +463,7 @@ int	Director::create_client_connection(int listener)
 			ClientInfo *newcl = new ClientInfo(newfd, remoteaddr, (size_t)addrlen);
 			newcl->set_server(dynamic_cast<Server*>(_nodes[listener].first));
 			_nodes[newfd].first = newcl;
+			_nodes[newfd].second = time(NULL);
 		}
 		else
 		{
