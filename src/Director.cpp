@@ -408,15 +408,40 @@ int	Director::run_servers()
 				timed_out_clients.push_back(i->first);
 				client->get_request()->set_errcode(408);
 				client->get_server()->create_response(*client->get_request(), client);
+				write_to_client(i->first);
 			}
 		}
 		for (size_t i = 0; i < timed_out_clients.size(); i++)
 		{
-			_client_timeouts.erase(timed_out_clients[i]);
-			_nodes.erase(timed_out_clients[i]);
+			close_client_connection(timed_out_clients[i]);
 		}
+
 	}
 	return 0;
+}
+
+void Director::close_client_connection(int client_fd)
+{
+	if (FD_ISSET(client_fd, &write_fds))
+	{
+		FD_CLR(client_fd, &write_fds);
+		if (client_fd == fdmax)
+		{
+			fdmax--;
+		}
+	}
+	if (FD_ISSET(client_fd, &read_fds))
+	{
+		FD_CLR(client_fd, &read_fds);
+		if (client_fd == fdmax)
+		{
+			fdmax--;
+		}
+	}
+	_client_timeouts.erase(client_fd);
+	delete _nodes[client_fd];
+	_nodes.erase(client_fd);
+	close(client_fd);
 }
 
 // purpose: close the cgi client and log the status code
