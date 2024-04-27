@@ -38,8 +38,6 @@ Server::~Server()
 	{
 		delete *it;
 	}
-	// if (_cgi)
-	// 	delete _cgi;
 }
 
 
@@ -357,13 +355,12 @@ void	Server::create_response(Request& rq, ClientInfo* client_info)
 		if (error_file.fail())
 		{
 			Log::log("Error reading error page file.\n", STD_ERR | ERROR_FILE);
-			body = DEFAULT_ERROR_PAGE; //TODO
+			body = DEFAULT_ERROR_PAGE;
 		}
 		std::stringstream ss;
 		ss << error_file.rdbuf();
 		body = ss.str();
 	}
-	
 	ss << "HTTP/1.1 " << _errcode << " " << _status_string[_errcode]  << "\r\n";
 	time_t	curr_time = time(NULL);
 	struct tm tim = *gmtime(&curr_time);
@@ -395,7 +392,6 @@ void	Server::create_response(Request& rq, ClientInfo* client_info)
 	// }
 	// f << ss.str();
 	// f.close();
-
 	client_info->set_response(ss.str());
 }
 
@@ -461,7 +457,6 @@ std::string		Server::_get_body(Request& rq, ClientInfo *ci)
 		if (filename != "default")
 		{
 			filename = upload_dir + filename.substr(filename.find("filename=") + 10, filename.find_last_of("\"") - filename.find("filename=") - 10);
-			std::cout << filename << std::endl;
 		}
 		else 
 		{
@@ -476,6 +471,7 @@ std::string		Server::_get_body(Request& rq, ClientInfo *ci)
 		}
 		_errcode = 200;
 		file.write(rq.get_body().c_str(), rq.get_body().size());
+		Log::log(filename + " uploaded successfully.\n", STD_OUT);
 	}
 	else if (rq.get_method() == "DELETE")
 	{
@@ -484,15 +480,16 @@ std::string		Server::_get_body(Request& rq, ClientInfo *ci)
 		if (Utils::file_exists(filename) == false)
 		{
 			_errcode = 404;
-			Log::log("Error. File to be deleted doesn't exist.\n", STD_ERR | ERROR_FILE);
+			Log::log("Error. " + filename + " not found.\n", STD_ERR | ERROR_FILE);
 			throw std::runtime_error("error");
 		}
 		if (remove(filename.c_str()) != 0)
 		{
 			_errcode = 500;
-			Log::log("Error. Couldn't remove file to be removed.\n", STD_ERR | ERROR_FILE);
+			Log::log("Error. Could not remove " + filename + ".\n", STD_ERR | ERROR_FILE);
 			throw std::runtime_error("error");
 		}
+		Log::log(filename + " deleted successfully.\n", STD_OUT);
 		_errcode = 200;
 	}
 	return "";
@@ -500,14 +497,16 @@ std::string		Server::_get_body(Request& rq, ClientInfo *ci)
 
 int		Server::_process(Request& rq, ClientInfo* ci, std::string& ret_file)
 {
-	//std::string ret_file;
 	LocationInfo loc_info;
 	std::string loc_path;
 
 	_get_best_location_match(_locations, rq, loc_path, &loc_info);
 	if (!loc_path.empty())
 	{
-		// is body smaller than max?
+		if (loc_info.get_client_max_body_size() == 0)
+		{
+			loc_info.set_client_max_body_size(_client_max_body_size);
+		}
 		if ((int)rq.get_body().size() > loc_info.get_client_max_body_size())
 		{
 			Log::log("Error. Client body is too big.\n", STD_ERR | ERROR_FILE);
@@ -556,8 +555,14 @@ int		Server::_process(Request& rq, ClientInfo* ci, std::string& ret_file)
 			// std::vector<std::string> allowed_methods = loc_info.get_allowed_methods();
 			// if (std::find(allowed_methods.begin(), allowed_methods.end(), rq.get_method()) != allowed_methods.end())
 			// 	return (_errcode = 405);
-			ci->set_cgi(new CGI());
-			ci->get_cgi()->clear();
+			if (ci->get_cgi() == NULL)
+			{
+				ci->set_cgi(new CGI());
+			}
+			else
+			{
+				ci->get_cgi()->clear();
+			}
 			ci->set_is_cgi(true);
 			ci->get_cgi()->set_path(script_file_path);
 			ci->get_cgi()->initialize_environment_map(rq);

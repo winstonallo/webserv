@@ -30,6 +30,7 @@ class ClientInfo : public Node
 		bool						is_cgi() const;
 		void						set_is_cgi(bool);
 		void						set_time();
+		time_t						get_time() { return _prev_time; }
 		int							get_pid() const;
 		void						set_pid(int p);
 		bool							get_fin() const;

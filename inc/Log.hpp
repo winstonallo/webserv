@@ -1,12 +1,11 @@
 #ifndef LOG_HPP 
 #define LOG_HPP
 
-#include <iostream>
+
 #include <fstream> 
 #include <string>
-#include <sstream>
 #include <sys/time.h>
-#include <map>
+
 #define LRESET          "\033[0m"
 #define LLIGHT_BLUE     "\033[34m"
 #define LWHITE          "\033[37m"
@@ -25,8 +24,6 @@ enum LogDest
 	ERROR_FILE = 4,
 	ACCEPT_FILE = 8
 };
-// purpose: basic Logging class that handles several output at one time
-//			see comments on function log for use.
 
 class Log
 {
@@ -38,13 +35,14 @@ class Log
 		static std::string		get_accept_file();
 		static void				set_accept_file(const std::string& faccept);
 		static void				create_logs_directory();
+		static std::string 		logmessage(const std::string& msg);
+		static int				output_flag;
 
 	private:
 								Log();
 								~Log();
 								Log(const Log& rhs);
 		Log&					operator=(const Log& rhs);
-		static std::string 		logmessage(const std::string& msg);
 		static std::string		get_time_stamp();
 		static std::ofstream	logfile;
 		static std::string		error_file;

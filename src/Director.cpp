@@ -1,9 +1,18 @@
 #include "Director.hpp"
+#include <cstddef>
+#include <ctime>
+#include <netdb.h>
+#include <sstream>
 #include <string.h>
 #include <string>
 #include <map>
+#include <sys/select.h>
 #include <sys/wait.h>
+#include <vector>
+#include "ClientInfo.hpp"
 #include "Log.hpp"
+#include "Node.hpp"
+#include "Server.hpp"
 #include "Utils.hpp"
 
 Director::Director(const std::string& config_path):fdmax(-1)
@@ -13,8 +22,16 @@ Director::Director(const std::string& config_path):fdmax(-1)
 
 Director::~Director()
 {
-	if (config)
-		delete config;
+	std::map <int, Node*>::iterator it;
+	for (it = _nodes.begin(); it != _nodes.end(); it++)
+	{
+		if (it->second->get_type() == CLIENT_NODE)
+		{
+			ClientInfo *ci = static_cast<ClientInfo *>(it->second);
+			delete ci;
+		}
+	}
+	delete config;
 }
 
 Director::Director(const Director& rhs)
@@ -77,15 +94,6 @@ int	Director::init_server(Server *si)
 		Log::log(ss.str(), ERROR_FILE | STD_ERR);
 		return -1;
 	}
-	// for (p = ai; p != NULL; p = p->ai_next)
-	// {
-	// 	std::cout << "addrinfo" << std::endl; 
-	// 	std::cout << "ai_flags: " << p->ai_flags << std::endl;
-	// 	std::cout << "ai_family: " << p->ai_family << std::endl;
-	// 	std::cout << "ai_socktype: " << p->ai_socktype << std::endl;
-	// 	std::cout << "ai_protocol: " << p->ai_protocol << std::endl;
-	// 	std::cout << "ai_addrlen: " << p->ai_addrlen << std::endl;
-	// }
 	for (p = ai; p != NULL; p = p->ai_next)
 	{
 		listener = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
@@ -106,29 +114,12 @@ int	Director::init_server(Server *si)
 			continue;
 		}
 		si->set_fd(listener);
-		//si->set_addr(*((sockaddr_storage*)(p->ai_addr)));
-		//si->set_addr((struct in_addr)p->ai_addr);
 		si->set_addr_len((size_t)p->ai_addrlen);
 
-		std::cout << "Server created on localhost with domain name: " ;
-		std::cout << si->get_server_name()[0] << ", port: " << si->get_port() << std::endl;
+		Log::log("Server created on localhost with domain name: " +
+		si->get_server_name()[0] + ", port: " + Utils::itoa(si->get_port()) + "\n",
+		ACCEPT_FILE | STD_OUT);
 
-		//	print address
-		// struct sockaddr *address  = p->ai_addr;
-		// if (address->sa_family == AF_INET) 
-		// {
-		// 	struct sockaddr_in *ipv4 = reinterpret_cast<struct sockaddr_in *>(address);
-		// 	std::cout << "IPv4 Address: " << inet_ntoa(ipv4->sin_addr) << std::endl;
-		// 	std::cout << "Port: " << ntohs(ipv4->sin_port) << std::endl;
-		// } 
-		// else if (address->sa_family == AF_INET6) 
-		// /cgi-bin/do_shell.sh{
-		// 	struct sockaddr_in6 *ipv6 = reinterpret_cast<struct sockaddr_in6 *>(address);
-		// 	char ipstr[INET6_ADDRSTRLEN];
-		// 	inet_ntop(AF_INET6, &(ipv6->sin6_addr), ipstr, sizeof(ipstr));
-		// 	std::cout << "IPv6 Address: " << ipstr << std::endl;
-		// 	std::cout << "Port: " << ntohs(ipv6->sin6_port) << std::endl;
-		// }
 		break;
 	}
 
@@ -137,8 +128,10 @@ int	Director::init_server(Server *si)
 		std::stringstream ss;
 		ss << "Select server failed to bind." << std::endl;
 		Log::log(ss.str(), ERROR_FILE | STD_ERR);
+		freeaddrinfo(ai);
 		return -1;
 	}
+									fdmax--;
 	si->set_fd(listener);
 	freeaddrinfo(ai);
 	return 0;
@@ -182,7 +175,7 @@ int	Director::init_servers()
 				return -1;
 		}
 	}
-	
+
 	//make servers non-blocking and listen
 	for (it = servers.begin(); it != e; it++)
 	{
@@ -203,9 +196,9 @@ int	Director::init_servers()
 		}
 		FD_SET(listener, &read_fds);
 		if (fdmax < listener) fdmax = listener;
-		nodes[listener] = *it;
-		nodes[listener]->set_type(SERVER_NODE);
-		nodes[listener]->set_fd(listener);
+		_nodes[listener] = *it;
+		_nodes[listener]->set_type(SERVER_NODE);
+		_nodes[listener]->set_fd(listener);
 	}
 	return 0;
 }
@@ -226,27 +219,34 @@ int	Director::run_servers()
 	struct timeval 				timeout_time;
 	ClientInfo* 				cl;
 
+
 	while (is_running)
 	{
 		readfds_backup = read_fds;
 		writefds_backup = write_fds;
 		timeout_time.tv_sec = 1;
 		timeout_time.tv_usec = 0;
+		std::vector <int> to_delete;
+		for (size_t i = 0; i < to_delete.size(); i++)
+		{
+			_client_timeouts.erase(to_delete[i]);
+		}
+		to_delete.clear();
 		if ((ret = select(fdmax + 1, &readfds_backup, &writefds_backup, NULL, &timeout_time)) < 0 )
 		{
 			std::stringstream ss;
+			if (is_running == false)
+				break;
 			ss << "Error while select: " << strerror(errno) << std::endl;
 			Log::log(RED + ss.str() + RESET, ERROR_FILE | STD_ERR);
 			return -1;
 		}
 		for (int i = 0; i <= fdmax; i++)
 		{
-			// std::cout << LYELLOW << i << RESET << std::endl;
-			// std::cout << LYELLOW << i << "is processed" << RESET << std::endl;
-			if (nodes.find(i) != nodes.end())
+			if (_nodes.find(i) != _nodes.end())
 			{
 				// FOR SERVERS
-				if (nodes[i]->get_type() == SERVER_NODE)
+				if (_nodes[i] != NULL and _nodes[i]->get_type() == SERVER_NODE)
 				{
 					if (FD_ISSET(i, &readfds_backup))
 					{
@@ -255,15 +255,14 @@ int	Director::run_servers()
 							std::stringstream ss;
 							ss << "Error creating a client connection: " << std::endl;
 							Log::log(ss.str(), ERROR_FILE | STD_ERR);
-							exit(2); // TODO: Need to deallocate something?
+							throw std::runtime_error("throwing");//exit(2); // TODO: Need to deallocate something?
 						}
 					}
 				}
 				// FOR CLIENTS
-				else if (nodes[i]->get_type() == CLIENT_NODE) 
+				else if (_nodes[i] != NULL and _nodes[i]->get_type() == CLIENT_NODE)
 				{
-					cl = static_cast<ClientInfo*>(nodes[i]);
-					// READING
+					cl = static_cast<ClientInfo*>(_nodes[i]);
 					if (FD_ISSET(i, &readfds_backup))
 					{
 						try
@@ -300,14 +299,7 @@ int	Director::run_servers()
 								std::stringstream ss;
 								ss << "Error sending request body to CGI: " << strerror(errno);
 								Log::log(ss.str(), STD_ERR | ERROR_FILE);
-								FD_CLR(cl->get_cgi()->request_fd[1], &write_fds);
-								if (cl->get_cgi()->request_fd[1] == fdmax)
-									fdmax--;
-								close(cl->get_cgi()->request_fd[1]);
-								close(cl->get_cgi()->response_fd[1]);
-								cl->get_request()->set_errcode(500);
-								cl->get_server()->create_response(*cl->get_request(), cl);
-								
+								close_cgi(cl, 500);
 							}
 							else if (send == 0 || (size_t) send == reqb.size())
 							{
@@ -323,7 +315,7 @@ int	Director::run_servers()
 								reqb = reqb.substr(send);
 							}
 						}
-						//return from cgi
+						// cgi tiemout
 						else if (cl->get_cgi() && FD_ISSET(cl->get_cgi()->response_fd[0], &readfds_backup) && !cl->get_fin())
 						{
 							char	msg[MSG_SIZE * 4];
@@ -331,7 +323,6 @@ int	Director::run_servers()
 							int		status = 0;
 
 							receive = read(cl->get_cgi()->response_fd[0], msg, MSG_SIZE * 4);
-
 							if (receive == 0)
 							{
 								FD_CLR(cl->get_cgi()->response_fd[0], &read_fds);
@@ -339,7 +330,7 @@ int	Director::run_servers()
 									fdmax--;
 								close(cl->get_cgi()->request_fd[0]);
 								close(cl->get_cgi()->response_fd[0]);
-								waitpid(cl->get_pid(), &status, 0);
+								waitpid(cl->get_pid(), &status, WNOHANG);
 								if (WEXITSTATUS(status) != 0)
 								{
 									cl->get_request()->set_errcode(500);
@@ -365,7 +356,6 @@ int	Director::run_servers()
 							}
 							else
 							{
-								cl->set_time();
 								cl->get_response().append(msg, receive);
 								memset(msg, 0, sizeof(msg));
 							}
@@ -384,73 +374,115 @@ int	Director::run_servers()
 				}
 			}
 		}
-		// Test for timeout of Clients
-		// for (std::map<int, Node*>::iterator iter = nodes.begin(); iter != nodes.end(); )
-		// {
-		// 	if (iter->second->get_type() == CLIENT_NODE)
-		// 	{
-		// 		ClientInfo *ci = static_cast<ClientInfo *>(iter->second);
-		// 		time_t current_time = time(NULL);
-		// 		if (current_time - ci->get_prev_time() > TIMEOUT_TIME)
-		// 		{
-		// 			std::stringstream ss;
-		// 			ss << "Client: " << iter->first << " timed out. Closing connection.";
-		// 			Log::log(ss.str(), STD_OUT);
-		// 			if (FD_ISSET(iter->first, &write_fds))
-		// 			{
-		// 				FD_CLR(iter->first, &write_fds);
-		// 				if (iter->first == fdmax)
-		// 					fdmax--;
-		// 			}
-		// 			if (FD_ISSET(iter->first, &read_fds))
-		// 			{
-		// 				FD_CLR(iter->first, &read_fds);
-		// 				if (iter->first == fdmax)
-		// 					fdmax--;
-		// 			}
-		// 			close(iter->first);
-		// 			nodes.erase(iter++);
-		// 			delete ci;
-		// 		}
-		// 	}
-		// 	else
-		// 		++iter;
-		// }
-/*
-		char	remoteIP[INET6_ADDRSTRLEN];	
-		//timeout for clients
-		time_t curr_time = time(NULL);
-		for (int i = 0; i < fdmax; i++)
-		{	
-			ClientInfo* client;
-			if (nodes.find(i) != nodes.end() && nodes[i]->get_type() == CLIENT_NODE)
-				client = dynamic_cast<ClientInfo *>(nodes[i]);
-			if ((curr_time - client->get_prev_time()) > TIMEOUT_TIME)
-			{
-				std::stringstream ss2;
-
-				ss2 << "Closing connection from ";
-				ss2 << inet_ntop(client->get_addr().ss_family,
-					get_in_addr((struct sockaddr *)&client->get_addr()),
-					remoteIP, INET6_ADDRSTRLEN);
-				ss2 << " on socket " << i << std::endl;
-				Log::log(ss2.str(), ACCEPT_FILE | STD_OUT);
-
-				if (FD_ISSET(i, &write_fds))
-					FD_CLR(i, &write_fds);
-				if (FD_ISSET(i, &read_fds))
-					FD_CLR(i, &read_fds);
-				if (i == fdmax)
-					fdmax--;
-				delete client;
-				nodes.erase(i);
-				close(i);
-			}
-
-		}
-*/
+		close_timed_out_clients();
 	}
 	return 0;
+}
+
+void Director::cgi_timeout(int client_fd, ClientInfo* client)
+{
+	if (client && client->get_type() == CLIENT_NODE && client->is_cgi() == true)
+	{
+		Log::log("Error reading CGI response on socket " +
+		Utils::itoa(client_fd) + ": client timed out.\n",
+		STD_ERR | ERROR_FILE);
+		
+		if (FD_ISSET(client->get_cgi()->response_fd[0], &read_fds))
+		{
+			FD_CLR(client->get_cgi()->response_fd[0], &read_fds);
+			if (client_fd == fdmax)
+			{
+				fdmax--;
+			}
+		}
+		kill(client->get_pid(), SIGKILL);
+		close(client->get_cgi()->request_fd[0]);
+	}
+}
+
+void	Director::close_timed_out_clients()
+{
+	std::vector <int> timed_out_clients = get_timed_out_clients();
+
+	for (size_t i = 0; i < timed_out_clients.size(); i++)
+	{
+		ClientInfo* client = dynamic_cast<ClientInfo*>(_nodes[timed_out_clients[i]]);
+		cgi_timeout(timed_out_clients[i], client);
+		send_timeout_response(timed_out_clients[i], client);
+		close_client_connection(timed_out_clients[i]);
+	}
+}
+
+void	Director::send_timeout_response(int client_fd, ClientInfo* client)
+{
+	if (client)
+	{
+		client->get_request()->set_errcode(408);
+		client->get_server()->create_response(*client->get_request(), client);
+		write_to_client(client_fd);
+	}
+}
+
+std::vector <int>	Director::get_timed_out_clients()
+{
+	std::vector <int> timed_out_clients;
+	time_t current_time = time(NULL);
+	int timeout_seconds = 60;
+
+	for (std::map<int, TimeoutInfo>::iterator client = _client_timeouts.begin(); client != _client_timeouts.end(); client++)
+	{
+		if (client->second.client->get_type() == CLIENT_NODE && client->second.client->is_cgi() == true)
+		{
+			timeout_seconds = 5;
+		}
+		if (client->second.last_activity < current_time - timeout_seconds)
+		{
+			timed_out_clients.push_back(client->first);
+		}
+	}
+	return timed_out_clients;
+}
+
+void Director::close_client_connection(int client_fd)
+{
+	if (FD_ISSET(client_fd, &write_fds))
+	{
+		FD_CLR(client_fd, &write_fds);
+		if (client_fd == fdmax)
+		{
+			fdmax--;
+		}
+	}
+	if (FD_ISSET(client_fd, &read_fds))
+	{
+		FD_CLR(client_fd, &read_fds);
+		if (client_fd == fdmax)
+		{
+			fdmax--;
+		}
+	}
+	_client_timeouts.erase(client_fd);
+	delete _nodes[client_fd];
+	_nodes.erase(client_fd);
+	close(client_fd);
+}
+
+// purpose: close the cgi client and log the status code
+//
+// argument: client -> the client that is a cgi
+// 			 status_code -> the status code of the response
+void	Director::close_cgi(ClientInfo* client, int status_code)
+{
+	FD_CLR(client->get_cgi()->request_fd[1], &write_fds);
+	if (client->get_cgi()->request_fd[1] == fdmax)
+	{
+		fdmax--;
+	}
+	close(client->get_cgi()->request_fd[1]);
+	close(client->get_cgi()->response_fd[1]);
+	client->get_request()->set_errcode(status_code);
+	client->get_server()->create_response(*client->get_request(), client);
+								
 }
 
 // purpose: having the server socket file descriptor we create the client connection
@@ -478,11 +510,13 @@ int	Director::create_client_connection(int listener)
 	{
 		if (fdmax < newfd)
 			fdmax = newfd;
-		if (nodes.find(newfd) == nodes.end())
+		if (_nodes.find(newfd) == _nodes.end())
 		{
 			ClientInfo *newcl = new ClientInfo(newfd, remoteaddr, (size_t)addrlen);
-			newcl->set_server(dynamic_cast<Server*>(nodes[listener]));
-			nodes[newfd] = newcl;
+			_client_timeouts[newfd].last_activity = time(NULL);
+			_client_timeouts[newfd].client = newcl;
+			newcl->set_server(dynamic_cast<Server*>(_nodes[listener]));
+			_nodes[newfd] = newcl;
 		}
 		else
 		{
@@ -498,14 +532,14 @@ int	Director::create_client_connection(int listener)
 						get_in_addr((struct sockaddr *)&remoteaddr),
 						remoteIP, INET6_ADDRSTRLEN);
 		ss2 << " on socket " << newfd << std::endl;
-		Utils::notify_client_connection(dynamic_cast<Server*>(nodes[listener]), newfd, remoteaddr);
+		Utils::notify_client_connection(dynamic_cast<Server*>(_nodes[listener]), newfd, remoteaddr);
 		if (fcntl(newfd, F_SETFL, O_NONBLOCK) < 0)
 		{
 			std::stringstream ss3;
 			ss3 << "Error while non-blocking: " << strerror(errno) << std::endl;
 			Log::log(ss3.str(), ERROR_FILE | STD_ERR);
-			delete nodes[newfd];
-			nodes.erase(newfd);
+			delete _nodes[newfd];
+			_nodes.erase(newfd);
 			close(newfd);
 		}
 		FD_SET(newfd, &read_fds);
@@ -530,17 +564,15 @@ int	Director::read_from_client(int client_fd)
 	int										flag = 0;
 	ClientInfo								*ci;
 
-	ci = dynamic_cast<ClientInfo *>(nodes[client_fd]);
+	ci = dynamic_cast<ClientInfo *>(_nodes[client_fd]);
 	flag = Request::read_request(client_fd, MSG_SIZE, requestmsg[client_fd]);
-	// std::cout << RED<< "flag: " << flag << std::endl;
-	// std::cout << "requestmsg: " << requestmsg[client_fd] << RESET<< std::endl;
 	if (!flag)
 	{
 		std::stringstream ss;
 		ss << "Connection closed by " << inet_ntop(AF_INET, get_in_addr((struct sockaddr *)&ci->get_addr()),
 						remoteIP, INET6_ADDRSTRLEN);
 		ss << " on socket " << client_fd << std::endl;
-		Log::log(LLIGHT_BLUE + ss.str() + RESET, ACCEPT_FILE | STD_OUT);
+		Log::log(ss.str(), ACCEPT_FILE | STD_OUT);
 		if (FD_ISSET(client_fd, &write_fds))
 		{
 			FD_CLR(client_fd, &write_fds);
@@ -554,8 +586,8 @@ int	Director::read_from_client(int client_fd)
 				fdmax--;
 		}
 		ci->get_request()->clean();
-		delete ci;
-		nodes.erase(client_fd);
+		delete _nodes[client_fd];
+		_nodes.erase(client_fd);
 		close(client_fd);
 		requestmsg[client_fd].clear();
 		return 0;
@@ -575,9 +607,9 @@ int	Director::read_from_client(int client_fd)
 				fdmax--;
 		}
 		ci->get_request()->clean();
-		nodes.erase(client_fd);
+		_nodes.erase(client_fd);
 		close(client_fd);
-		delete ci;
+		delete _nodes[client_fd];
 		std::stringstream ss;
 		ss << "Error reading from socket: " << client_fd << std::endl;
 		Log::log(ss.str(), ERROR_FILE | STD_ERR);
@@ -586,6 +618,7 @@ int	Director::read_from_client(int client_fd)
 	}
 	else if (flag == READ)
 	{
+		_client_timeouts[client_fd].last_activity = time(NULL);
 		try
 		{
 			ci->get_request()->init(requestmsg[client_fd]);
@@ -598,7 +631,7 @@ int	Director::read_from_client(int client_fd)
 		std::stringstream ss;
 		ss << "Request: " << client_fd << " parsed: " << ci->get_request()->get_method();
 		ss << " " << ci->get_request()->get_path() << std::endl;
-		Log::log(ss.str(), STD_OUT);	
+		Log::log(ss.str(), STD_OUT);
 
 		// virtual servers, we go throug the servers and match the host name / server name 
 		std::vector<Server*> servers = config->get_servers();
@@ -618,7 +651,6 @@ int	Director::read_from_client(int client_fd)
 				}
 			}
 		}
-		// create the response
 		ci->get_server()->create_response(*ci->get_request(), ci);
 		if (ci->is_cgi())
 		{
@@ -636,7 +668,7 @@ int	Director::read_from_client(int client_fd)
 		// ci->get_request()->clean();
 		requestmsg[client_fd].clear();
 	}
-	ci->set_time(); //TODO this should be in the read request
+	ci->set_time();
 	return 0;
 }
 
@@ -648,17 +680,15 @@ int	Director::read_from_client(int client_fd)
 int	Director::write_to_client(int fd)
 {
 	int				num_bytes;
-	ClientInfo*		cl = dynamic_cast<ClientInfo*>(nodes[fd]);
+	ClientInfo*		cl = dynamic_cast<ClientInfo*>(_nodes[fd]);
 
 	std::string content = cl->get_response();
-	//std::cout << content;
 	int sz = content.size();
 
 	if (sz < MSG_SIZE)
 		num_bytes = write(fd, content.c_str(), sz);
 	else
 		num_bytes = write(fd, content.c_str(), MSG_SIZE);
-	// WRITE FAILES
 	if (num_bytes < 0)
 	{
 		std::stringstream ss;
@@ -667,23 +697,22 @@ int	Director::write_to_client(int fd)
 		if (FD_ISSET(fd, &write_fds))
 		{
 			FD_CLR(fd, &write_fds);
-			if (fd == fdmax) { fdmax--; }  
+			if (fd == fdmax) { fdmax--; }
 		}
 		if (FD_ISSET(fd, &read_fds))
 		{
 			FD_CLR(fd, &read_fds);
-			if (fd == fdmax) { fdmax--; }  
+			if (fd == fdmax) { fdmax--; }
 		}
 		close(fd);
-		nodes.erase(fd);
+		_nodes.erase(fd);
+		delete _nodes[fd];
 	}
-	// FINISHED WRITING
 	else if (num_bytes == (int)(content.size()) || num_bytes == 0)
 	{
 		std::stringstream ss;
 		ss << "Response " << cl->get_request()->get_path() << " send to socket:" << fd << std::endl;
 		Log::log(ss.str(), STD_OUT);
-		//cl->get_request()->get_header("KEEP-ALIVE") != "keep-alive" ||
 		if(	cl->get_request()->get_errcode() || cl->is_cgi())
 		{
 			std::stringstream ss;
@@ -697,22 +726,19 @@ int	Director::write_to_client(int fd)
 			if (FD_ISSET(fd, &read_fds))
 			{
 				FD_CLR(fd, &read_fds);
-				if (fd == fdmax) { fdmax--; }  
+				if (fd == fdmax) { fdmax--; }
 			}
 			close(fd);
-			nodes.erase(fd);
+			delete _nodes[fd];
+			_nodes.erase(fd);
 		}
 		else
 		{
 			FD_CLR(fd, &write_fds);
-			if (fd == fdmax) { fdmax--; }  
+			if (fd == fdmax) { fdmax--; }
 			FD_SET(fd, &read_fds);
 			if (fd > fdmax) { fdmax=fd; } 
-			// if (FD_ISSET(fd, &read_fds))
-			// 	std::cout << LYELLOW << fd << " set to read" << RESET << std::endl;
-			// std::cout << fd << RED << "set to read" << RESET << std::endl; 
 			cl->get_request()->clean();
-			// cl->get_server()->reset();
 			cl->clear_response();
 		}
 	}
