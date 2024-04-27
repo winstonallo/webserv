@@ -255,7 +255,7 @@ int	Director::run_servers()
 							std::stringstream ss;
 							ss << "Error creating a client connection: " << std::endl;
 							Log::log(ss.str(), ERROR_FILE | STD_ERR);
-							exit(2); // TODO: Need to deallocate something?
+							throw std::runtime_error("throwing");//exit(2); // TODO: Need to deallocate something?
 						}
 					}
 				}
@@ -671,7 +671,6 @@ int	Director::read_from_client(int client_fd)
 	ci->set_time();
 	return 0;
 }
-
 
 // purpose: (TODO) after getting the request message, this function sends back
 // 			the answer, which in a simple case is the requested file or in case of a

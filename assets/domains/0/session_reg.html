@@ -16,7 +16,7 @@
         <li><a href="index.html">Home</a></li>
         <li><a href="about.html">About</a></li>
         <li><a href="tests.html">Server Tests</a></li>
-        <li><a href="session.html" class="active">Session</a></li>
+        <li><a href="cgi-bin/session.py" class="active">Session</a></li>
       </ul>
     </div>
   </div>
@@ -60,17 +60,13 @@
         }
     </style>
  	<div class="container">
-        <form action="register.py" method="POST">
-            <label for="username">Username</label>
+        <form action="cgi-bin/session.py" method="POST">
+            <label for="username">Username*</label>
             <input type="text" id="username" name="username" required>
-
-
-            <label for="password">Password</label>
+            <label for="password">Password*</label>
             <input type="password" id="password" name="password" required>
-
-            <label for="confirm-password">Confirm Password</label>
+            <label for="confirm-password">Confirm Password*</label>
             <input type="password" id="confirm-password" name="confirm-password" required>
-
             <input type="submit" value="Register">
         </form>
         <div class="login-link">
