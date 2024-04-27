@@ -293,14 +293,7 @@ int	Director::run_servers()
 								std::stringstream ss;
 								ss << "Error sending request body to CGI: " << strerror(errno);
 								Log::log(ss.str(), STD_ERR | ERROR_FILE);
-								FD_CLR(cl->get_cgi()->request_fd[1], &write_fds);
-								if (cl->get_cgi()->request_fd[1] == fdmax)
-									fdmax--;
-								close(cl->get_cgi()->request_fd[1]);
-								close(cl->get_cgi()->response_fd[1]);
-								cl->get_request()->set_errcode(500);
-								cl->get_server()->create_response(*cl->get_request(), cl);
-								
+								close_cgi_client(cl, 500);
 							}
 							else if (send == 0 || (size_t) send == reqb.size())
 							{
@@ -424,6 +417,24 @@ int	Director::run_servers()
 		}
 	}
 	return 0;
+}
+
+// purpose: close the cgi client and log the status code
+//
+// argument: client -> the client that is a cgi
+// 			 status_code -> the status code of the response
+void	Director::close_cgi_client(ClientInfo* client, int status_code)
+{
+	FD_CLR(client->get_cgi()->request_fd[1], &write_fds);
+	if (client->get_cgi()->request_fd[1] == fdmax)
+	{
+		fdmax--;
+	}
+	close(client->get_cgi()->request_fd[1]);
+	close(client->get_cgi()->response_fd[1]);
+	client->get_request()->set_errcode(status_code);
+	client->get_server()->create_response(*client->get_request(), client);
+								
 }
 
 // purpose: having the server socket file descriptor we create the client connection

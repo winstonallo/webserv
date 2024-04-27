@@ -49,6 +49,7 @@ class Director
 		int								create_client_connection(int listener);
 		int								read_from_client(int fd);
 		int								write_to_client(int fd);
+		void							close_cgi_client(ClientInfo* client, int status_code);
 
 		int								fdmax;
 		Config*							config;
