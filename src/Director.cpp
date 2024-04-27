@@ -380,6 +380,7 @@ void	Director::close_timed_out_clients()
 
 	for (size_t i = 0; i < timed_out_clients.size(); i++)
 	{
+		send_timeout_response(timed_out_clients[i]);
 		close_client_connection(timed_out_clients[i]);
 	}
 }
@@ -403,7 +404,6 @@ std::vector <int>	Director::get_timed_out_clients()
 		if (client->second.last_activity < current_time - timeout_seconds)
 		{
 			timed_out_clients.push_back(client->first);
-			send_timeout_response(client->first);
 		}
 	}
 	return timed_out_clients;
