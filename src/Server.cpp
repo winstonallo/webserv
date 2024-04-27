@@ -417,7 +417,7 @@ std::string		Server::_get_body(Request& rq, ClientInfo *ci)
 		{
 			if (_get_directory_list(loc_path, listing_body) < 0)
 			{
-				_errcode = 400;
+				_errcode = 404;
 				Log::log("Error couldn't create directory listing", STD_ERR | ERROR_FILE);
 				throw std::runtime_error("error");
 			}
@@ -429,7 +429,7 @@ std::string		Server::_get_body(Request& rq, ClientInfo *ci)
 		std::ifstream file(loc_path.c_str());
 		if (file.fail())
 		{
-			_errcode = 400;
+			_errcode = 404;
 			Log::log("Error reading request file\n", STD_ERR | ERROR_FILE); 
 			throw std::runtime_error("error");
 		}
