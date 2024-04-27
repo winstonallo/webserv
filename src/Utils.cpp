@@ -409,7 +409,7 @@ namespace Utils
 		{
 			std::stringstream ss;
 			ss <<  "Error. Stat for " << path << " failed in 'is_file' function" << std::endl;
-			Log::log(RED + ss.str() + RESET, STD_ERR | ERROR_FILE);
+			Log::log(ss.str(), STD_ERR | ERROR_FILE);
 			return false;
 		}
 		return (buff.st_mode & S_IFREG);
@@ -435,9 +435,9 @@ namespace Utils
 		std::string	client_ip_str = inet_ntoa(((struct sockaddr_in*)&client_addr)->sin_addr);
 		std::string	client_port = Utils::itoa(ntohs(((struct sockaddr_in*)&client_addr)->sin_port));
 
-		Log::log(GREEN "Accept Connection: " + client_ip_str +
+		Log::log("Accept Connection: " + client_ip_str +
 			":" + client_port + ": " +
-			socket + "->" + server_name + "\n" RESET, STD_OUT | ACCEPT_FILE);
+			socket + "->" + server_name + "\n", STD_OUT | ACCEPT_FILE);
 //			" (" + server_ip + ":" + server_port + ")\n", STD_OUT | ACCEPT_FILE);
 	}
 

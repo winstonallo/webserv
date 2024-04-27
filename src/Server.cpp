@@ -520,7 +520,7 @@ int		Server::_process(Request& rq, ClientInfo* ci, std::string& ret_file)
 		{	
 			std::stringstream ss;
 			ss << "Error. Method \"" << rq.get_method() << "\" not allowed.\n";
-			Log::log(RED + ss.str() + RESET, STD_ERR | ERROR_FILE);
+			Log::log(ss.str(), STD_ERR | ERROR_FILE);
 			return (_errcode = 405);
 		}
 		// return handler

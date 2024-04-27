@@ -238,7 +238,7 @@ int	Director::run_servers()
 			if (is_running == false)
 				break;
 			ss << "Error while select: " << strerror(errno) << std::endl;
-			Log::log(RED + ss.str() + RESET, ERROR_FILE | STD_ERR);
+			Log::log(ss.str(), ERROR_FILE | STD_ERR);
 			return -1;
 		}
 		for (int i = 0; i <= fdmax; i++)
@@ -719,7 +719,7 @@ int	Director::write_to_client(int fd)
 		{
 			std::stringstream ss;
 			ss << "Closing client connection on: " << fd << std::endl;
-			Log::log(RED + ss.str() + RESET, STD_OUT );
+			Log::log(ss.str(), STD_OUT );
 			if (FD_ISSET(fd, &write_fds))
 			{
 				FD_CLR(fd, &write_fds);
