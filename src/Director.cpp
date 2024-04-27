@@ -116,8 +116,10 @@ int	Director::init_server(Server *si)
 		si->set_fd(listener);
 		si->set_addr_len((size_t)p->ai_addrlen);
 
-		std::cout << "Server created on localhost with domain name: " ;
-		std::cout << si->get_server_name()[0] << ", port: " << si->get_port() << std::endl;
+		Log::log("Server created on localhost with domain name: " +
+		si->get_server_name()[0] + ", port: " + Utils::itoa(si->get_port()) + "\n",
+		ACCEPT_FILE | STD_OUT);
+
 		break;
 	}
 
