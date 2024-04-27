@@ -252,7 +252,7 @@ int Request::read_request(int client_fd, int size,std::string& requestmsg)
                     }
 				return READ;
 			}
-			else if (requestmsg.find("TRANSFER-ENCODING: CHUNKED\r\n") != std::string::npos)
+			else if (to_upper(requestmsg).find("TRANSFER-ENCODING: CHUNKED\r\n") != std::string::npos)
 			{
                 std::string chunk;
                 int flag = 0;

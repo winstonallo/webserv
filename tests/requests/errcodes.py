@@ -101,17 +101,24 @@ def send_string_to_ip( string):
         s.close()
         return response.decode()
 
-def test_timeout():
+def test_timeout(string):
+    print('\033[93m' + "Timeout test" '\033[0m')
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.connect((ip, port))
         s.sendall(string.encode())
         response = s.recv(10240)
         s.close()
+        try:
+            assert "HTTP/1.1 408 Request Timeout" in response.decode()
+            print('\033[92m' + 'Test Passed\n' + '\033[0m')
+        except AssertionError:
+            print('\033[91m' + 'Test Failed' + '\033[0m')
+            print('Expected:', "HTTP/1.1 408 Request Timeout")
+            print('Got:', response)
 
 def test_errcodes():
     for i in range(len(test_desc)):
-        if i != 12:
-            continue
+        
         sleep(1)
         print('\033[93m' + test_desc[i] + '\033[0m')
         response = send_string_to_ip(test_input[i])
@@ -128,3 +135,8 @@ def test_errcodes():
                 print('\033[91m' +"Server did not respond - probably crashed" + '\033[0m')
                 #turn on the server again
                 exit(1)
+
+if __name__ == "__main__":
+    # test_timeout("PUT /file1 HTTP/1.1\r\nHost:domain1.com\r\nContent-Length: 1000\r\n\r\n")
+    # test_timeout("PUT /file1 HTTP/1.1\r\nHost:domain1.com\r\nTransfer-encoding: chunked\r\n\r\n")
+    test_errcodes()
