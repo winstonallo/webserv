@@ -1,5 +1,6 @@
 #include "Director.hpp"
 #include <cstddef>
+#include <ctime>
 #include <netdb.h>
 #include <sstream>
 #include <string.h>
@@ -7,6 +8,8 @@
 #include <map>
 #include <sys/select.h>
 #include <sys/wait.h>
+#include <vector>
+#include "ClientInfo.hpp"
 #include "Log.hpp"
 #include "Server.hpp"
 #include "Utils.hpp"
@@ -212,7 +215,6 @@ int	Director::run_servers()
 	fd_set 						writefds_backup;
 	struct timeval 				timeout_time;
 	ClientInfo* 				cl;
-	int 						timeout_seconds = 5;
 
 
 	while (is_running)
@@ -221,7 +223,6 @@ int	Director::run_servers()
 		writefds_backup = write_fds;
 		timeout_time.tv_sec = 1;
 		timeout_time.tv_usec = 0;
-		time_t current_time = time(NULL);
 		std::vector <int> to_delete;
 		for (size_t i = 0; i < to_delete.size(); i++)
 		{
@@ -368,56 +369,44 @@ int	Director::run_servers()
 				}
 			}
 		}
-		std::vector <int> timed_out_clients;
-		for (std::map<int, TimeoutInfo>::iterator i = _client_timeouts.begin(); i != _client_timeouts.end(); i++)
-		{
-			if (i->second.last_activity < current_time - timeout_seconds)
-			{
-				Log::log("Client timed out\n", STD_ERR | ERROR_FILE);
-				if (FD_ISSET(i->first, &write_fds))
-				{
-					FD_CLR(i->first, &write_fds);
-					if (i->first == fdmax)
-						fdmax--;
-				}
-				if (FD_ISSET(i->first, &read_fds))
-				{
-					FD_CLR(i->first, &read_fds);
-					if (i->first == fdmax)
-						fdmax--;
-				}
-				
-				ClientInfo *client = dynamic_cast<ClientInfo*>(_nodes[i->first]);
-				if (client->is_cgi() == true)
-				{
-					close(client->get_cgi()->request_fd[0]);
-					close(client->get_cgi()->response_fd[0]);
-					if (FD_ISSET(client->get_cgi()->response_fd[0], &read_fds))
-					{
-						FD_CLR(client->get_cgi()->response_fd[0], &read_fds);
-						if (client->get_cgi()->response_fd[0] == fdmax)
-							fdmax--;
-					}
-					if (FD_ISSET(client->get_cgi()->request_fd[1], &write_fds))
-					{
-						FD_CLR(client->get_cgi()->request_fd[1], &write_fds);
-						if (client->get_cgi()->request_fd[1] == fdmax)
-							fdmax--;
-					}
-				}
-				timed_out_clients.push_back(i->first);
-				client->get_request()->set_errcode(408);
-				client->get_server()->create_response(*client->get_request(), client);
-				write_to_client(i->first);
-			}
-		}
-		for (size_t i = 0; i < timed_out_clients.size(); i++)
-		{
-			close_client_connection(timed_out_clients[i]);
-		}
-
+		close_timed_out_clients();
 	}
 	return 0;
+}
+
+void	Director::close_timed_out_clients()
+{
+	std::vector <int> timed_out_clients = get_timed_out_clients();
+
+	for (size_t i = 0; i < timed_out_clients.size(); i++)
+	{
+		close_client_connection(timed_out_clients[i]);
+	}
+}
+
+void	Director::send_timeout_response(int client_fd)
+{
+	ClientInfo* client = dynamic_cast<ClientInfo*>(_nodes[client_fd]);
+	client->get_request()->set_errcode(408);
+	client->get_server()->create_response(*client->get_request(), client);
+	write_to_client(client_fd);
+}
+
+std::vector <int>	Director::get_timed_out_clients()
+{
+	std::vector <int> timed_out_clients;
+	time_t current_time = time(NULL);
+	int timeout_seconds = 5;
+
+	for (std::map<int, TimeoutInfo>::iterator client = _client_timeouts.begin(); client != _client_timeouts.end(); client++)
+	{
+		if (client->second.last_activity < current_time - timeout_seconds)
+		{
+			timed_out_clients.push_back(client->first);
+			send_timeout_response(client->first);
+		}
+	}
+	return timed_out_clients;
 }
 
 void Director::close_client_connection(int client_fd)

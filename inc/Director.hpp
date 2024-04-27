@@ -14,6 +14,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <sys/time.h>
+#include <vector>
 #include "Node.hpp"
 #include "Server.hpp"
 #include "ClientInfo.hpp"
@@ -50,7 +51,11 @@ class Director
 		int								read_from_client(int fd);
 		int								write_to_client(int fd);
 		void							close_cgi(ClientInfo* client, int status_code);
+
+		void							close_timed_out_clients();
+		std::vector <int>				get_timed_out_clients();
 		void							close_client_connection(int client_fd);
+		void							send_timeout_response(int client_fd);
 
 		int								fdmax;
 		Config*							config;
