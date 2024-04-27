@@ -564,7 +564,7 @@ int	Director::read_from_client(int client_fd)
 
 	ci = dynamic_cast<ClientInfo *>(_nodes[client_fd]);
 	flag = Request::read_request(client_fd, MSG_SIZE, ci->_read_msg);
-	 //std::cout << "flag: " << flag << std::endl;
+	//std::cout << "flag: " << flag << std::endl;
 	// std::cout << "requestmsg: " << ci->_read_msg << std::endl;
 	if (!flag)
 	{
@@ -586,10 +586,10 @@ int	Director::read_from_client(int client_fd)
 				fdmax--;
 		}
 		ci->get_request()->clean();
+		ci->_read_msg.clear();
 		delete _nodes[client_fd];
 		_nodes.erase(client_fd);
 		close(client_fd);
-		ci->_read_msg.clear();
 		return 0;
 	}
 	else if (flag == -1)
