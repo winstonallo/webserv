@@ -235,6 +235,8 @@ int	Director::run_servers()
 		if ((ret = select(fdmax + 1, &readfds_backup, &writefds_backup, NULL, &timeout_time)) < 0 )
 		{
 			std::stringstream ss;
+			if (is_running == false)
+				break;
 			ss << "Error while select: " << strerror(errno) << std::endl;
 			Log::log(RED + ss.str() + RESET, ERROR_FILE | STD_ERR);
 			return -1;
@@ -425,7 +427,7 @@ std::vector <int>	Director::get_timed_out_clients()
 {
 	std::vector <int> timed_out_clients;
 	time_t current_time = time(NULL);
-	int timeout_seconds = 30;
+	int timeout_seconds = 69;
 
 	for (std::map<int, TimeoutInfo>::iterator client = _client_timeouts.begin(); client != _client_timeouts.end(); client++)
 	{

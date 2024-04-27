@@ -20,8 +20,12 @@
             text-transform: uppercase;
             transition: background-color 0.3s;
         }
-        .button-styled:hover {
+        .button-styled:hover:not(:disabled) {
             background-color: #ff9900;
+        }
+        .button-styled:disabled {
+            background-color: #d3d3d3;
+            cursor: not-allowed;
         }
         .file-upload {
             position: relative;
@@ -40,6 +44,9 @@
     <script>
     function uploadFile(event) {
         event.preventDefault();
+        const submitButton = document.getElementById("uploadButton");
+        submitButton.disabled = true;
+
         const input = document.getElementById("fileInput");
         const file = input.files[0];
 
@@ -58,6 +65,7 @@
                     body: fileContent,
                 })
                 .then((response) => {
+                    submitButton.disabled = false;
                     if (response.ok) {
                         alert("File uploaded successfully!");
                     } else {
@@ -65,12 +73,15 @@
                     }
                 })
                 .catch((error) => {
+                    submitButton.disabled = false;
                     console.error("Error uploading file:", error);
+                    alert("Failed to upload file.");
                 });
             };
 
             reader.readAsArrayBuffer(file);
         } else {
+            submitButton.disabled = false;
             alert("Please select a file to upload.");
         }
     }
@@ -105,7 +116,7 @@
                 <button type="button" class="button-styled">Choose File</button>
                 <input type="file" id="fileInput" name="file" />
             </div>
-            <button type="submit" class="button-styled">Upload</button>
+            <button type="submit" class="button-styled" id="uploadButton">Upload</button>
         </form>
     </div>
 </body>
