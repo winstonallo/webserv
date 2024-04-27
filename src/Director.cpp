@@ -11,6 +11,7 @@
 #include <vector>
 #include "ClientInfo.hpp"
 #include "Log.hpp"
+#include "Node.hpp"
 #include "Server.hpp"
 #include "Utils.hpp"
 
@@ -374,23 +375,47 @@ int	Director::run_servers()
 	return 0;
 }
 
+void Director::cgi_timeout(int client_fd, ClientInfo* client)
+{
+	if (client && client->get_type() == CLIENT_NODE && client->is_cgi() == true)
+	{
+		Log::log("Error reading CGI response on socket " +
+		Utils::itoa(client_fd) + ": client timed out.\n",
+		STD_ERR | ERROR_FILE);
+		
+		if (FD_ISSET(client->get_cgi()->response_fd[0], &read_fds))
+		{
+			FD_CLR(client->get_cgi()->response_fd[0], &read_fds);
+			if (client_fd == fdmax)
+			{
+				fdmax--;
+			}
+		}
+		close(client->get_cgi()->request_fd[0]);
+	}
+}
+
 void	Director::close_timed_out_clients()
 {
 	std::vector <int> timed_out_clients = get_timed_out_clients();
 
 	for (size_t i = 0; i < timed_out_clients.size(); i++)
 	{
-		send_timeout_response(timed_out_clients[i]);
+		ClientInfo* client = dynamic_cast<ClientInfo*>(_nodes[timed_out_clients[i]]);
+		cgi_timeout(timed_out_clients[i], client);
+		send_timeout_response(timed_out_clients[i], client);
 		close_client_connection(timed_out_clients[i]);
 	}
 }
 
-void	Director::send_timeout_response(int client_fd)
+void	Director::send_timeout_response(int client_fd, ClientInfo* client)
 {
-	ClientInfo* client = dynamic_cast<ClientInfo*>(_nodes[client_fd]);
-	client->get_request()->set_errcode(408);
-	client->get_server()->create_response(*client->get_request(), client);
-	write_to_client(client_fd);
+	if (client)
+	{
+		client->get_request()->set_errcode(408);
+		client->get_server()->create_response(*client->get_request(), client);
+		write_to_client(client_fd);
+	}
 }
 
 std::vector <int>	Director::get_timed_out_clients()

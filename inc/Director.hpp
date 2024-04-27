@@ -55,7 +55,8 @@ class Director
 		void							close_timed_out_clients();
 		std::vector <int>				get_timed_out_clients();
 		void							close_client_connection(int client_fd);
-		void							send_timeout_response(int client_fd);
+		void							send_timeout_response(int client_fd, ClientInfo* client);
+		void							cgi_timeout(int client_fd, ClientInfo* client);
 
 		int								fdmax;
 		Config*							config;
