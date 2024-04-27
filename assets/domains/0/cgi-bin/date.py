@@ -60,4 +60,4 @@ page +='''"></form>
 	</form>	
 </body>
 </html>'''
-print(page);
+print(page)

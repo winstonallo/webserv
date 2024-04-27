@@ -19,7 +19,7 @@ CGI::CGI(char** env)
     _response_body = "";
     _env = env;
 	_env = new char *[9];
-    memset(_env, 0, 9);
+    memset(_env, 0, 9 * sizeof(char*));
 	_errcode = 0;
 }
 
@@ -36,7 +36,7 @@ void    CGI::initialize_environment_map(Request& request)
 
     int i = 0;
 
-    for (std::map <std::string, std::string>::iterator it = _env_map.begin(); _env[i] && it != _env_map.end(); it++)
+    for (std::map <std::string, std::string>::iterator it = _env_map.begin(); it != _env_map.end(); it++)
     {
         std::string line = it->first + "=" + it->second;
         _env[i] = new char[line.size() + 1];

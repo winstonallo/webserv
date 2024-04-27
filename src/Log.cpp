@@ -7,6 +7,8 @@
 
 int Log::output_flag = 0;
 
+int Log::output_flag = 0;
+
 Log::Log()
 {}
 
