@@ -44,7 +44,7 @@ class ClientInfo : public Node
 		void						clear_request(); 
 		void						clean();
 		std::string					_response;
-
+		std::string					_read_msg;
 	private:
 		Server*						_server;
 		Request						_request;

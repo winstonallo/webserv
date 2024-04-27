@@ -40,6 +40,14 @@ std::string Request::get_header(const std::string& key) const
 
 // init and parse request
 
+std::string to_upper(std::string str)
+{
+    for (size_t i = 0; i < str.size(); i++)
+    {
+        str[i] = std::toupper(str[i]);
+    }
+    return str;
+}
 
 // parse request
 //
@@ -208,8 +216,14 @@ int Request::read_request(int client_fd, int size,std::string& requestmsg)
         requestmsg.append(buff);
         return NOTREAD;
     }
+    if (to_upper(check).find("TRANSFER-ENCODING: CHUNKED") != std::string::npos && to_upper(check).find("CONTENT-LENGTH") != std::string::npos)
+    {
+        requestmsg.append(buff);
+        return READ;
+    }
     std::string chunked;
-    if (requestmsg.find("Transfer-Encoding: chunked\r\n") != std::string::npos)
+    
+    if (to_upper(requestmsg).find("TRANSFER-ENCODING: CHUNKED\r\n") != std::string::npos)
         chunked.append(buf, num);
 	else
         requestmsg.append(buf, num);
@@ -219,11 +233,11 @@ int Request::read_request(int client_fd, int size,std::string& requestmsg)
 		// if method is POST or PUT, check if the body is complete
 		if (requestmsg.find("POST") == 0 || requestmsg.find("PUT") == 0)
 		{
-			// check that there is a content-length header
-			if (requestmsg.find("Content-Length:") != std::string::npos)
+			// check that there is a CONTENT-LENGTH header
+			if (to_upper(requestmsg).find("CONTENT-LENGTH:") != std::string::npos)
 			{
-				// read the content-length header and convert it to an int
-				size_t pos = requestmsg.find("Content-Length:");
+				// read the CONTENT-LENGTH header and convert it to an int
+				size_t pos = to_upper(requestmsg).find("CONTENT-LENGTH:");
 
 				size_t end = requestmsg.find("\r\n", pos);
 				std::string content_length = requestmsg.substr(pos + 15, end - pos - 15);
@@ -233,12 +247,12 @@ int Request::read_request(int client_fd, int size,std::string& requestmsg)
 					return NOTREAD;
 				else if (requestmsg.length() - requestmsg.find("\r\n\r\n") - 4 > content_length_int)
                     {
-                        // delete message after content-length
+                        // delete message after CONTENT-LENGTH
                         requestmsg = requestmsg.substr(0, requestmsg.find("\r\n\r\n") + 4 + content_length_int);
                     }
 				return READ;
 			}
-			else if (requestmsg.find("Transfer-Encoding: chunked\r\n") != std::string::npos)
+			else if (to_upper(requestmsg).find("TRANSFER-ENCODING: CHUNKED\r\n") != std::string::npos)
 			{
                 std::string chunk;
                 int flag = 0;
@@ -429,7 +443,7 @@ void Request::validate_uri(void)
         }
         if (count < 0)
         {
-            this->errcode = 400;
+            this->errcode = 404;
             throw std::runtime_error("Invalid path: .. goes out of root");
         }
     }
@@ -468,7 +482,7 @@ void Request::validate_request()
             this->errcode = 400;
             throw std::runtime_error("Invalid header: empty field-name");
         }
-        if (!valid_token(it->first, TCHAR))
+        if (!valid_token(it->first, TCHAR) )
         {
             this->errcode = 400;
             throw std::runtime_error("Invalid header: invalid field-name");
@@ -496,8 +510,13 @@ void Request::check_length()
         this->errcode = 414;
         throw std::runtime_error("Request-URI Too Long");
     }
-    //headers
-    if (this->get_headers().size() > MAX_HEADER_LENGTH)
+    // check that sum of all headers is not greater than 8kb
+    int count = 0;
+    for (std::map <std::string, std::string>::iterator it = this->headers.begin(); it != this->headers.end(); it++)
+    {
+        count += it->first.size() + it->second.size();
+    }
+    if (count > MAX_HEADER_LENGTH)
     {
         this->errcode = 431;
         throw std::runtime_error("Request Header Fields Too Large");
@@ -531,7 +550,7 @@ void Request::check_headers()
     {
         this->host = this->headers["HOST"];
     }
-    // if method is post or put, check that content-length or chuncked is present
+    // if method is post or put, check that CONTENT-LENGTH or chuncked is present
     if (this->method == "POST" || this->method == "PUT")
     {
         if (this->headers.find("CONTENT-LENGTH") == this->headers.end() && this->headers.find("TRANSFER-ENCODING") == this->headers.end())

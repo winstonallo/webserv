@@ -565,7 +565,9 @@ int	Director::read_from_client(int client_fd)
 	ClientInfo								*ci;
 
 	ci = dynamic_cast<ClientInfo *>(_nodes[client_fd]);
-	flag = Request::read_request(client_fd, MSG_SIZE, requestmsg[client_fd]);
+	flag = Request::read_request(client_fd, MSG_SIZE, ci->_read_msg);
+	//std::cout << "flag: " << flag << std::endl;
+	// std::cout << "requestmsg: " << ci->_read_msg << std::endl;
 	if (!flag)
 	{
 		std::stringstream ss;
@@ -586,10 +588,10 @@ int	Director::read_from_client(int client_fd)
 				fdmax--;
 		}
 		ci->get_request()->clean();
+		ci->_read_msg.clear();
 		delete _nodes[client_fd];
 		_nodes.erase(client_fd);
 		close(client_fd);
-		requestmsg[client_fd].clear();
 		return 0;
 	}
 	else if (flag == -1)
@@ -613,7 +615,7 @@ int	Director::read_from_client(int client_fd)
 		std::stringstream ss;
 		ss << "Error reading from socket: " << client_fd << std::endl;
 		Log::log(ss.str(), ERROR_FILE | STD_ERR);
-		requestmsg[client_fd].clear();
+		ci->_read_msg.clear();
 		return -1;	
 	}
 	else if (flag == READ)
@@ -621,7 +623,7 @@ int	Director::read_from_client(int client_fd)
 		_client_timeouts[client_fd].last_activity = time(NULL);
 		try
 		{
-			ci->get_request()->init(requestmsg[client_fd]);
+			ci->get_request()->init(ci->_read_msg);
 		}
 		catch(const std::exception& e)
 		{
@@ -666,7 +668,7 @@ int	Director::read_from_client(int client_fd)
 		FD_SET(client_fd, &write_fds);
 		if (client_fd > fdmax)	fdmax = client_fd;
 		// ci->get_request()->clean();
-		requestmsg[client_fd].clear();
+		ci->_read_msg.clear();
 	}
 	ci->set_time();
 	return 0;

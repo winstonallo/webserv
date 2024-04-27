@@ -40,9 +40,9 @@ test_input.append("GET HTTP/1.1\r\nHost:domain1.com\r\n\r\n")
 test_output.append("HTTP/1.1 400 Bad Request")
 
 # should be timeout
-# test_desc.append("Test 8 send request without \\r\\n\\r\\n in the end")
-# test_input.append("GET / HTTP/1.1\r\nHost:domain1.com\r\n")
-# test_output.append("HTTP/1.1 400 Bad Request")
+test_desc.append("Test 8 send request without \\r\\n\\r\\n in the end")
+test_input.append("GET / HTTP/1.1\r\nHost:domain1.com\r\n")
+test_output.append("HTTP/1.1 408 Request Timeout")
 
 test_desc.append("Test 9 send POST request without Content-Length or Transfer-Encoding")
 test_input.append("POST / HTTP/1.1\r\nHost:domain1.com\r\n\r\n")
@@ -81,7 +81,7 @@ test_input.append("DELETE /file HTTP/1.1\r\nHost:domain1.com\r\n\r\n")
 test_output.append("HTTP/1.1 200 OK")
 
 test_desc.append("Test 18 send a request with special prcnt sign in uri")
-test_input.append("GET /file%20with%20spaces HTTP/1.1\r\nHost:domain1.com\r\n\r\n")
+test_input.append("PUT /file%20with%20spaces HTTP/1.1\r\nHost:domain1.com\r\nContent-Length: 5\r\n\r\n lobok")
 test_output.append("HTTP/1.1 200 OK")
 
 
@@ -118,9 +118,6 @@ def test_timeout(string):
 
 def test_errcodes():
     for i in range(len(test_desc)):
-        if i != 12:
-            continue
-        sleep(1)
         print('\033[93m' + test_desc[i] + '\033[0m')
         response = send_string_to_ip(test_input[i])
         print('Response from server:', response.split('\r\n')[0])
@@ -140,4 +137,6 @@ def test_errcodes():
 if __name__ == "__main__":
     # test_timeout("PUT /file1 HTTP/1.1\r\nHost:domain1.com\r\nContent-Length: 1000\r\n\r\n")
     # test_timeout("PUT /file1 HTTP/1.1\r\nHost:domain1.com\r\nTransfer-encoding: chunked\r\n\r\n")
+    # test_timeout("GET /cgi-bin/loop.py HTTP/1.1\r\nHost:domain1.com\r\n\r\n")
+
     test_errcodes()
