@@ -425,10 +425,14 @@ std::vector <int>	Director::get_timed_out_clients()
 {
 	std::vector <int> timed_out_clients;
 	time_t current_time = time(NULL);
-	int timeout_seconds = 5;
+	int timeout_seconds = 30;
 
 	for (std::map<int, TimeoutInfo>::iterator client = _client_timeouts.begin(); client != _client_timeouts.end(); client++)
 	{
+		if (client->second.client->get_type() == CLIENT_NODE && client->second.client->is_cgi() == true)
+		{
+			timeout_seconds = 5;
+		}
 		if (client->second.last_activity < current_time - timeout_seconds)
 		{
 			timed_out_clients.push_back(client->first);
