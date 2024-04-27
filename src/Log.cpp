@@ -3,6 +3,7 @@
 #include <iostream>
 #include <sstream>
 #include <sys/stat.h>
+#include <pthread.h>
 
 int Log::output_flag = 0;
 

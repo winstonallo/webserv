@@ -4,7 +4,6 @@
 
 #include <fstream> 
 #include <string>
-
 #include <sys/time.h>
 
 #define LRESET          "\033[0m"
@@ -25,8 +24,6 @@ enum LogDest
 	ERROR_FILE = 4,
 	ACCEPT_FILE = 8
 };
-// purpose: basic Logging class that handles several output at one time
-//			see comments on function log for use.
 
 class Log
 {
