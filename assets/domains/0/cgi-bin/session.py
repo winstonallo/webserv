@@ -3,6 +3,7 @@
 import cgi
 import os
 from http import cookies
+from datetime import datetime, timedelta
 import json
 import time
 import hashlib
@@ -16,7 +17,7 @@ def success(username, cook):
 	response += "Server: Awesome SAD Server/1.0\r\n"
 	response += "Content-Type: text/html\r\n"
 	#print(cook.output(), file=sys.stderr)
-	#response += cook.output() + "\r\n"
+	response += cook.output() + "\r\n"
 	response += "Location: cgi-bin/session.py\r\n"
 	response += "Connection: close\r\n"
 	response += "\r\n"
@@ -90,24 +91,35 @@ def success(username, cook):
             text-decoration: underline;
         }
     </style>
+	<form id="hiddenForm" action="session.py" method="post">
+		<input type="hidden" name="delSession" value="true">
+	</form>
 	<div class="container">
         <h2>Welcome!</h2>
         <div class="welcome-message">
             <p>Hello, <strong>''' + username + '''</strong>! Welcome to our website.</p>
         </div>
         <div class="logout-link">
-            <p>Not <strong>''' + username + '''</strong>? <a href="logout.html">Logout</a>.</p>
+            <p>Not <strong>''' + username + '''</strong>? <a href="logout.html" id="submitlink">Logout</a>.</p>
         </div>
     </div>
 </div>
+<script>
+	document.getElementById('submitlink').addEventListener('click', function(event) {
+		event.preventDefault();
+		document.getElementById('hiddenForm').submit();
+	});
+</script>
 </body>
 </html>'''
 	print(response)
 
-def	login_page_info(info):
+def	login_page_info(info, cookies):
 	response = "HTTP/1.1 200 OK\r\n"
 	response += "Server: Awesome SAD Server/1.0\r\n"
 	response += "Content-Type: text/html\r\n"
+	if cookies: 
+		response += cookies.output() + "\r\n"
 	response += "Location: cgi-bin/session.py\r\n"
 	response += "Connection: close"
 	response += "\r\n"
@@ -172,16 +184,18 @@ def	login_page_info(info):
             text-align: center;
             margin-top: 20px;
         }
+		.red {
+			text-align: center;
+			color:#ae0000;
+		}
     </style>
  	<div class="container">
-        <form action="cgi-bin/session.py" method="POST">
-			<label>''' + info + '''</label>
+        <form action="session.py" method="POST">
             <label for="username">Username</label>
             <input type="text" id="username" name="username" required>
-
             <label for="password">Password</label>
             <input type="password" id="password" name="password" required>
-
+			<div class="red">''' + info + '''</div>
             <input type="submit" value="Login">
         </form>
         <div class="register-link">
@@ -260,20 +274,21 @@ def	register_page_info(info):
             text-align: center;
             margin-top: 20px;
         }
+		.red {
+			text-align: center;
+			color:#ae0000;
+		}
     </style>
  	<div class="container">
-        <form action="register.py" method="POST">
-			<label>''' + info + '''</label>
+        <form action="session.py" method="POST">
             <label for="username">Username*</label>
             <input type="text" id="username" name="username" required>
-			<label for="username">Email*</label>
-            <input type="text" id="email" name="email" required>
             <label for="password">Password*</label>
             <input type="password" id="password" name="password" required>
 
             <label for="confirm-password">Confirm Password*</label>
             <input type="password" id="confirm-password" name="confirm-password" required>
-
+			<div class="red">''' + info + '''</div>
             <input type="submit" value="Register">
         </form>
         <div class="login-link">
@@ -309,55 +324,116 @@ def verify_user(username, password):
 
 def create_session(username, password):
 	id = hashlib.sha1(str(time.time()).encode("utf-8")).hexdigest()
-	data = {username: password, 'id': id}
+	data = {'username': username, 'password': password, 'id': id}
 	with open(session_file + id, 'w') as f:
 		json.dump(data, f)
 	return id 
 	
 
 def login():
-	user = form.getvalue('username')
-	email = form.getvalue('email')
-	passw = form.getvalue('password')
-	if not email: #login
+	global user
+	global passw
+	global passw2
+	global mycookies
+	global current_session
+	# print(current_session, file=sys.stderr)
+	# print(user, file=sys.stderr)
+	# print(passw, file=sys.stderr)
+	# print(passw2, file=sys.stderr)
+	# print(delSes, file=sys.stderr)
+	if not passw2: #login
 		if os.path.exists(db_filename):
-			if verify_user(user, passw):
-				session_id = create_session(user, passw)
-				mycookies.clear()
-				mycookies['session'] = session_id
-				mycookies['session']['expires'] = 240
-				success(user, mycookies)
-				return
+			if current_session and not user:
+				# print(current_session['username'], file=sys.stderr)
+				print("got here", file=sys.stderr)
+				if verify_user(current_session['username'], current_session['password']):
+					success(current_session['username'], mycookies)
+
+					return
+				else:
+					login_page_info("Username / Password not in the database. You have to register.")
+					return
 			else:
-				login_page_info("Login Error. Username / Passwword don't match.")
-				return
+				if user and passw:
+					if verify_user(user, passw):
+						session_id = create_session(user, passw)
+						mycookies.clear()
+						mycookies['session'] = session_id
+						mycookies['session']['expires'] = 22480 
+						mycookies['session']['path'] = '/'
+						success(user, mycookies)
+						return
+					else:
+						login_page_info("Login Error. Username / Password wrong. Try again.", None)
+						return
+				else:
+					login_page_info("", None)
+					return
 		else:
-			login_page_info("Sorry. User doesn't exist. Please register.")
+			login_page_info("Sorry. User doesn't exist. Please register.", None)
 			return
 	else: #register
+		if passw != passw2:
+			register_page_info("Error. Passwords don't match.")
+			return
 		if os.path.exists(db_filename):
 			if check_username(user):
 				register_page_info("Error. Username is allready used!")
 				return
 		add_user(user, passw)
-		success(user, mycookies)
+		login_page_info("Succefully registered. You can loggin now", None)	
 		return
 
 form = cgi.FieldStorage()
-
+user = form.getvalue('username')
+passw = form.getvalue('password')
+passw2 = form.getvalue('confirm-password')
+delSes = form.getvalue('delSession')
+mycookies = cookies.SimpleCookie()
 env = os.environ
+current_session = None
 initialize_database()
-if 'HTTP_COOKIE' in env:
-	mycookies = cookies.SimpleCookie()
-	mycookies.load(env['HTTP_COOKIE'])
-	if ('session' in mycookies):
-		with open('cgi-bin/session-' + mycookies['session'].value, 'rb') as f:
-			current_session = json.load(f)
-		success(mycookies['username'], mycookies)
-	else:
-		login()
-else:
-	login()
+# print(user, file=sys.stderr)
+# print(passw, file=sys.stderr)
+# print(passw2, file=sys.stderr)
+# print(delSes, file=sys.stderr)
 
-# if __name__ == "__main__":
-# 	main()
+def resetCookies(cookie_name):
+	mycookies['session']=''
+	mycookies['session']['expires'] = (datetime.now() - timedelta(days=1)).strftime('%a, %d %b %Y %H:%M:%S GMT')
+
+def main():
+	global current_session
+	global mycookies
+	if 'HTTP_COOKIE' in env:
+		mycookies.load(env['HTTP_COOKIE'])
+		if ('session' in mycookies):
+			# print(mycookies['session'], file=sys.stderr)
+			sessname = 'assets/domains/0/cgi-bin/session-' + mycookies['session'].value
+			if os.path.exists(sessname):
+				with open(sessname, 'rb') as f:
+					current_session = json.load(f)
+					# print(current_seion, file=sys.stderr)
+				if delSes == "true":
+					delSes == "false"
+					os.remove(sessname)
+					current_session = None
+					resetCookies('session')
+					login_page_info("", mycookies)
+					return
+			else:
+				current_session = None
+				resetCookies('session')
+				# login_page_info("", mycookies)
+				# return
+	login()
+# 			login()
+# 		else:
+# 			login()
+# 	else:
+# 		login()
+# else:
+# 	login()
+
+if __name__ == "__main__":
+	main()
