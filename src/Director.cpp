@@ -427,7 +427,7 @@ std::vector <int>	Director::get_timed_out_clients()
 {
 	std::vector <int> timed_out_clients;
 	time_t current_time = time(NULL);
-	int timeout_seconds = 69;
+	int timeout_seconds = 60;
 
 	for (std::map<int, TimeoutInfo>::iterator client = _client_timeouts.begin(); client != _client_timeouts.end(); client++)
 	{
