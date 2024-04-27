@@ -391,6 +391,7 @@ void Director::cgi_timeout(int client_fd, ClientInfo* client)
 				fdmax--;
 			}
 		}
+		kill(client->get_pid(), SIGKILL);
 		close(client->get_cgi()->request_fd[0]);
 	}
 }
