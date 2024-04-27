@@ -306,6 +306,9 @@ int	Director::run_servers()
 								FD_CLR(cl->get_cgi()->request_fd[1], &write_fds);
 								if (cl->get_cgi()->request_fd[1] == fdmax)
 									fdmax--;
+								FD_CLR(cl->get_cgi()->response_fd[1], &write_fds);
+								if (cl->get_cgi()->response_fd[1] == fdmax)
+									fdmax--;
 								close(cl->get_cgi()->request_fd[1]);
 								close(cl->get_cgi()->response_fd[1]);
 							}
@@ -328,6 +331,9 @@ int	Director::run_servers()
 								FD_CLR(cl->get_cgi()->response_fd[0], &read_fds);
 								if (cl->get_cgi()->response_fd[0] == fdmax)
 									fdmax--;
+								FD_CLR(cl->get_cgi()->request_fd[0], &read_fds);
+								if (cl->get_cgi()->request_fd[0] == fdmax)
+									fdmax--;
 								close(cl->get_cgi()->request_fd[0]);
 								close(cl->get_cgi()->response_fd[0]);
 								waitpid(cl->get_pid(), &status, WNOHANG);
@@ -347,6 +353,9 @@ int	Director::run_servers()
 								Log::log(ss.str(), STD_ERR | ERROR_FILE);
 								FD_CLR(cl->get_cgi()->response_fd[0], &read_fds);
 								if (cl->get_cgi()->response_fd[0] == fdmax)
+									fdmax--;
+								FD_CLR(cl->get_cgi()->request_fd[0], &read_fds);
+								if (cl->get_cgi()->request_fd[0] == fdmax)
 									fdmax--;
 								close(cl->get_cgi()->request_fd[0]);
 								close(cl->get_cgi()->response_fd[0]);
@@ -395,7 +404,16 @@ void Director::cgi_timeout(int client_fd, ClientInfo* client)
 				fdmax--;
 			}
 		}
+		if (FD_ISSET(client->get_cgi()->request_fd[0], &read_fds))
+		{
+			FD_CLR(client->get_cgi()->request_fd[0], &read_fds);
+			if (client_fd == fdmax)
+			{
+				fdmax--;
+			}
+		}
 		kill(client->get_pid(), SIGKILL);
+		close(client->get_cgi()->response_fd[0]);
 		close(client->get_cgi()->request_fd[0]);
 	}
 }
@@ -475,6 +493,11 @@ void	Director::close_cgi(ClientInfo* client, int status_code)
 {
 	FD_CLR(client->get_cgi()->request_fd[1], &write_fds);
 	if (client->get_cgi()->request_fd[1] == fdmax)
+	{
+		fdmax--;
+	}
+	FD_CLR(client->get_cgi()->response_fd[1], &write_fds);
+	if (client->get_cgi()->response_fd[1] == fdmax)
 	{
 		fdmax--;
 	}
