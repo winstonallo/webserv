@@ -223,25 +223,6 @@ int	Director::run_servers()
 		timeout_time.tv_usec = 0;
 		time_t current_time = time(NULL);
 		std::vector <int> to_delete;
-		for (std::map <int, TimeoutInfo>::iterator it = _client_timeouts.begin(); it != _client_timeouts.end(); it++)
-		{
-			if ((current_time - it->second.last_activity) > timeout_seconds)
-			{
-				std::stringstream ss;
-				ss << "Client connection " << it->first << " timed out. Closing connection.\n";
-				Log::log(ss.str(), STD_OUT);
-				close(it->first);
-				to_delete.push_back(it->first);
-				delete _nodes[it->first];
-				_nodes.erase(it->first);
-				FD_CLR(it->first, &readfds_backup);
-				FD_CLR(it->first, &writefds_backup);
-				if (it->first == fdmax)
-					fdmax--;
-				write_fds = writefds_backup;
-				read_fds = readfds_backup;
-			}
-		}
 		for (size_t i = 0; i < to_delete.size(); i++)
 		{
 			_client_timeouts.erase(to_delete[i]);
@@ -335,7 +316,7 @@ int	Director::run_servers()
 								reqb = reqb.substr(send);
 							}
 						}
-						//return from cgi
+						// cgi tiemout
 						else if (cl->get_cgi() && FD_ISSET(cl->get_cgi()->response_fd[0], &readfds_backup) && !cl->get_fin())
 						{
 							char	msg[MSG_SIZE * 4];
@@ -343,7 +324,6 @@ int	Director::run_servers()
 							int		status = 0;
 
 							receive = read(cl->get_cgi()->response_fd[0], msg, MSG_SIZE * 4);
-
 							if (receive == 0)
 							{
 								FD_CLR(cl->get_cgi()->response_fd[0], &read_fds);
@@ -377,7 +357,6 @@ int	Director::run_servers()
 							}
 							else
 							{
-								cl->set_time();
 								cl->get_response().append(msg, receive);
 								memset(msg, 0, sizeof(msg));
 							}
@@ -396,71 +375,53 @@ int	Director::run_servers()
 				}
 			}
 		}
-		// Test for timeout of Clients
-		// for (std::map<int, Node*>::iterator iter = nodes.begin(); iter != nodes.end(); )
-		// {
-		// 	if (iter->second->get_type() == CLIENT_NODE)
-		// 	{
-		// 		ClientInfo *ci = static_cast<ClientInfo *>(iter->second);
-		// 		time_t current_time = time(NULL);
-		// 		if (current_time - ci->get_prev_time() > TIMEOUT_TIME)
-		// 		{
-		// 			std::stringstream ss;
-		// 			ss << "Client: " << iter->first << " timed out. Closing connection.";
-		// 			Log::log(ss.str(), STD_OUT);
-		// 			if (FD_ISSET(iter->first, &write_fds))
-		// 			{
-		// 				FD_CLR(iter->first, &write_fds);
-		// 				if (iter->first == fdmax)
-		// 					fdmax--;
-		// 			}
-		// 			if (FD_ISSET(iter->first, &read_fds))
-		// 			{
-		// 				FD_CLR(iter->first, &read_fds);
-		// 				if (iter->first == fdmax)
-		// 					fdmax--;
-		// 			}
-		// 			close(iter->first);
-		// 			nodes.erase(iter++);
-		// 			delete ci;
-		// 		}
-		// 	}
-		// 	else
-		// 		++iter;
-		// }
-/*
-		char	remoteIP[INET6_ADDRSTRLEN];	
-		//timeout for clients
-		time_t curr_time = time(NULL);
-		for (int i = 0; i < fdmax; i++)
-		{	
-			ClientInfo* client;
-			if (nodes.find(i) != nodes.end() && nodes[i]->get_type() == CLIENT_NODE)
-				client = dynamic_cast<ClientInfo *>(nodes[i]);
-			if ((curr_time - client->get_prev_time()) > TIMEOUT_TIME)
+		std::vector <int> timed_out_clients;
+		for (std::map<int, TimeoutInfo>::iterator i = _client_timeouts.begin(); i != _client_timeouts.end(); i++)
+		{
+			if (i->second.last_activity < current_time - timeout_seconds)
 			{
-				std::stringstream ss2;
-
-				ss2 << "Closing connection from ";
-				ss2 << inet_ntop(client->get_addr().ss_family,
-					get_in_addr((struct sockaddr *)&client->get_addr()),
-					remoteIP, INET6_ADDRSTRLEN);
-				ss2 << " on socket " << i << std::endl;
-				Log::log(ss2.str(), ACCEPT_FILE | STD_OUT);
-
-				if (FD_ISSET(i, &write_fds))
-					FD_CLR(i, &write_fds);
-				if (FD_ISSET(i, &read_fds))
-					FD_CLR(i, &read_fds);
-				if (i == fdmax)
-					fdmax--;
-				delete client;
-				nodes.erase(i);
-				close(i);
+				Log::log("Client timed out\n", STD_ERR | ERROR_FILE);
+				if (FD_ISSET(i->first, &write_fds))
+				{
+					FD_CLR(i->first, &write_fds);
+					if (i->first == fdmax)
+						fdmax--;
+				}
+				if (FD_ISSET(i->first, &read_fds))
+				{
+					FD_CLR(i->first, &read_fds);
+					if (i->first == fdmax)
+						fdmax--;
+				}
+				
+				ClientInfo *client = dynamic_cast<ClientInfo*>(_nodes[i->first]);
+				if (client->is_cgi() == true)
+				{
+					close(client->get_cgi()->request_fd[0]);
+					close(client->get_cgi()->response_fd[0]);
+					if (FD_ISSET(client->get_cgi()->response_fd[0], &read_fds))
+					{
+						FD_CLR(client->get_cgi()->response_fd[0], &read_fds);
+						if (client->get_cgi()->response_fd[0] == fdmax)
+							fdmax--;
+					}
+					if (FD_ISSET(client->get_cgi()->request_fd[1], &write_fds))
+					{
+						FD_CLR(client->get_cgi()->request_fd[1], &write_fds);
+						if (client->get_cgi()->request_fd[1] == fdmax)
+							fdmax--;
+					}
+				}
+				timed_out_clients.push_back(i->first);
+				client->get_request()->set_errcode(408);
+				client->get_server()->create_response(*client->get_request(), client);
 			}
-
 		}
-*/
+		for (size_t i = 0; i < timed_out_clients.size(); i++)
+		{
+			_client_timeouts.erase(timed_out_clients[i]);
+			_nodes.erase(timed_out_clients[i]);
+		}
 	}
 	return 0;
 }
@@ -546,8 +507,6 @@ int	Director::read_from_client(int client_fd)
 
 	ci = dynamic_cast<ClientInfo *>(_nodes[client_fd]);
 	flag = Request::read_request(client_fd, MSG_SIZE, requestmsg[client_fd]);
-	// std::cout << RED<< "flag: " << flag << std::endl;
-	// std::cout << "requestmsg: " << requestmsg[client_fd] << RESET<< std::endl;
 	if (!flag)
 	{
 		std::stringstream ss;
@@ -680,12 +639,12 @@ int	Director::write_to_client(int fd)
 		if (FD_ISSET(fd, &write_fds))
 		{
 			FD_CLR(fd, &write_fds);
-			if (fd == fdmax) { fdmax--; }  
+			if (fd == fdmax) { fdmax--; }
 		}
 		if (FD_ISSET(fd, &read_fds))
 		{
 			FD_CLR(fd, &read_fds);
-			if (fd == fdmax) { fdmax--; }  
+			if (fd == fdmax) { fdmax--; }
 		}
 		close(fd);
 		_nodes.erase(fd);
@@ -709,7 +668,7 @@ int	Director::write_to_client(int fd)
 			if (FD_ISSET(fd, &read_fds))
 			{
 				FD_CLR(fd, &read_fds);
-				if (fd == fdmax) { fdmax--; }  
+				if (fd == fdmax) { fdmax--; }
 			}
 			close(fd);
 			delete _nodes[fd];
@@ -718,7 +677,7 @@ int	Director::write_to_client(int fd)
 		else
 		{
 			FD_CLR(fd, &write_fds);
-			if (fd == fdmax) { fdmax--; }  
+			if (fd == fdmax) { fdmax--; }
 			FD_SET(fd, &read_fds);
 			if (fd > fdmax) { fdmax=fd; } 
 			cl->get_request()->clean();
