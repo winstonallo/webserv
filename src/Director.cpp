@@ -235,6 +235,8 @@ int	Director::run_servers()
 		if ((ret = select(fdmax + 1, &readfds_backup, &writefds_backup, NULL, &timeout_time)) < 0 )
 		{
 			std::stringstream ss;
+			if (is_running == false)
+				break;
 			ss << "Error while select: " << strerror(errno) << std::endl;
 			Log::log(RED + ss.str() + RESET, ERROR_FILE | STD_ERR);
 			return -1;
@@ -253,7 +255,7 @@ int	Director::run_servers()
 							std::stringstream ss;
 							ss << "Error creating a client connection: " << std::endl;
 							Log::log(ss.str(), ERROR_FILE | STD_ERR);
-							exit(2); // TODO: Need to deallocate something?
+							throw std::runtime_error("throwing");//exit(2); // TODO: Need to deallocate something?
 						}
 					}
 				}
@@ -425,7 +427,7 @@ std::vector <int>	Director::get_timed_out_clients()
 {
 	std::vector <int> timed_out_clients;
 	time_t current_time = time(NULL);
-	int timeout_seconds = 30;
+	int timeout_seconds = 60;
 
 	for (std::map<int, TimeoutInfo>::iterator client = _client_timeouts.begin(); client != _client_timeouts.end(); client++)
 	{
@@ -671,7 +673,6 @@ int	Director::read_from_client(int client_fd)
 	ci->set_time();
 	return 0;
 }
-
 
 // purpose: (TODO) after getting the request message, this function sends back
 // 			the answer, which in a simple case is the requested file or in case of a

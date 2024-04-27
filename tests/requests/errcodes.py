@@ -65,7 +65,7 @@ test_input.append("GET / HTTP/1.1\r\nHost:domain1.com" + "a" * 6000  + "\r\n\r\n
 test_output.append("HTTP/1.1 431 Request Header Fields Too Large")
 
 test_desc.append("Test 14 send request with too long body")
-test_input.append("PUT /file1 HTTP/1.1\r\nHost:domain1.com\r\nContent-Length: 10000000\r\n\r\n" + "a" * 10000000)
+test_input.append("PUT /file1 HTTP/1.1\r\nHost:domain1.com\r\nContent-Length: 100000000\r\n\r\n" + "a" * 100000000)
 test_output.append("HTTP/1.1 413 Payload Too Large")
 
 test_desc.append("Test 15 send request with wrong header syntax")
