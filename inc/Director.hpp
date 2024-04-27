@@ -1,6 +1,7 @@
 #ifndef DIRECTOR_HPP
 #define DIRECTOR_HPP
 
+#include <ctime>
 #include <map>
 #include <arpa/inet.h>
 #include <netinet/in.h>
@@ -13,14 +14,14 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <sys/time.h>
-#include "CGI.hpp"
+#include <vector>
 #include "Node.hpp"
 #include "Server.hpp"
 #include "ClientInfo.hpp"
 #include "Config.hpp"
 
 #define MSG_SIZE 20000
-#define TIMEOUT_TIME 30
+#define TIMEOUT_TIME 5
 
 // purpose:	class that handles all connections wit select(ing) the 
 // 			the sockets that are ready to be readed or written.
@@ -29,6 +30,12 @@ class Config;
 class Director 
 {
 	public:
+		struct TimeoutInfo
+		{
+			time_t last_activity;
+			ClientInfo* client;
+		};
+
 										Director(const std::string& path);
 										~Director();
 		int								init_servers();
@@ -43,10 +50,18 @@ class Director
 		int								create_client_connection(int listener);
 		int								read_from_client(int fd);
 		int								write_to_client(int fd);
+		void							close_cgi(ClientInfo* client, int status_code);
+
+		void							close_timed_out_clients();
+		std::vector <int>				get_timed_out_clients();
+		void							close_client_connection(int client_fd);
+		void							send_timeout_response(int client_fd, ClientInfo* client);
+		void							cgi_timeout(int client_fd, ClientInfo* client);
 
 		int								fdmax;
 		Config*							config;
-		std::map<int, Node*>			nodes;
+		std::map <int, TimeoutInfo>		_client_timeouts;
+		std::map <int, Node*>			_nodes;
 		fd_set							read_fds, write_fds;
 };
 
