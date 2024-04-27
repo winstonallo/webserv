@@ -293,7 +293,7 @@ int	Director::run_servers()
 								std::stringstream ss;
 								ss << "Error sending request body to CGI: " << strerror(errno);
 								Log::log(ss.str(), STD_ERR | ERROR_FILE);
-								close_cgi_client(cl, 500);
+								close_cgi(cl, 500);
 							}
 							else if (send == 0 || (size_t) send == reqb.size())
 							{
@@ -448,7 +448,7 @@ void Director::close_client_connection(int client_fd)
 //
 // argument: client -> the client that is a cgi
 // 			 status_code -> the status code of the response
-void	Director::close_cgi_client(ClientInfo* client, int status_code)
+void	Director::close_cgi(ClientInfo* client, int status_code)
 {
 	FD_CLR(client->get_cgi()->request_fd[1], &write_fds);
 	if (client->get_cgi()->request_fd[1] == fdmax)
