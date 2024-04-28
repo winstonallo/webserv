@@ -690,10 +690,7 @@ int	Director::write_to_client(int fd)
 		}
 		else
 		{
-			FD_CLR(fd, &write_fds);
-			if (fd == fdmax) { fdmax--; }
-			FD_SET(fd, &read_fds);
-			if (fd > fdmax) { fdmax=fd; } 
+			clear_file_descriptor(fd, false);
 			cl->get_request()->clean();
 			cl->clear_response();
 		}
