@@ -566,7 +566,15 @@ int		Server::_process(Request& rq, ClientInfo* ci, std::string& ret_file)
 			ci->set_is_cgi(true);
 			ci->get_cgi()->set_path(script_file_path);
 			ci->get_cgi()->initialize_environment_map(rq);
-			ci->set_pid(ci->get_cgi()->execute(_locations, script_file_path));
+			try
+			{
+				ci->set_pid(ci->get_cgi()->execute(_locations, script_file_path));
+			}
+			catch(const std::exception& e)
+			{
+				Log::log("Error. CGI execution failed.\n", STD_ERR | ERROR_FILE);
+				return (_errcode = 500);
+			}
 			return 0;
 		}
 		// handle alias || create loc_path path
