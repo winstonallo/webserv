@@ -431,7 +431,7 @@ std::vector <int>	Director::get_timed_out_clients()
 
 	for (std::map<int, TimeoutInfo>::iterator client = _client_timeouts.begin(); client != _client_timeouts.end(); client++)
 	{
-		if (client->second.client->get_type() == CLIENT_NODE && client->second.client->is_cgi() == true)
+		if (this->_nodes.find(client->first) != this->_nodes.end() && client->second.client->get_type() == CLIENT_NODE && client->second.client->is_cgi() == true)
 		{
 			timeout_seconds = 5;
 		}
