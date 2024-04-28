@@ -459,25 +459,11 @@ std::vector <int>	Director::get_timed_out_clients()
 
 void Director::close_client_connection(int client_fd)
 {
-	if (FD_ISSET(client_fd, &write_fds))
-	{
-		FD_CLR(client_fd, &write_fds);
-		if (client_fd == fdmax)
-		{
-			fdmax--;
-		}
-	}
-	if (FD_ISSET(client_fd, &read_fds))
-	{
-		FD_CLR(client_fd, &read_fds);
-		if (client_fd == fdmax)
-		{
-			fdmax--;
-		}
-	}
+	clear_file_descriptor(client_fd, write_fds, false);
+	clear_file_descriptor(client_fd, read_fds, false);
 	_client_timeouts.erase(client_fd);
-	delete _nodes[client_fd];
 	_nodes.erase(client_fd);
+	delete _nodes[client_fd];
 	close(client_fd);
 }
 
