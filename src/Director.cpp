@@ -558,8 +558,6 @@ int	Director::read_from_client(int client_fd)
 
 	ci = dynamic_cast<ClientInfo *>(_nodes[client_fd]);
 	flag = Request::read_request(client_fd, MSG_SIZE, ci->_read_msg);
-	//std::cout << "flag: " << flag << std::endl;
-	// std::cout << "requestmsg: " << ci->_read_msg << std::endl;
 	if (!flag)
 	{
 		std::stringstream ss;
@@ -618,9 +616,7 @@ int	Director::read_from_client(int client_fd)
 			ci->get_request()->init(ci->_read_msg);
 		}
 		catch(const std::exception& e)
-		{
-			//std::cerr << e.what() << '\n';
-		}
+		{}
 		// print Request parsed log
 		std::stringstream ss;
 		ss << "Request: " << client_fd << " parsed: " << ci->get_request()->get_method();
@@ -688,17 +684,7 @@ int	Director::write_to_client(int fd)
 		std::stringstream ss;
 		ss << "Error sending a response: " << strerror(errno) << std::endl;
 		Log::log(ss.str(), STD_ERR | ERROR_FILE);
-		if (FD_ISSET(fd, &write_fds))
-		{
-			FD_CLR(fd, &write_fds);
-			if (fd == fdmax) { fdmax--; }
-		}
-		if (FD_ISSET(fd, &read_fds))
-		{
-			FD_CLR(fd, &read_fds);
-			if (fd == fdmax) { fdmax--; }
-		}
-		close(fd);
+		clear_file_descriptor(fd);
 		_nodes.erase(fd);
 		delete _nodes[fd];
 	}
@@ -712,17 +698,7 @@ int	Director::write_to_client(int fd)
 			std::stringstream ss;
 			ss << "Closing client connection on: " << fd << std::endl;
 			Log::log(ss.str(), STD_OUT );
-			if (FD_ISSET(fd, &write_fds))
-			{
-				FD_CLR(fd, &write_fds);
-				if (fd == fdmax) { fdmax--; }
-			}
-			if (FD_ISSET(fd, &read_fds))
-			{
-				FD_CLR(fd, &read_fds);
-				if (fd == fdmax) { fdmax--; }
-			}
-			close(fd);
+			clear_file_descriptor(fd);
 			delete _nodes[fd];
 			_nodes.erase(fd);
 		}
