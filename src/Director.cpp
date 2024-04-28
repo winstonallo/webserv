@@ -29,7 +29,6 @@ Director::~Director()
 		{
 			delete it->second;
 		}
-
 	}
 	delete config;
 }
@@ -455,9 +454,9 @@ void Director::close_client_connection(int client_fd)
 {
 	clear_file_descriptor(client_fd, false);
 	clear_file_descriptor(client_fd, false);
+	delete _nodes[client_fd];
 	_client_timeouts.erase(client_fd);
 	_nodes.erase(client_fd);
-	delete _nodes[client_fd];
 	close(client_fd);
 }
 
@@ -583,8 +582,8 @@ int	Director::read_from_client(int client_fd)
 	{
 		clear_file_descriptor(client_fd);
 		ci->get_request()->clean();
-		_nodes.erase(client_fd);
 		delete _nodes[client_fd];
+		_nodes.erase(client_fd);
 		_client_timeouts.erase(client_fd);
 		std::stringstream ss;
 		ss << "Error reading from socket: " << client_fd << std::endl;
@@ -669,9 +668,9 @@ int	Director::write_to_client(int fd)
 		ss << "Error sending a response: " << strerror(errno) << std::endl;
 		Log::log(ss.str(), STD_ERR | ERROR_FILE);
 		clear_file_descriptor(fd);
+		delete _nodes[fd];
 		_nodes.erase(fd);
 		_client_timeouts.erase(fd);
-		delete _nodes[fd];
 	}
 	else if (num_bytes == (int)(content.size()) || num_bytes == 0)
 	{
