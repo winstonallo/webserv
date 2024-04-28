@@ -345,7 +345,7 @@ def login():
 		if os.path.exists(db_filename):
 			if current_session and not user:
 				# print(current_session['username'], file=sys.stderr)
-				print("got here", file=sys.stderr)
+				# print("got here", file=sys.stderr)
 				if verify_user(current_session['username'], current_session['password']):
 					success(current_session['username'], mycookies)
 

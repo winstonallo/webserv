@@ -25,6 +25,11 @@ Director::~Director()
 	std::map <int, Node*>::iterator it;
 	for (it = _nodes.begin(); it != _nodes.end(); it++)
 	{
+		// if (it->second && it->second->get_type() != SERVER_NODE
+		if (it->second)
+		{
+			close(it->second->get_fd());
+		}
 		if (it->second && it->second->get_type() != SERVER_NODE)
 		{
 			delete it->second;
@@ -641,6 +646,8 @@ int	Director::read_from_client(int client_fd)
 			FD_SET(ci->get_cgi()->response_fd[0], &read_fds);
 			if (ci->get_cgi()->response_fd[0] > fdmax)
 				fdmax = ci->get_cgi()->response_fd[0];
+			close(ci->get_cgi()->request_fd[0]);
+			close(ci->get_cgi()->response_fd[1]);
 		}	
 		FD_CLR(client_fd, &read_fds);
 		if (client_fd == fdmax)	fdmax--;
