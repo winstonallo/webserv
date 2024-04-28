@@ -638,6 +638,7 @@ int	Director::read_from_client(int client_fd)
 		// virtual servers, we go throug the servers and match the host name / server name 
 		std::vector<Server*> servers = config->get_servers();
 		std::vector<Server*>::iterator it;
+		int wrong_host = 1;
 		for (it = servers.begin(); it != servers.end(); it++)
 		{
 			if ((*it)->get_host_address().s_addr == ci->get_server()->get_host_address().s_addr &&
@@ -648,10 +649,17 @@ int	Director::read_from_client(int client_fd)
 				std::string host_header = Utils::to_lower(ci->get_request()->get_header("HOST"));
 				for (host_it = host_names.begin(); host_it != host_names.end(); host_it++) 
 				{
-					if (Utils::to_lower(*host_it) == host_header)	
+					if (Utils::to_lower(*host_it) == host_header)
+					{
+						wrong_host = 0;
 						ci->set_server(*it);
+					}
 				}
 			}
+		}
+		if (wrong_host && ci->get_request()->get_errcode() == 0)
+		{
+			ci->get_request()->set_errcode(404);
 		}
 		ci->get_server()->create_response(*ci->get_request(), ci);
 		if (ci->is_cgi())
