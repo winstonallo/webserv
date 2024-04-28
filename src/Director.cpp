@@ -309,8 +309,8 @@ int	Director::run_servers()
 								FD_CLR(cl->get_cgi()->response_fd[1], &write_fds);
 								if (cl->get_cgi()->response_fd[1] == fdmax)
 									fdmax--;
-								close(cl->get_cgi()->request_fd[1]);
 								close(cl->get_cgi()->response_fd[1]);
+								close(cl->get_cgi()->request_fd[1]);
 							}
 							else
 							{
@@ -331,10 +331,6 @@ int	Director::run_servers()
 								FD_CLR(cl->get_cgi()->response_fd[0], &read_fds);
 								if (cl->get_cgi()->response_fd[0] == fdmax)
 									fdmax--;
-								FD_CLR(cl->get_cgi()->request_fd[0], &read_fds);
-								if (cl->get_cgi()->request_fd[0] == fdmax)
-									fdmax--;
-								close(cl->get_cgi()->request_fd[0]);
 								close(cl->get_cgi()->response_fd[0]);
 								waitpid(cl->get_pid(), &status, WNOHANG);
 								if (WEXITSTATUS(status) != 0)
