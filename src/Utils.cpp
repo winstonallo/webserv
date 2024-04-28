@@ -442,7 +442,6 @@ namespace Utils
 		Log::log("Accept Connection: " + client_ip_str +
 			":" + client_port + ": " +
 			socket + "->" + server_name + "\n", STD_OUT | ACCEPT_FILE);
-//			" (" + server_ip + ":" + server_port + ")\n", STD_OUT | ACCEPT_FILE);
 	}
 
 	std::string	get_cgi_script_name(const std::string &uri)
