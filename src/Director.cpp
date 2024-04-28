@@ -565,42 +565,18 @@ int	Director::read_from_client(int client_fd)
 						remoteIP, INET6_ADDRSTRLEN);
 		ss << " on socket " << client_fd << std::endl;
 		Log::log(ss.str(), ACCEPT_FILE | STD_OUT);
-		if (FD_ISSET(client_fd, &write_fds))
-		{
-			FD_CLR(client_fd, &write_fds);
-			if (client_fd == fdmax)
-				fdmax--;
-		}
-		if (FD_ISSET(client_fd, &read_fds))
-		{
-			FD_CLR(client_fd, &read_fds);
-			if (client_fd == fdmax)
-				fdmax--;
-		}
+		clear_file_descriptor(client_fd);
 		ci->get_request()->clean();
 		ci->_read_msg.clear();
 		delete _nodes[client_fd];
 		_nodes.erase(client_fd);
-		close(client_fd);
 		return 0;
 	}
 	else if (flag == -1)
 	{
-		if (FD_ISSET(client_fd, &write_fds))
-		{
-			FD_CLR(client_fd, &write_fds);
-			if (client_fd == fdmax)
-				fdmax--;
-		}
-		if (FD_ISSET(client_fd, &read_fds))
-		{
-			FD_CLR(client_fd, &read_fds);
-			if (client_fd == fdmax)
-				fdmax--;
-		}
+		clear_file_descriptor(client_fd);
 		ci->get_request()->clean();
 		_nodes.erase(client_fd);
-		close(client_fd);
 		delete _nodes[client_fd];
 		std::stringstream ss;
 		ss << "Error reading from socket: " << client_fd << std::endl;
