@@ -13,7 +13,7 @@ test_output = []
 
 test_desc.append("Test 1 send wrong method")
 test_input.append("GOT / HTTP/1.1\r\nHost:domain1.com\r\n\r\n")
-test_output.append("HTTP/1.1 406 Method Not Allowed")
+test_output.append("HTTP/1.1 405 Method Not Allowed")
 
 test_desc.append("Test 2 send wrong path")
 test_input.append("GET /sanoj1 HTTP/1.1\r\nHost:domain1.com\r\n\r\n")
@@ -59,10 +59,6 @@ test_output.append("HTTP/1.1 414 URI Too Long")
 test_desc.append("Test 13 send request with too long header")
 test_input.append("GET / HTTP/1.1\r\nHost:domain1.com" + "a" * 6000  + "\r\n\r\n")
 test_output.append("HTTP/1.1 431 Request Header Fields Too Large")
-
-# test_desc.append("Test 14 send request with too long body")
-# test_input.append("PUT /file1 HTTP/1.1\r\nHost:domain1.com\r\nContent-Length: 100000000\r\n\r\n" + "a" * 100000000)
-# test_output.append("HTTP/1.1 413 Payload Too Large")
 
 test_desc.append("Test 15 send request with wrong header syntax")
 test_input.append("GET / HTTP/1.1\r\nHost:domain1.com\r\nwrong\theader: 1\r\n\r\n")
@@ -129,9 +125,9 @@ def test_errcodes():
                 exit(1)
 
 if __name__ == "__main__":
-    # test_timeout("PUT /file1 HTTP/1.1\r\nHost:domain1.com\r\nContent-Length: 1000\r\n\r\n")
-    # test_timeout("PUT /file1 HTTP/1.1\r\nHost:domain1.com\r\nTransfer-encoding: chunked\r\n\r\n")
-    # test_timeout("GET /cgi-bin/loop.py HTTP/1.1\r\nHost:domain1.com\r\n\r\n")
-    # test_timeout("GET / HTTP/1.1\r\nHost:domain1.com\r\n")
-
-    test_errcodes()
+    test_timeout("PUT /file1 HTTP/1.1\r\nHost:domain1.com\r\nContent-Length: 1000\r\n\r\n")
+    test_timeout("PUT /file1 HTTP/1.1\r\nHost:domain1.com\r\nTransfer-encoding: chunked\r\n\r\n")
+    test_timeout("GET /cgi-bin/loop.py HTTP/1.1\r\nHost:domain1.com\r\n\r\n")
+    test_timeout("GET / HTTP/1.1\r\nHost:domain1.com\r\n")
+    while True:
+        test_errcodes()

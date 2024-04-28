@@ -439,7 +439,7 @@ std::string		Server::_get_body(Request& rq, ClientInfo *ci)
 	}
 	else if (rq.get_method() == "PUT" || rq.get_method() == "POST")
 	{
-		if (Utils::file_exists(loc_path) && rq.get_method() == "POST")
+		if ((Utils::file_exists(loc_path)) && rq.get_method() == "POST")
 		{
 			_errcode = 204;
 			throw std::runtime_error("error");
