@@ -287,7 +287,6 @@ void	Config::initialize_server_setters()
 void	Config::initialize_location_setters()
 {
 	_location_setters["root"] = &Setters::set_root;
-	_location_setters["directory_listing"] = &Setters::set_directory_listing;
 	_location_setters["allowed_methods"] = &Setters::set_allowed_methods;
 	_location_setters["return"] = &Setters::set_return;
 	_location_setters["alias"] = &Setters::set_alias;

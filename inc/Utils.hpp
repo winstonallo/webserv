@@ -58,7 +58,6 @@ namespace Utils
 <meta charset=\"UTF-8\">\n\
 <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n\
 <title>400</title>\n\
-<link href=\"error.css\" rel=\"stylesheet\">\n\
 </head>\n\
 <body>\n\
 <div class=\"container bsod\">\n\

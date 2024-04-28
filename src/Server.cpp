@@ -105,12 +105,12 @@ std::vector <std::string>	Server::get_server_name() const
 
 bool	Server::get_auto_index() const
 {
-	return (_autoindex); 
+	return (_listing); 
 }
 
 void	Server::set_auto_index(bool t)
 {
-	_autoindex = t;
+	_listing = t;
 }
 
 std::string	Server::get_error_log() const
@@ -411,6 +411,7 @@ std::string		Server::_get_body(Request& rq, ClientInfo *ci)
 	}
 	if (rq.get_method() == "GET" || rq.get_method() == "HEAD")
 	{
+		// std::cerr << "got hererasdfasdfas" << std::endl;
 		if (_listing)
 		{
 			if (_get_directory_list(loc_path, listing_body) < 0)
@@ -608,7 +609,7 @@ int		Server::_process(Request& rq, ClientInfo* ci, std::string& ret_file)
 				ret_file += get_index_path();
 			if (Utils::file_exists(ret_file) == false)
 			{
-				if (loc_info.get_directory_listing())
+				if (loc_info.get_autoindex())
 				{
 					ret_file.erase(ret_file.find_last_of('/') + 1);
 					_listing = true;
