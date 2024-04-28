@@ -132,9 +132,8 @@ pid_t	CGI::execute(std::vector <LocationInfo *> locations, const std::string& sf
     }
     else
     {
-		return pid;	
+		return pid;
     }
-	return pid;
 }
 
 // variadic function to close pipes to avoid
