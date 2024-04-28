@@ -44,7 +44,6 @@ int main(int argc, char **argv)
 			}
 			if (director.run_servers() < 0)
 			{
-				std::cerr << "Error." << std::endl;
 				return 1;
 			}
 		}
