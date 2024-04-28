@@ -64,7 +64,7 @@ class Director
 		void							send_timeout_response(int client_fd, ClientInfo* client);
 		void							cgi_timeout(int client_fd, ClientInfo* client);
 
-		void							clear_file_descriptor(int client_fd, fd_set set, bool close_fd=true);
+		void							clear_file_descriptor(int client_fd, bool close_fd=true);
 
 		int								fdmax;
 		Config*							config;

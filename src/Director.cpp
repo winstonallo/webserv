@@ -384,19 +384,27 @@ int	Director::run_servers()
 	return 0;
 }
 
-void Director::clear_file_descriptor(int client_fd, fd_set set, bool close_fd)
+void Director::clear_file_descriptor(int client_fd, bool close_fd)
 {
-	if (FD_ISSET(client_fd, &set))
+	if (FD_ISSET(client_fd, &read_fds))
 	{
-		FD_CLR(client_fd, &set);
+		FD_CLR(client_fd, &read_fds);
 		if (client_fd == fdmax)
 		{
 			fdmax--;
 		}
-		if (close_fd == true)
+	}
+	if (FD_ISSET(client_fd, &write_fds))
+	{
+		FD_CLR(client_fd, &write_fds);
+		if (client_fd == fdmax)
 		{
-			close(client_fd);
+			fdmax--;
 		}
+	}
+	if (close_fd == true)
+	{
+		close(client_fd);
 	}
 }
 
@@ -408,8 +416,8 @@ void Director::cgi_timeout(int client_fd, ClientInfo* client)
 		Utils::itoa(client_fd) + ": client timed out.\n",
 		STD_ERR | ERROR_FILE);
 		
-		clear_file_descriptor(client->get_cgi()->response_fd[0], read_fds);
-		clear_file_descriptor(client->get_cgi()->request_fd[0], read_fds);
+		clear_file_descriptor(client->get_cgi()->response_fd[0]);
+		clear_file_descriptor(client->get_cgi()->request_fd[0]);
 		kill(client->get_pid(), SIGKILL);
 	}
 }
@@ -459,8 +467,8 @@ std::vector <int>	Director::get_timed_out_clients()
 
 void Director::close_client_connection(int client_fd)
 {
-	clear_file_descriptor(client_fd, write_fds, false);
-	clear_file_descriptor(client_fd, read_fds, false);
+	clear_file_descriptor(client_fd, false);
+	clear_file_descriptor(client_fd, false);
 	_client_timeouts.erase(client_fd);
 	_nodes.erase(client_fd);
 	delete _nodes[client_fd];
