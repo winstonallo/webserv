@@ -637,8 +637,7 @@ int	Director::read_from_client(int client_fd)
 			if (ci->get_cgi()->response_fd[0] > fdmax)
 				fdmax = ci->get_cgi()->response_fd[0];
 		}	
-		FD_CLR(client_fd, &read_fds);
-		if (client_fd == fdmax)	fdmax--;
+		clear_file_descriptor(client_fd, false);
 		FD_SET(client_fd, &write_fds);
 		if (client_fd > fdmax)	fdmax = client_fd;
 		// ci->get_request()->clean();
