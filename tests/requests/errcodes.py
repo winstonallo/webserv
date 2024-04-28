@@ -13,7 +13,7 @@ test_output = []
 
 test_desc.append("Test 1 send wrong method")
 test_input.append("GOT / HTTP/1.1\r\nHost:domain1.com\r\n\r\n")
-test_output.append("HTTP/1.1 405 Method Not Allowed")
+test_output.append("HTTP/1.1 406 Method Not Allowed")
 
 test_desc.append("Test 2 send wrong path")
 test_input.append("GET /sanoj1 HTTP/1.1\r\nHost:domain1.com\r\n\r\n")

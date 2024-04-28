@@ -520,7 +520,7 @@ int		Server::_process(Request& rq, ClientInfo* ci, std::string& ret_file)
 		{	
 			std::stringstream ss;
 			ss << "Error. Method \"" << rq.get_method() << "\" not allowed.\n";
-			Log::log(RED + ss.str() + RESET, STD_ERR | ERROR_FILE);
+			Log::log(ss.str(), STD_ERR | ERROR_FILE);
 			return (_errcode = 405);
 		}
 		// return handler
@@ -534,12 +534,11 @@ int		Server::_process(Request& rq, ClientInfo* ci, std::string& ret_file)
 		{
 			std::string script_file_path;
 			script_file_path = rq.get_path();
-			script_file_path.erase(0, 1); //erase leading '/'
+			script_file_path.erase(0, 1);
 			if (!loc_info.get_root().empty())
 				script_file_path = loc_info.get_root() + script_file_path;
 			else if (!ci->get_server()->get_root().empty())
 				script_file_path = ci->get_server()->get_root() + script_file_path;
-			// std::cout << script_file_path << std::endl;
 			if (script_file_path == "cgi-bin")
 				script_file_path.append("/" + loc_info.get_index_path()); 
 			else if (script_file_path == "cgi-bin/")
@@ -552,9 +551,6 @@ int		Server::_process(Request& rq, ClientInfo* ci, std::string& ret_file)
 				return (_errcode = 404);
 			if (access(script_file_path.c_str(), X_OK) == -1 || access(script_file_path.c_str(), X_OK | R_OK) == -1)
 				return (_errcode = 403);
-			// std::vector<std::string> allowed_methods = loc_info.get_allowed_methods();
-			// if (std::find(allowed_methods.begin(), allowed_methods.end(), rq.get_method()) != allowed_methods.end())
-			// 	return (_errcode = 405);
 			if (ci->get_cgi() == NULL)
 			{
 				ci->set_cgi(new CGI());
@@ -566,7 +562,15 @@ int		Server::_process(Request& rq, ClientInfo* ci, std::string& ret_file)
 			ci->set_is_cgi(true);
 			ci->get_cgi()->set_path(script_file_path);
 			ci->get_cgi()->initialize_environment_map(rq);
-			ci->set_pid(ci->get_cgi()->execute(_locations, script_file_path));
+			try
+			{
+				ci->set_pid(ci->get_cgi()->execute(_locations, script_file_path));
+			}
+			catch(const std::exception& e)
+			{
+				Log::log("Error. CGI execution failed.\n", STD_ERR | ERROR_FILE);
+				return (_errcode = 500);
+			}
 			return 0;
 		}
 		// handle alias || create loc_path path
@@ -579,13 +583,6 @@ int		Server::_process(Request& rq, ClientInfo* ci, std::string& ret_file)
 			else
 				ret_file = Utils::pathconcat(loc_info.get_root(), rq.get_path());
 		} 
-		 //std::cout << ret_file << std::endl;
-		 //std::cout << _errcode << std::endl;
-		// handle cgi
-		// if (loc_info.get_name().find("cgi-bin") != std::string::npos)
-		// {
-		// }
-
 
 		// handle if loc_path is a directory 
 		struct stat fst;
@@ -600,11 +597,8 @@ int		Server::_process(Request& rq, ClientInfo* ci, std::string& ret_file)
 		}
 		if (S_ISDIR(fst.st_mode))
 		{
-			// std::cout << ret_file << " is a directory." << std::endl;
-			// std::cout << loc_info.get_directory_listing() << std::endl;
 			if (ret_file[ret_file.size() - 1] != '/')
 			{
-				// loc_path = rq.get_path() + "/";
 				_reloc = rq.get_path() + "/";
 				return (_errcode = 301);
 			}
@@ -623,18 +617,6 @@ int		Server::_process(Request& rq, ClientInfo* ci, std::string& ret_file)
 				else 
 					return (_errcode = 403);
 			}
-			// if (stat(ret_file.c_str(), &fst) != 0)
-			// {
-			// 	_errcode = 400;
-			// 	Log::log("Stat function failed.\n", STD_ERR | ERROR_FILE);
-			// 	return (_errcode);
-			// }
-			// if (S_ISDIR(fst.st_mode))
-			// {
-			// 	_errcode = 301;
-			// 	if (!loc_info.get_index_path().empty())
-
-			// }
 		}
 	}
 	else

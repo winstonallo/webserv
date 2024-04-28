@@ -132,13 +132,10 @@ pid_t	CGI::execute(std::vector <LocationInfo *> locations, const std::string& sf
     }
     else
     {
-		return pid;	
+		return pid;
     }
-	return pid;
 }
 
-// variadic function to close pipes to avoid
-// inflating the code with closes
 void    CGI::close_pipes(int count, ...)
 {
     va_list args;
@@ -152,8 +149,6 @@ void    CGI::close_pipes(int count, ...)
     va_end(args);
 }
 
-
-
 void    CGI::delete_char_array(char** arr)
 {
 	if (!arr)
@@ -164,9 +159,6 @@ void    CGI::delete_char_array(char** arr)
     }
     delete[] arr;
 }
-
-
-
 
 void    CGI::clear()
 {

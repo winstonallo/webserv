@@ -314,10 +314,14 @@ namespace Utils
 	// cat DEFAULT_ERROR_PAGE | sed 's/400/XXX/g' | sed 's/bad request/new message/g' > new_html_path
 	std::string	generate_default_error_page(const int status_code)
 	{
-		std::string default_error_code = "400", default_error_message = "bad request", default_html = DEFAULT_ERROR_PAGE;
-		std::string	new_error_code = Utils::itoa(status_code), new_error_message = get_error_status_codes()[status_code];
+		std::string default_error_code = "400";
+		std::string default_error_message = "bad request";
+		std::string default_html = DEFAULT_ERROR_PAGE;
+		std::string	new_error_code = Utils::itoa(status_code);
+		std::string new_error_message = get_error_status_codes()[status_code];
 
-		size_t pos_code = default_html.find(default_error_code), pos_message = default_html.find(default_error_message);
+		size_t pos_code = default_html.find(default_error_code);
+		size_t pos_message = default_html.find(default_error_message);
 
 		while (pos_code != std::string::npos || pos_message != std::string::npos)
 		{
@@ -332,13 +336,13 @@ namespace Utils
 				pos_message = default_html.find(default_error_message, pos_message + new_error_message.size());
 			}
 		}
-		std::string new_html_path = "/tmp/" + Utils::itoa(status_code) + ".html";
+		std::string new_html_path = Utils::itoa(status_code) + ".html";
 
 		std::ofstream	oss(new_html_path.c_str());
 
 		if (!oss)
 		{
-			Log::log("error: could not create default error page, falling back to 400: bad_request\n", STD_ERR | ERROR_FILE);
+			Log::log("Error: Could not create default error page, falling back to 400: bad_request\n", STD_ERR | ERROR_FILE);
 			return DEFAULT_ERROR_PAGE;
 		}
 
@@ -409,7 +413,7 @@ namespace Utils
 		{
 			std::stringstream ss;
 			ss <<  "Error. Stat for " << path << " failed in 'is_file' function" << std::endl;
-			Log::log(RED + ss.str() + RESET, STD_ERR | ERROR_FILE);
+			Log::log(ss.str(), STD_ERR | ERROR_FILE);
 			return false;
 		}
 		return (buff.st_mode & S_IFREG);
@@ -435,10 +439,9 @@ namespace Utils
 		std::string	client_ip_str = inet_ntoa(((struct sockaddr_in*)&client_addr)->sin_addr);
 		std::string	client_port = Utils::itoa(ntohs(((struct sockaddr_in*)&client_addr)->sin_port));
 
-		Log::log(GREEN "Accept Connection: " + client_ip_str +
+		Log::log("Accept Connection: " + client_ip_str +
 			":" + client_port + ": " +
-			socket + "->" + server_name + "\n" RESET, STD_OUT | ACCEPT_FILE);
-//			" (" + server_ip + ":" + server_port + ")\n", STD_OUT | ACCEPT_FILE);
+			socket + "->" + server_name + "\n", STD_OUT | ACCEPT_FILE);
 	}
 
 	std::string	get_cgi_script_name(const std::string &uri)
