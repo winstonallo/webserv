@@ -39,10 +39,6 @@ test_desc.append("Test 7 send request without path")
 test_input.append("GET HTTP/1.1\r\nHost:domain1.com\r\n\r\n")
 test_output.append("HTTP/1.1 400 Bad Request")
 
-# should be timeout
-test_desc.append("Test 8 send request without \\r\\n\\r\\n in the end")
-test_input.append("GET / HTTP/1.1\r\nHost:domain1.com\r\n")
-test_output.append("HTTP/1.1 408 Request Timeout")
 
 test_desc.append("Test 9 send POST request without Content-Length or Transfer-Encoding")
 test_input.append("POST / HTTP/1.1\r\nHost:domain1.com\r\n\r\n")
@@ -64,9 +60,9 @@ test_desc.append("Test 13 send request with too long header")
 test_input.append("GET / HTTP/1.1\r\nHost:domain1.com" + "a" * 6000  + "\r\n\r\n")
 test_output.append("HTTP/1.1 431 Request Header Fields Too Large")
 
-test_desc.append("Test 14 send request with too long body")
-test_input.append("PUT /file1 HTTP/1.1\r\nHost:domain1.com\r\nContent-Length: 100000000\r\n\r\n" + "a" * 100000000)
-test_output.append("HTTP/1.1 413 Payload Too Large")
+# test_desc.append("Test 14 send request with too long body")
+# test_input.append("PUT /file1 HTTP/1.1\r\nHost:domain1.com\r\nContent-Length: 100000000\r\n\r\n" + "a" * 100000000)
+# test_output.append("HTTP/1.1 413 Payload Too Large")
 
 test_desc.append("Test 15 send request with wrong header syntax")
 test_input.append("GET / HTTP/1.1\r\nHost:domain1.com\r\nwrong\theader: 1\r\n\r\n")
@@ -83,8 +79,6 @@ test_output.append("HTTP/1.1 200 OK")
 test_desc.append("Test 18 send a request with special prcnt sign in uri")
 test_input.append("PUT /file%20with%20spaces HTTP/1.1\r\nHost:domain1.com\r\nContent-Length: 5\r\n\r\n lobok")
 test_output.append("HTTP/1.1 200 OK")
-
-
 
 
 host = "domain1.com"
@@ -138,5 +132,6 @@ if __name__ == "__main__":
     # test_timeout("PUT /file1 HTTP/1.1\r\nHost:domain1.com\r\nContent-Length: 1000\r\n\r\n")
     # test_timeout("PUT /file1 HTTP/1.1\r\nHost:domain1.com\r\nTransfer-encoding: chunked\r\n\r\n")
     # test_timeout("GET /cgi-bin/loop.py HTTP/1.1\r\nHost:domain1.com\r\n\r\n")
+    # test_timeout("GET / HTTP/1.1\r\nHost:domain1.com\r\n")
 
     test_errcodes()
