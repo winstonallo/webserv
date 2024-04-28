@@ -539,6 +539,21 @@ int	Director::create_client_connection(int listener)
 	return 0;
 }
 
+void	Director::remove_client(int client_fd, ClientInfo* client)
+{
+	if (client == NULL)
+	{
+		client = dynamic_cast<ClientInfo*>(_nodes[client_fd]);
+	}
+
+	client->get_request()->clean();
+	client->_read_msg.clear();
+	delete _nodes[client_fd];
+	_nodes.erase(client_fd);
+	_client_timeouts.erase(client_fd);
+	clear_file_descriptor(client_fd);
+}
+
 // purpose: we check if the client closed the connection. if he did we log it,
 // 			free the ClientInfo and erase the client_fd from the select set and 
 // 			the iterator list. Else we parse (TODO danil) the request message and fill
@@ -561,27 +576,22 @@ int	Director::read_from_client(int client_fd)
 	if (!flag)
 	{
 		std::stringstream ss;
-		ss << "Connection closed by " << inet_ntop(AF_INET, get_in_addr((struct sockaddr *)&ci->get_addr()),
-						remoteIP, INET6_ADDRSTRLEN);
+		ss << "Connection closed by " <<
+		inet_ntop(AF_INET, get_in_addr((struct sockaddr *)&ci->get_addr()), remoteIP, INET6_ADDRSTRLEN);
 		ss << " on socket " << client_fd << std::endl;
 		Log::log(ss.str(), ACCEPT_FILE | STD_OUT);
-		clear_file_descriptor(client_fd);
-		ci->get_request()->clean();
-		ci->_read_msg.clear();
-		delete _nodes[client_fd];
-		_nodes.erase(client_fd);
+
+		remove_client(client_fd, ci);
 		return 0;
 	}
 	else if (flag == -1)
 	{
-		clear_file_descriptor(client_fd);
-		ci->get_request()->clean();
-		_nodes.erase(client_fd);
-		delete _nodes[client_fd];
+
 		std::stringstream ss;
 		ss << "Error reading from socket: " << client_fd << std::endl;
 		Log::log(ss.str(), ERROR_FILE | STD_ERR);
-		ci->_read_msg.clear();
+
+		remove_client(client_fd, ci);
 		return -1;	
 	}
 	else if (flag == READ)
