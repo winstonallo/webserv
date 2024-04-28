@@ -332,13 +332,13 @@ namespace Utils
 				pos_message = default_html.find(default_error_message, pos_message + new_error_message.size());
 			}
 		}
-		std::string new_html_path = "/tmp/" + Utils::itoa(status_code) + ".html";
+		std::string new_html_path = Utils::itoa(status_code) + ".html";
 
 		std::ofstream	oss(new_html_path.c_str());
 
 		if (!oss)
 		{
-			Log::log("error: could not create default error page, falling back to 400: bad_request\n", STD_ERR | ERROR_FILE);
+			Log::log("Error: Could not create default error page, falling back to 400: bad_request\n", STD_ERR | ERROR_FILE);
 			return DEFAULT_ERROR_PAGE;
 		}
 
