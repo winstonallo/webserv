@@ -250,12 +250,13 @@ int	Director::run_servers()
 				{
 					if (FD_ISSET(i, &readfds_backup))
 					{
-						if(create_client_connection(i) < 0)
+						try
 						{
-							std::stringstream ss;
-							ss << "Error creating a client connection: " << std::endl;
-							Log::log(ss.str(), ERROR_FILE | STD_ERR);
-							throw std::runtime_error("throwing");//exit(2); // TODO: Need to deallocate something?
+							create_client_connection(i);
+						}
+						catch(const std::exception& e)
+						{
+							Log::log("Error creating client connection: " + std::string(e.what()) + "\n", STD_ERR | ERROR_FILE);
 						}
 					}
 				}
@@ -515,7 +516,10 @@ int	Director::create_client_connection(int listener)
 			std::stringstream ss;
 			ss << "Tried to overwrite socket: " << newfd << std::endl;
 			Log::log(ss.str(), STD_ERR | ERROR_FILE);
-			exit(2);
+			_nodes.erase(newfd);
+			_client_timeouts.erase(newfd);
+			close(newfd);
+			throw std::runtime_error("");
 		}
 		std::stringstream ss2;
 
@@ -537,21 +541,6 @@ int	Director::create_client_connection(int listener)
 		FD_SET(newfd, &read_fds);
 	}
 	return 0;
-}
-
-void	Director::remove_client(int client_fd, ClientInfo* client)
-{
-	if (client == NULL)
-	{
-		client = dynamic_cast<ClientInfo*>(_nodes[client_fd]);
-	}
-
-	client->get_request()->clean();
-	client->_read_msg.clear();
-	delete _nodes[client_fd];
-	_nodes.erase(client_fd);
-	_client_timeouts.erase(client_fd);
-	clear_file_descriptor(client_fd);
 }
 
 // purpose: we check if the client closed the connection. if he did we log it,
@@ -576,22 +565,27 @@ int	Director::read_from_client(int client_fd)
 	if (!flag)
 	{
 		std::stringstream ss;
-		ss << "Connection closed by " <<
-		inet_ntop(AF_INET, get_in_addr((struct sockaddr *)&ci->get_addr()), remoteIP, INET6_ADDRSTRLEN);
+		ss << "Connection closed by " << inet_ntop(AF_INET, get_in_addr((struct sockaddr *)&ci->get_addr()),
+						remoteIP, INET6_ADDRSTRLEN);
 		ss << " on socket " << client_fd << std::endl;
 		Log::log(ss.str(), ACCEPT_FILE | STD_OUT);
-
-		remove_client(client_fd, ci);
+		clear_file_descriptor(client_fd);
+		ci->get_request()->clean();
+		ci->_read_msg.clear();
+		delete _nodes[client_fd];
+		_nodes.erase(client_fd);
 		return 0;
 	}
 	else if (flag == -1)
 	{
-
+		clear_file_descriptor(client_fd);
+		ci->get_request()->clean();
+		_nodes.erase(client_fd);
+		delete _nodes[client_fd];
 		std::stringstream ss;
 		ss << "Error reading from socket: " << client_fd << std::endl;
 		Log::log(ss.str(), ERROR_FILE | STD_ERR);
-
-		remove_client(client_fd, ci);
+		ci->_read_msg.clear();
 		return -1;	
 	}
 	else if (flag == READ)
@@ -637,7 +631,8 @@ int	Director::read_from_client(int client_fd)
 			if (ci->get_cgi()->response_fd[0] > fdmax)
 				fdmax = ci->get_cgi()->response_fd[0];
 		}	
-		clear_file_descriptor(client_fd, false);
+		FD_CLR(client_fd, &read_fds);
+		if (client_fd == fdmax)	fdmax--;
 		FD_SET(client_fd, &write_fds);
 		if (client_fd > fdmax)	fdmax = client_fd;
 		// ci->get_request()->clean();
@@ -689,7 +684,10 @@ int	Director::write_to_client(int fd)
 		}
 		else
 		{
-			clear_file_descriptor(fd, false);
+			FD_CLR(fd, &write_fds);
+			if (fd == fdmax) { fdmax--; }
+			FD_SET(fd, &read_fds);
+			if (fd > fdmax) { fdmax=fd; } 
 			cl->get_request()->clean();
 			cl->clear_response();
 		}
