@@ -178,6 +178,10 @@ int	Director::init_servers()
 			if (init_server(*it) < 0)
 				return -1;
 		}
+		else
+		{
+			(*it)->set_director(this);
+		}
 	}
 
 	//make servers non-blocking and listen
