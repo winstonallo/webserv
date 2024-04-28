@@ -25,11 +25,11 @@ Director::~Director()
 	std::map <int, Node*>::iterator it;
 	for (it = _nodes.begin(); it != _nodes.end(); it++)
 	{
-		if (it->second->get_type() == CLIENT_NODE)
+		if (it->second && it->second->get_type() != SERVER_NODE)
 		{
-			ClientInfo *ci = static_cast<ClientInfo *>(it->second);
-			delete ci;
+			delete it->second;
 		}
+
 	}
 	delete config;
 }
@@ -256,7 +256,7 @@ int	Director::run_servers()
 						}
 						catch(const std::exception& e)
 						{
-							Log::log("Error creating client connection: " + std::string(e.what()) + "\n", STD_ERR | ERROR_FILE);
+							Log::log("Error creating client connection: " + std::string(e.what()), STD_ERR | ERROR_FILE);
 						}
 					}
 				}
@@ -501,25 +501,26 @@ int	Director::create_client_connection(int listener)
 	}
 	else
 	{
-		if (fdmax < newfd)
-			fdmax = newfd;
 		if (_nodes.find(newfd) == _nodes.end())
 		{
-			ClientInfo *newcl = new ClientInfo(newfd, remoteaddr, (size_t)addrlen);
+			if (fdmax < newfd)
+				fdmax = newfd;
+			ClientInfo* newcl = new ClientInfo(newfd, remoteaddr, (size_t)addrlen);
 			_client_timeouts[newfd].last_activity = time(NULL);
 			_client_timeouts[newfd].client = newcl;
-			newcl->set_server(dynamic_cast<Server*>(_nodes[listener]));
 			_nodes[newfd] = newcl;
+			newcl->set_server(dynamic_cast<Server*>(_nodes[listener]));
 		}
 		else
 		{
 			std::stringstream ss;
 			ss << "Tried to overwrite socket: " << newfd << std::endl;
 			Log::log(ss.str(), STD_ERR | ERROR_FILE);
+			delete _nodes[newfd];
 			_nodes.erase(newfd);
 			_client_timeouts.erase(newfd);
 			close(newfd);
-			throw std::runtime_error("");
+			throw std::runtime_error(ss.str());
 		}
 		std::stringstream ss2;
 
@@ -536,6 +537,7 @@ int	Director::create_client_connection(int listener)
 			Log::log(ss3.str(), ERROR_FILE | STD_ERR);
 			delete _nodes[newfd];
 			_nodes.erase(newfd);
+			_client_timeouts.erase(newfd);
 			close(newfd);
 		}
 		FD_SET(newfd, &read_fds);
@@ -573,6 +575,7 @@ int	Director::read_from_client(int client_fd)
 		ci->get_request()->clean();
 		ci->_read_msg.clear();
 		delete _nodes[client_fd];
+		_client_timeouts.erase(client_fd);
 		_nodes.erase(client_fd);
 		return 0;
 	}
@@ -582,6 +585,7 @@ int	Director::read_from_client(int client_fd)
 		ci->get_request()->clean();
 		_nodes.erase(client_fd);
 		delete _nodes[client_fd];
+		_client_timeouts.erase(client_fd);
 		std::stringstream ss;
 		ss << "Error reading from socket: " << client_fd << std::endl;
 		Log::log(ss.str(), ERROR_FILE | STD_ERR);
@@ -666,6 +670,7 @@ int	Director::write_to_client(int fd)
 		Log::log(ss.str(), STD_ERR | ERROR_FILE);
 		clear_file_descriptor(fd);
 		_nodes.erase(fd);
+		_client_timeouts.erase(fd);
 		delete _nodes[fd];
 	}
 	else if (num_bytes == (int)(content.size()) || num_bytes == 0)
@@ -680,6 +685,7 @@ int	Director::write_to_client(int fd)
 			Log::log(ss.str(), STD_OUT );
 			clear_file_descriptor(fd);
 			delete _nodes[fd];
+			_client_timeouts.erase(fd);
 			_nodes.erase(fd);
 		}
 		else
