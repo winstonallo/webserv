@@ -338,9 +338,9 @@ int	Director::run_servers()
 									cl->get_request()->set_errcode(500);
 									cl->get_server()->create_response(*cl->get_request(), cl);
 								}
-								cl->set_fin(true);
 								if (cl->get_response().find("HTTP/1.1") == std::string::npos)
 									cl->get_response().insert(0, "HTTP/1.1 200 OK\r\n");
+								cl->set_fin(true);
 							}
 							else if (receive < 0)
 							{
@@ -384,6 +384,22 @@ int	Director::run_servers()
 	return 0;
 }
 
+void Director::clear_file_descriptor(int client_fd, fd_set set, bool close_fd)
+{
+	if (FD_ISSET(client_fd, &set))
+	{
+		FD_CLR(client_fd, &set);
+		if (client_fd == fdmax)
+		{
+			fdmax--;
+		}
+		if (close_fd == true)
+		{
+			close(client_fd);
+		}
+	}
+}
+
 void Director::cgi_timeout(int client_fd, ClientInfo* client)
 {
 	if (client && client->get_type() == CLIENT_NODE && client->is_cgi() == true)
@@ -392,25 +408,9 @@ void Director::cgi_timeout(int client_fd, ClientInfo* client)
 		Utils::itoa(client_fd) + ": client timed out.\n",
 		STD_ERR | ERROR_FILE);
 		
-		if (FD_ISSET(client->get_cgi()->response_fd[0], &read_fds))
-		{
-			FD_CLR(client->get_cgi()->response_fd[0], &read_fds);
-			if (client_fd == fdmax)
-			{
-				fdmax--;
-			}
-		}
-		if (FD_ISSET(client->get_cgi()->request_fd[0], &read_fds))
-		{
-			FD_CLR(client->get_cgi()->request_fd[0], &read_fds);
-			if (client_fd == fdmax)
-			{
-				fdmax--;
-			}
-		}
+		clear_file_descriptor(client->get_cgi()->response_fd[0], read_fds);
+		clear_file_descriptor(client->get_cgi()->request_fd[0], read_fds);
 		kill(client->get_pid(), SIGKILL);
-		close(client->get_cgi()->response_fd[0]);
-		close(client->get_cgi()->request_fd[0]);
 	}
 }
 

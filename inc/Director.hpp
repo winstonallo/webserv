@@ -36,6 +36,12 @@ class Director
 			ClientInfo* client;
 		};
 
+		enum fd_set_type
+		{
+			READ_FDS,
+			WRITE_FDS
+		};
+
 										Director(const std::string& path);
 										~Director();
 		int								init_servers();
@@ -57,6 +63,8 @@ class Director
 		void							close_client_connection(int client_fd);
 		void							send_timeout_response(int client_fd, ClientInfo* client);
 		void							cgi_timeout(int client_fd, ClientInfo* client);
+
+		void							clear_file_descriptor(int client_fd, fd_set set, bool close_fd=true);
 
 		int								fdmax;
 		Config*							config;
