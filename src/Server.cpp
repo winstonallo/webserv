@@ -725,6 +725,7 @@ int	Server::_get_directory_list(std::string &path, std::string& body)
     ss << "</body>\n";
     ss << "</html>\n";
     body = ss.str();
+	closedir(dir);
     return (0);
 }
 
