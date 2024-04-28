@@ -314,10 +314,14 @@ namespace Utils
 	// cat DEFAULT_ERROR_PAGE | sed 's/400/XXX/g' | sed 's/bad request/new message/g' > new_html_path
 	std::string	generate_default_error_page(const int status_code)
 	{
-		std::string default_error_code = "400", default_error_message = "bad request", default_html = DEFAULT_ERROR_PAGE;
-		std::string	new_error_code = Utils::itoa(status_code), new_error_message = get_error_status_codes()[status_code];
+		std::string default_error_code = "400";
+		std::string default_error_message = "bad request";
+		std::string default_html = DEFAULT_ERROR_PAGE;
+		std::string	new_error_code = Utils::itoa(status_code);
+		std::string new_error_message = get_error_status_codes()[status_code];
 
-		size_t pos_code = default_html.find(default_error_code), pos_message = default_html.find(default_error_message);
+		size_t pos_code = default_html.find(default_error_code);
+		size_t pos_message = default_html.find(default_error_message);
 
 		while (pos_code != std::string::npos || pos_message != std::string::npos)
 		{
