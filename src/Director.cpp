@@ -1,4 +1,5 @@
 #include "Director.hpp"
+#include <cerrno>
 #include <cstddef>
 #include <ctime>
 #include <netdb.h>
@@ -63,10 +64,12 @@ void*	Director::get_in_addr(struct sockaddr *sa)
 // 			 got from config parsing.
 //
 // return: int -> -1 if there was an error 0 if successfull
-int	Director::init_server(Server *si)
+int	Director::init_server(Server *server)
 {
-	si->set_director(this);
-	struct addrinfo hints, *ai, *p;
+	server->set_director(this);
+	struct addrinfo hints;
+	struct addrinfo *address_info;
+	struct addrinfo *p;
 	int listener;
 	int rv, yes=1 ;
 	
@@ -75,16 +78,16 @@ int	Director::init_server(Server *si)
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
 
-	std::stringstream pt;
-	pt << si->get_port();
-	if ((rv = getaddrinfo(NULL, pt.str().c_str(), &hints, &ai)) != 0) 
+	std::stringstream port;
+	port << server->get_port();
+	if ((rv = getaddrinfo(NULL, port.str().c_str(), &hints, &address_info)) != 0) 
 	{
 		std::stringstream ss;
 		ss << "Error reading addrinfo: " << gai_strerror(rv) << std::endl;
 		Log::log(ss.str(), ERROR_FILE | STD_ERR);
 		return -1;
 	}
-	for (p = ai; p != NULL; p = p->ai_next)
+	for (p = address_info; p != NULL; p = p->ai_next)
 	{
 		listener = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
 		if (listener < 0)
@@ -92,8 +95,9 @@ int	Director::init_server(Server *si)
 			std::stringstream ss;
 			ss << "Error opening socket: " << strerror(errno) << std::endl;	
 			Log::log(ss.str(), ERROR_FILE | STD_ERR);
-			continue;
+			continue ;
 		}
+
 		setsockopt(listener, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
 		if (bind(listener, p->ai_addr, p->ai_addrlen) < 0)
 		{
@@ -101,13 +105,14 @@ int	Director::init_server(Server *si)
 			std::stringstream ss;
 			ss << "Bind error: " << strerror(errno) << std::endl;
 			Log::log(ss.str(), ERROR_FILE | STD_ERR);
-			continue;
+			continue ;
 		}
-		si->set_fd(listener);
-		si->set_addr_len((size_t)p->ai_addrlen);
+
+		server->set_fd(listener);
+		server->set_addr_len((size_t)p->ai_addrlen);
 
 		Log::log("Server created on localhost with domain name: " +
-		si->get_server_name()[0] + ", port: " + Utils::itoa(si->get_port()) + "\n",
+		server->get_server_name()[0] + ", port: " + Utils::itoa(server->get_port()) + "\n",
 		ACCEPT_FILE | STD_OUT);
 
 		break;
@@ -118,12 +123,12 @@ int	Director::init_server(Server *si)
 		std::stringstream ss;
 		ss << "Select server failed to bind." << std::endl;
 		Log::log(ss.str(), ERROR_FILE | STD_ERR);
-		freeaddrinfo(ai);
+		freeaddrinfo(address_info);
 		return -1;
 	}
 									_fdmax--;
-	si->set_fd(listener);
-	freeaddrinfo(ai);
+	server->set_fd(listener);
+	freeaddrinfo(address_info);
 	return 0;
 }
 
@@ -169,7 +174,6 @@ int	Director::init_servers()
 		}
 	}
 
-	//make servers non-blocking and listen
 	for (it = servers.begin(); it != e; it++)
 	{
 		int listener = (*it)->get_fd();
@@ -188,7 +192,11 @@ int	Director::init_servers()
 			return -1;
 		}
 		FD_SET(listener, &_read_fds);
-		if (_fdmax < listener) _fdmax = listener;
+		if (_fdmax < listener)
+		{
+			_fdmax = listener;
+		} 
+
 		_nodes[listener] = *it;
 		_nodes[listener]->set_type(SERVER_NODE);
 		_nodes[listener]->set_fd(listener);
@@ -196,7 +204,8 @@ int	Director::init_servers()
 	return 0;
 }
 
-extern bool is_running;
+extern bool interrupted;
+
 // purpose: In a loop we poll (with select) the statuses of the sockets.
 // 			if they are ready for reading they create a new client sockets (if 
 // 			its a server) and handle incoming or outgoing messages (if it's a client)
@@ -210,26 +219,24 @@ int	Director::run_servers()
 	fd_set 						readfds_backup;
 	fd_set 						writefds_backup;
 	struct timeval 				timeout_time;
-	ClientInfo* 				cl;
+	ClientInfo* 				client;
 
 
-	while (is_running)
+	while (interrupted == false)
 	{
 		readfds_backup = _read_fds;
 		writefds_backup = _write_fds;
 		timeout_time.tv_sec = 1;
 		timeout_time.tv_usec = 0;
-		std::vector <int> to_delete;
-		for (size_t i = 0; i < to_delete.size(); i++)
-		{
-			_client_timeouts.erase(to_delete[i]);
-		}
-		to_delete.clear();
+
 		if ((ret = select(_fdmax + 1, &readfds_backup, &writefds_backup, NULL, &timeout_time)) < 0 )
 		{
+			if (interrupted == true)
+			{
+				break ;
+			}
+
 			std::stringstream ss;
-			if (is_running == false)
-				break;
 			ss << "Error while select: " << strerror(errno) << std::endl;
 			Log::log(ss.str(), ERROR_FILE | STD_ERR);
 			return -1;
@@ -238,7 +245,6 @@ int	Director::run_servers()
 		{
 			if (_nodes.find(i) != _nodes.end())
 			{
-				// FOR SERVERS
 				if (_nodes[i] != NULL and _nodes[i]->get_type() == SERVER_NODE)
 				{
 					if (FD_ISSET(i, &readfds_backup))
@@ -253,10 +259,9 @@ int	Director::run_servers()
 						}
 					}
 				}
-				// FOR CLIENTS
 				else if (_nodes[i] != NULL and _nodes[i]->get_type() == CLIENT_NODE)
 				{
-					cl = static_cast<ClientInfo*>(_nodes[i]);
+					client = static_cast<ClientInfo*>(_nodes[i]);
 					if (FD_ISSET(i, &readfds_backup))
 					{
 						try
@@ -273,78 +278,83 @@ int	Director::run_servers()
 							Log::log("Error reading from client: " + std::string(e.what()) + "\n", STD_ERR | ERROR_FILE);
 						}
 					}
-					// WRITING
 					if (FD_ISSET(i, &writefds_backup))
 					{
-						// give request body to CGI
-						if (cl->is_cgi() && FD_ISSET(cl->get_cgi()->request_fd[1], &writefds_backup) && !cl->get_fin())
+						if (client->is_cgi() && FD_ISSET(client->get_cgi()->request_fd[1], &writefds_backup) && !client->get_fin())
 						{
 							int send;
 
-							std::string&	reqb = cl->get_request()->get_body();
+							std::string&	reqb = client->get_request()->get_body();
 							if (!reqb.size())
+							{
 								send = 0;
+							}
 							else if (reqb.size() >= MSG_SIZE)
-								send = write(cl->get_cgi()->request_fd[1], reqb.c_str(), MSG_SIZE);
+							{
+								send = write(client->get_cgi()->request_fd[1], reqb.c_str(), MSG_SIZE);
+							}
 							else
-								send = write(cl->get_cgi()->request_fd[1], reqb.c_str(), reqb.size());
+							{
+								send = write(client->get_cgi()->request_fd[1], reqb.c_str(), reqb.size());
+							}
 							if (send < 0)
 							{
 								std::stringstream ss;
 								ss << "Error sending request body to CGI: " << strerror(errno);
 								Log::log(ss.str(), STD_ERR | ERROR_FILE);
-								close_cgi(cl, 500);
+								close_cgi(client, 500);
 							}
 							else if (send == 0 || (size_t) send == reqb.size())
 							{
-								clear_file_descriptor(cl->get_cgi()->response_fd[1]);
-								clear_file_descriptor(cl->get_cgi()->request_fd[1]);
+								clear_file_descriptor(client->get_cgi()->response_fd[1]);
+								clear_file_descriptor(client->get_cgi()->request_fd[1]);
 							}
 							else
 							{
-								cl->set_time();
+								client->set_time();
 								reqb = reqb.substr(send);
 							}
 						}
-						// cgi tiemout
-						else if (cl->get_cgi() && FD_ISSET(cl->get_cgi()->response_fd[0], &readfds_backup) && !cl->get_fin())
+						else if (client->get_cgi() && FD_ISSET(client->get_cgi()->response_fd[0], &readfds_backup) && !client->get_fin())
 						{
 							char	msg[MSG_SIZE * 4];
 							int		receive = 0;
 							int		status = 0;
 
-							receive = read(cl->get_cgi()->response_fd[0], msg, MSG_SIZE * 4);
+							receive = read(client->get_cgi()->response_fd[0], msg, MSG_SIZE * 4);
 							if (receive == 0)
 							{
-								clear_file_descriptor(cl->get_cgi()->response_fd[0]);
-								waitpid(cl->get_pid(), &status, WNOHANG);
+								clear_file_descriptor(client->get_cgi()->response_fd[0]);
+								waitpid(client->get_pid(), &status, WNOHANG);
 								if (WEXITSTATUS(status) != 0)
 								{
-									cl->get_request()->set_errcode(500);
-									cl->get_server()->create_response(*cl->get_request(), cl);
+									client->get_request()->set_errcode(500);
+									client->get_server()->create_response(*client->get_request(), client);
 								}
-								if (cl->get_response().find("HTTP/1.1") == std::string::npos)
-									cl->get_response().insert(0, "HTTP/1.1 200 OK\r\n");
-								cl->set_fin(true);
+								if (client->get_response().find("HTTP/1.1") == std::string::npos)
+								{
+									client->get_response().insert(0, "HTTP/1.1 200 OK\r\n");
+								}
+								client->set_fin(true);
 							}
 							else if (receive < 0)
 							{
 								std::stringstream ss;
 								ss << "Error reading CGI response: " << strerror(errno);
 								Log::log(ss.str(), STD_ERR | ERROR_FILE);
-								clear_file_descriptor(cl->get_cgi()->response_fd[0]);
-								clear_file_descriptor(cl->get_cgi()->request_fd[0]);
-								cl->get_request()->set_errcode(500);
-								cl->get_server()->create_response(*cl->get_request(), cl);
-								cl->set_fin(true);
+								clear_file_descriptor(client->get_cgi()->response_fd[0]);
+								clear_file_descriptor(client->get_cgi()->request_fd[0]);
+								client->get_request()->set_errcode(500);
+								client->get_server()->create_response(*client->get_request(), client);
+								client->set_fin(true);
 							}
 							else
 							{
-								cl->get_response().append(msg, receive);
+								client->get_response().append(msg, receive);
 								memset(msg, 0, sizeof(msg));
 							}
 						}
-						else if ((cl->is_cgi() == false || cl->get_fin()) && FD_ISSET(i, &writefds_backup))
+						else if ((client->is_cgi() == false || client->get_fin()) && FD_ISSET(i, &writefds_backup))
 						{
 							if(write_to_client(i) < 0)
 							{
@@ -444,14 +454,17 @@ std::vector <int>	Director::get_timed_out_clients()
 	return timed_out_clients;
 }
 
-void Director::close_client_connection(int client_fd)
+void Director::close_client_connection(int client_fd, const std::string& message)
 {
-	clear_file_descriptor(client_fd, false);
-	clear_file_descriptor(client_fd, false);
+	if (message.empty() == false)
+	{
+		Log::log(message, STD_OUT | ACCEPT_FILE);
+	}
+
+	clear_file_descriptor(client_fd);
 	delete _nodes[client_fd];
-	_client_timeouts.erase(client_fd);
 	_nodes.erase(client_fd);
-	close(client_fd);
+	_client_timeouts.erase(client_fd);
 }
 
 // purpose: close the cgi client and log the status code
@@ -668,13 +681,8 @@ int	Director::write_to_client(int fd)
 		num_bytes = write(fd, content.c_str(), MSG_SIZE);
 	if (num_bytes < 0)
 	{
-		std::stringstream ss;
-		ss << "Error sending a response: " << strerror(errno) << std::endl;
-		Log::log(ss.str(), STD_ERR | ERROR_FILE);
-		clear_file_descriptor(fd);
-		delete _nodes[fd];
-		_nodes.erase(fd);
-		_client_timeouts.erase(fd);
+		close_client_connection(fd, "Error sending a response: "
+		+ std::string(strerror(errno)) + "\n");
 	}
 	else if (num_bytes == (int)(content.size()) || num_bytes == 0)
 	{
@@ -683,20 +691,22 @@ int	Director::write_to_client(int fd)
 		Log::log(ss.str(), STD_OUT);
 		if(	cl->get_request()->get_errcode() || cl->is_cgi())
 		{
-			std::stringstream ss;
-			ss << "Closing client connection on: " << fd << std::endl;
-			Log::log(ss.str(), STD_OUT );
-			clear_file_descriptor(fd);
-			delete _nodes[fd];
-			_client_timeouts.erase(fd);
-			_nodes.erase(fd);
+			close_client_connection(fd, "Closing client connection on: "
+			+ Utils::itoa(fd) + "\n");
 		}
 		else
 		{
 			FD_CLR(fd, &_write_fds);
-			if (fd == _fdmax) { _fdmax--; }
+			if (fd == _fdmax)
+			{ 
+				_fdmax--;
+			}
 			FD_SET(fd, &_read_fds);
-			if (fd > _fdmax) { _fdmax=fd; } 
+
+			if (fd > _fdmax)
+			{
+				_fdmax=fd;
+			} 
 			cl->get_request()->clean();
 			cl->clear_response();
 		}

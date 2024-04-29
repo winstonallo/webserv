@@ -55,7 +55,7 @@ class Director
 										Director(const Director&) {}
 		Director&						operator=(const Director&) { return *this; }
 		void							*get_in_addr(struct sockaddr *sa);
-		int								init_server(Server *si);
+		int								init_server(Server *server);
 		int								create_client_connection(int listener);
 		int								read_from_client(int fd);
 		int								write_to_client(int fd);
@@ -63,7 +63,7 @@ class Director
 
 		void							close_timed_out_clients();
 		std::vector <int>				get_timed_out_clients();
-		void							close_client_connection(int client_fd);
+		void							close_client_connection(int client_fd, const std::string& message="");
 		void							send_timeout_response(int client_fd, ClientInfo* client);
 		void							cgi_timeout(int client_fd, ClientInfo* client);
 
