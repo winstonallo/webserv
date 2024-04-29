@@ -146,7 +146,6 @@ int	Director::init_servers()
 	std::vector<Server*>::iterator 	sub_it;
 	bool							same_socket;	
 
-	// take virtual servers into account
 	for (it = servers.begin(); it != e; it++)
 	{
 		same_socket = false;
