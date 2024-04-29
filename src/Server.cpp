@@ -185,21 +185,28 @@ std::vector <LocationInfo*>	Server::get_locations() const
 
 std::string Server::respond(Request& rq)
 {
-	if (rq.get_method() == "GET" || rq.get_method() == "HEAD")
-	{
-		std::ifstream file("index.html");
-		if (file.fail())
-		{
-			return "Error"; 
-		}
-		std::ostringstream ss;
-		ss << file.rdbuf();
-		return ss.str();
-	}
-	return "Error";
-}
+    if (rq.get_method() == "GET" || rq.get_method() == "HEAD")
+    {
+        std::ifstream file("index.html", std::ios::binary | std::ios::ate);
+        if (file.fail())
+        {
+            return "Error"; 
+        }
 
-//Server
+        std::ifstream::pos_type size = file.tellg();
+        file.seekg(0, std::ios::beg);
+
+        if (size > 1000000)
+        {
+            return "Error: File too large";
+        }
+
+        std::ostringstream ss;
+        ss << file.rdbuf();
+        return ss.str();
+    }
+    return "Error";
+}
 
 int		Server::get_error_code() const
 {

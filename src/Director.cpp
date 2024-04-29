@@ -25,7 +25,6 @@ Director::~Director()
 	std::map <int, Node*>::iterator it;
 	for (it = _nodes.begin(); it != _nodes.end(); it++)
 	{
-		// if (it->second && it->second->get_type() != SERVER_NODE
 		if (it->second)
 		{
 			close(it->second->get_fd());
