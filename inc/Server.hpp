@@ -99,6 +99,7 @@ class Server : public Node
 		void								_init_cgi(Request rq, LocationInfo loc);
 
 		std::string							_do_get(std::string& location_path);
+		void								_do_post(std::string& location_path, Request& request);
 
 											Server(int tfd, struct sockaddr_storage ss, size_t addr_len);
 		Server&								operator=(const Server&) { return *this; }

@@ -11,6 +11,7 @@
 #include "Director.hpp"
 #include <fstream>
 #include "Log.hpp"
+#include "Request.hpp"
 #include "Utils.hpp"
 
 Server::Server() 
@@ -183,6 +184,44 @@ std::string	Server::_do_get(std::string& location_path)
 	}
 }
 
+void	Server::_do_post(std::string& location_path, Request& request)
+{
+		if ((Utils::file_exists(location_path)) && request.get_method() == "POST")
+		{
+			_errcode = 204;
+			throw std::runtime_error("Error");
+		}
+        std::string upload_dir = location_path.substr(0, location_path.find_last_of("/") + 1);
+        if (Utils::file_exists(upload_dir) == false)
+        {
+            if (mkdir(upload_dir.c_str(), 0777) == -1)
+            {
+                _errcode = 500;
+                Log::log("Error. Couldn't create directory for file upload.\n", STD_ERR | ERROR_FILE);
+                throw std::runtime_error("Error");
+            }
+        }
+		std::string filename = request.get_header("CONTENT-DISPOSITION");
+		if (filename != "default")
+		{
+			filename = upload_dir + filename.substr(filename.find("filename=") + 10, filename.find_last_of("\"") - filename.find("filename=") - 10);
+		}
+		else 
+		{
+			filename = location_path;
+		}
+		std::ofstream file(filename.c_str(), std::ios::binary);
+		if (file.fail())
+		{
+			_errcode = 404;
+			Log::log("Error. Couldn't open location path.\n", STD_ERR | ERROR_FILE);
+			throw std::runtime_error("error");
+		}
+		_errcode = 200;
+		file.write(request.get_body().c_str(), request.get_body().size());
+		Log::log(filename + " uploaded successfully.\n", STD_OUT);
+}
+
 std::string		Server::_get_body(Request& rq, ClientInfo *ci)
 {
 	std::string	loc_path;
@@ -202,40 +241,7 @@ std::string		Server::_get_body(Request& rq, ClientInfo *ci)
 	}
 	else if (rq.get_method() == "PUT" || rq.get_method() == "POST")
 	{
-		if ((Utils::file_exists(loc_path)) && rq.get_method() == "POST")
-		{
-			_errcode = 204;
-			throw std::runtime_error("Error");
-		}
-        std::string upload_dir = loc_path.substr(0, loc_path.find_last_of("/") + 1);
-        if (Utils::file_exists(upload_dir) == false)
-        {
-            if (mkdir(upload_dir.c_str(), 0777) == -1)
-            {
-                _errcode = 500;
-                Log::log("Error. Couldn't create directory for file upload.\n", STD_ERR | ERROR_FILE);
-                throw std::runtime_error("Error");
-            }
-        }
-		std::string filename = rq.get_header("CONTENT-DISPOSITION");
-		if (filename != "default")
-		{
-			filename = upload_dir + filename.substr(filename.find("filename=") + 10, filename.find_last_of("\"") - filename.find("filename=") - 10);
-		}
-		else 
-		{
-			filename = loc_path;
-		}
-		std::ofstream file(filename.c_str(), std::ios::binary);
-		if (file.fail())
-		{
-			_errcode = 404;
-			Log::log("Error. Couldn't open location path.\n", STD_ERR | ERROR_FILE);
-			throw std::runtime_error("error");
-		}
-		_errcode = 200;
-		file.write(rq.get_body().c_str(), rq.get_body().size());
-		Log::log(filename + " uploaded successfully.\n", STD_OUT);
+		_do_post(loc_path, rq);
 	}
 	else if (rq.get_method() == "DELETE")
 	{
