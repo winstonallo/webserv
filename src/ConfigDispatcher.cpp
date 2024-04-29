@@ -6,7 +6,6 @@
 #include <cstring>
 #include "ConfigDispatcher.hpp"
 #include "Utils.hpp"
-#include "Log.hpp"
 #include "Utils.hpp"
 
 ConfigDispatcher::ConfigDispatcher(const line_count_map& raw_config) : _raw_config(raw_config)
