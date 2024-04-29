@@ -89,7 +89,6 @@ class Server : public Node
 		std::map<std::string, std::string>	_content_type;
 		int									_errcode;
 		Director*							_director;
-		bool								_listing;
 
 		std::string							_get_body(Request& rq, ClientInfo *ci);
 		int									_process(Request &rq, ClientInfo* ci, std::string& loc_path);
