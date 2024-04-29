@@ -8,7 +8,7 @@ SRCS_DIR	= src
 
 OBJS_DIR		= obj
 
-CXXFLAGS	= -Wall -Wextra -Werror -MP -MD -std=c++98 -g -Iinc -lpthread
+CXXFLAGS	= -Wall -Wextra -Werror -MP -MD -std=c++98 -g -Iinc
 
 SRCS   	= \
 		$(SRCS_DIR)/Node.cpp \
@@ -32,7 +32,7 @@ OBJS		= $(SRCS:${SRCS_DIR}/%.cpp=${OBJS_DIR}/%.o)
 DEPS	= $(OBJS:%.o=%.d)
 
 $(NAME): $(OBJS)
-	$(CXX) $(CXXFLAGS) -o $(NAME) $(OBJS)
+	$(CXX) $(CXXFLAGS) -o $(NAME) $(OBJS)  -lpthread
 
 $(OBJS_DIR)/%.o: $(SRCS_DIR)/%.cpp
 	mkdir -p $(OBJS_DIR)

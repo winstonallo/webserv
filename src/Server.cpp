@@ -196,7 +196,7 @@ std::string Server::respond(Request& rq)
         std::ifstream::pos_type size = file.tellg();
         file.seekg(0, std::ios::beg);
 
-        if (size > 1000000)
+        if (size > 10000)
         {
             return "Error: File too large";
         }
@@ -355,18 +355,34 @@ void	Server::create_response(Request& rq, ClientInfo* client_info)
 	{
 		failed = true;
 	}
-	
+		
 	if (failed)
 	{
-		std::ifstream error_file(_director->get_config()->get_error_page(_errcode).c_str());
+		std::ifstream error_file(_director->get_config()->get_error_page(_errcode).c_str(), std::ios::binary | std::ios::ate);
 		if (error_file.fail())
 		{
 			Log::log("Error reading error page file.\n", STD_ERR | ERROR_FILE);
 			body = DEFAULT_ERROR_PAGE;
 		}
-		std::stringstream ss;
-		ss << error_file.rdbuf();
-		body = ss.str();
+		else
+		{
+			std::ifstream::pos_type size = error_file.tellg();
+			error_file.seekg(0, std::ios::beg);
+
+			if (size > 100000) // MAX_FILE_SIZE ist eine Konstante, die Sie definieren
+			{
+				Log::log("Error: Error page file too large.\n", STD_ERR | ERROR_FILE);
+				body = DEFAULT_ERROR_PAGE;
+			}
+			else
+			{
+				std::vector<char> buffer(size);
+				if (error_file.read(buffer.data(), size))
+				{
+					body = std::string(buffer.begin(), buffer.end());
+				}
+			}
+		}
 	}
 	ss << "HTTP/1.1 " << _errcode << " " << _status_string[_errcode]  << "\r\n";
 	time_t	curr_time = time(NULL);
@@ -385,9 +401,7 @@ void	Server::create_response(Request& rq, ClientInfo* client_info)
 	ss << "Content-Type: " << _content_type[ex] << "\r\n";
 	if (rq.get_header("CONNECTION").empty())
 	{
-		// std::cout << "got in connections" << std::endl;
 		ss << "Connection: " << rq.get_header("CONNECTION") << "\r\n";
-		// std::cout << "got connection" << std::endl;
 	}
 	ss << "\r\n";
 	if (!body.empty())
@@ -432,17 +446,34 @@ std::string		Server::_get_body(Request& rq, ClientInfo *ci)
  			return listing_body;	
 		}
 
-		std::ifstream file(loc_path.c_str());
+		std::ifstream file(loc_path.c_str(), std::ios::binary | std::ios::ate);
 		if (file.fail())
 		{
 			_errcode = 404;
 			Log::log("Error reading request file\n", STD_ERR | ERROR_FILE); 
 			throw std::runtime_error("error");
 		}
-		std::ostringstream ss;
-		ss << file.rdbuf();
-		_errcode = 200;
-		return ss.str();
+		else
+		{
+			std::ifstream::pos_type size = file.tellg();
+			file.seekg(0, std::ios::beg);
+
+			if (size > 100000)
+			{
+				_errcode = 413;
+				Log::log("Error: Request file too large.\n", STD_ERR | ERROR_FILE);
+				throw std::runtime_error("error");
+			}
+			else
+			{
+				std::vector<char> buffer(size);
+				if (file.read(buffer.data(), size))
+				{
+					_errcode = 200;
+					return std::string(buffer.begin(), buffer.end());
+				}
+			}
+		}
 	}
 	else if (rq.get_method() == "PUT" || rq.get_method() == "POST")
 	{
