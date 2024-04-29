@@ -65,25 +65,6 @@ Server::Server(int tfd, struct sockaddr_storage ss, size_t taddr_len):
 	_listing = false;
 }
 
-Server::Server(const Server& rhs) : Node()
-{*this = rhs;}
-
-Server&	Server::operator=(const Server& rhs)
-{
-	if (this != &rhs)
-	{
-		_port = rhs._port;
-		_server_name = rhs._server_name;
-		_autoindex = rhs._autoindex;
-		_root = rhs._root;
-		_error_log = rhs._error_log;
-		_access_log = rhs._access_log;
-		_locations = rhs._locations;
-		_listing = rhs._listing;
-	}
-	return (*this);
-}
-
 std::string Server::respond(Request& rq)
 {
     if (rq.get_method() == "GET" || rq.get_method() == "HEAD")

@@ -26,13 +26,10 @@ class Server : public Node
 
 											Server();
 											~Server();
-											Server(const Server& rhs);
-											Server(int tfd, struct sockaddr_storage ss, size_t addr_len);
-		Server&								operator=(const Server& rhs);
+											Server(const Server& rhs) : Node() { *this = rhs; }
 
-		// getters and setters
 		int									get_port() const { return _port; }
-		void								set_port(int port) {_port = port; }
+		void								set_port(int port) { _port = port; }
 
 		std::vector <std::string>			get_server_name() const { return _server_name; }
 		void								set_server_name(const std::vector <std::string>& tserver_name) { _server_name = tserver_name; }
@@ -88,6 +85,11 @@ class Server : public Node
 		std::string							_reloc;
 		std::map<int, std::string>			_error_pages;
 		std::vector<LocationInfo*>			_locations;
+		std::map<int, std::string>			_status_string;
+		std::map<std::string, std::string>	_content_type;
+		int									_errcode;
+		Director*							_director;
+		bool								_listing;
 
 		void								_init_status_strings();
 		void								_init_content_types();
@@ -98,11 +100,9 @@ class Server : public Node
 														LocationInfo* locinfo);
 		int									_get_directory_list(std::string &path, std::string& body);
 		void								_init_cgi(Request rq, LocationInfo loc);
-		std::map<int, std::string>			_status_string;
-		std::map<std::string, std::string>	_content_type;
-		int									_errcode;
-		Director*							_director;
-		bool								_listing;
+
+											Server(int tfd, struct sockaddr_storage ss, size_t addr_len);
+		Server&								operator=(const Server&) { return *this; }
 };
 
 std::ostream& operator<<(std::ostream& os, const Server& server_info);
