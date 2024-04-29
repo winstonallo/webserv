@@ -222,6 +222,28 @@ void	Server::_do_post(std::string& location_path, Request& request)
 		Log::log(filename + " uploaded successfully.\n", STD_OUT);
 }
 
+void	Server::_do_delete(std::string& location_path, Request& request)
+{
+	std::string filename = request.get_uri().substr(request.get_uri().find_last_of("=") + 1);
+	filename = location_path.substr(0, location_path.find_last_of("/") + 1) + filename;
+
+	if (Utils::file_exists(filename) == false)
+	{
+		_errcode = 404;
+		Log::log("Error. " + filename + " not found.\n", STD_ERR | ERROR_FILE);
+		throw std::runtime_error("error");
+	}
+	if (remove(filename.c_str()) != 0)
+	{
+		_errcode = 500;
+		Log::log("Error. Could not remove " + filename + ".\n", STD_ERR | ERROR_FILE);
+		throw std::runtime_error("error");
+	}
+
+	Log::log(filename + " deleted successfully.\n", STD_OUT);
+	_errcode = 200;
+}
+
 std::string		Server::_get_body(Request& rq, ClientInfo *ci)
 {
 	std::string	loc_path;
@@ -245,22 +267,7 @@ std::string		Server::_get_body(Request& rq, ClientInfo *ci)
 	}
 	else if (rq.get_method() == "DELETE")
 	{
-        std::string filename = rq.get_uri().substr(rq.get_uri().find_last_of("=") + 1);
-        filename = loc_path.substr(0, loc_path.find_last_of("/") + 1) + filename;
-		if (Utils::file_exists(filename) == false)
-		{
-			_errcode = 404;
-			Log::log("Error. " + filename + " not found.\n", STD_ERR | ERROR_FILE);
-			throw std::runtime_error("error");
-		}
-		if (remove(filename.c_str()) != 0)
-		{
-			_errcode = 500;
-			Log::log("Error. Could not remove " + filename + ".\n", STD_ERR | ERROR_FILE);
-			throw std::runtime_error("error");
-		}
-		Log::log(filename + " deleted successfully.\n", STD_OUT);
-		_errcode = 200;
+		_do_delete(loc_path, rq);
 	}
 	return "";
 }
@@ -448,7 +455,7 @@ int	Server::_get_directory_list(std::string &path, std::string& body)
 	dir = opendir(path.c_str());
 	if (dir == NULL)
 	{
-		Log::log("Error oppening directory for directory listing.\n", STD_ERR | ERROR_FILE);
+		Log::log("Error opening directory for directory listing.\n", STD_ERR | ERROR_FILE);
 		return -1;
 	}
 	ss << "<html>\n";
