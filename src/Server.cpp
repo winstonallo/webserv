@@ -4,6 +4,7 @@
 #include "LocationInfo.hpp"
 #include <exception>
 #include <netinet/in.h>
+#include <stdexcept>
 #include <string>
 #include <vector>
 #include "Director.hpp"
@@ -418,7 +419,7 @@ std::string		Server::_get_body(Request& rq, ClientInfo *ci)
 			if (_get_directory_list(loc_path, listing_body) < 0)
 			{
 				_errcode = 404;
-				Log::log("Error couldn't create directory listing", STD_ERR | ERROR_FILE);
+				Log::log("Error: couldn't create directory listing", STD_ERR | ERROR_FILE);
 				throw std::runtime_error("error");
 			}
 			_listing = false;
@@ -426,33 +427,17 @@ std::string		Server::_get_body(Request& rq, ClientInfo *ci)
  			return listing_body;	
 		}
 
-		std::ifstream file(loc_path.c_str(), std::ios::binary | std::ios::ate);
-		if (file.fail())
+		try
 		{
-			_errcode = 404;
-			Log::log("Error reading request file\n", STD_ERR | ERROR_FILE); 
-			throw std::runtime_error("error");
+			std::string file = Utils::safe_ifstream(loc_path);
+			_errcode = 200;
+			return file;
 		}
-		else
+		catch (const std::exception& e)
 		{
-			std::ifstream::pos_type size = file.tellg();
-			file.seekg(0, std::ios::beg);
-
-			if (size > 100000)
-			{
-				_errcode = 413;
-				Log::log("Error: Request file too large.\n", STD_ERR | ERROR_FILE);
-				throw std::runtime_error("error");
-			}
-			else
-			{
-				std::vector<char> buffer(size);
-				if (file.read(buffer.data(), size))
-				{
-					_errcode = 200;
-					return std::string(buffer.begin(), buffer.end());
-				}
-			}
+			Log::log(e.what(), STD_ERR | ERROR_FILE);
+			_errcode = 404;
+			throw std::runtime_error(e.what());
 		}
 	}
 	else if (rq.get_method() == "PUT" || rq.get_method() == "POST")
