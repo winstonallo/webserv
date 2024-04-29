@@ -362,6 +362,28 @@ bool	Server::_do_cgi(LocationInfo& location, Request& request, ClientInfo* clien
 	return true;
 }
 
+std::string Server::_configure_file_path(LocationInfo& location, Request& request)
+{
+	std::string file_path;
+
+	if (location.get_alias().empty() == false) 
+	{
+		file_path = Utils::pathconcat(location.get_alias(), request.get_path().substr(location.get_path().size()));
+	}
+	else
+	{
+		if (location.get_root().empty())
+		{
+			file_path = Utils::pathconcat(get_root(), request.get_path());
+		}
+		else
+		{
+			file_path = Utils::pathconcat(location.get_root(), request.get_path());
+		}
+	}
+	return file_path; 
+}
+
 int		Server::_process(Request& rq, ClientInfo* ci, std::string& ret_file)
 {
 	LocationInfo loc_info;
@@ -395,16 +417,8 @@ int		Server::_process(Request& rq, ClientInfo* ci, std::string& ret_file)
 				return _errcode;
 			}
 		}
-		// handle alias || create loc_path path
-		if (loc_info.get_alias().empty() == false) 
-			ret_file = Utils::pathconcat(loc_info.get_alias(), rq.get_path().substr(loc_info.get_path().size()));
-		else
-		{
-			if (loc_info.get_root().empty())
-				ret_file = Utils::pathconcat(get_root(), rq.get_path());
-			else
-				ret_file = Utils::pathconcat(loc_info.get_root(), rq.get_path());
-		} 
+
+		ret_file = _configure_file_path(loc_info, rq);
 
 		// handle if loc_path is a directory 
 		struct stat fst;

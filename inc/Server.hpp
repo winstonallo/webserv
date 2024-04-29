@@ -105,6 +105,7 @@ class Server : public Node
 
 		bool								_configure_max_body_size(LocationInfo& location, Request& request);
 		bool								_method_allowed(LocationInfo& location, Request& request);
+		std::string							_configure_file_path(LocationInfo& location, Request& request);
 
 											Server(int tfd, struct sockaddr_storage ss, size_t addr_len);
 		Server&								operator=(const Server&) { return *this; }
