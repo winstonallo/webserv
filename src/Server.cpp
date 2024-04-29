@@ -314,16 +314,25 @@ bool	Server::_do_cgi(LocationInfo& location, Request& request, ClientInfo* clien
 	script_file_path = request.get_path();
 	script_file_path.erase(0, 1);
 	if (!location.get_root().empty())
+	{
 		script_file_path = location.get_root() + script_file_path;
+	}
 	else if (!client->get_server()->get_root().empty())
+	{
 		script_file_path = client->get_server()->get_root() + script_file_path;
+	}
 	if (script_file_path == "cgi-bin")
+	{
 		script_file_path.append("/" + location.get_index_path()); 
+	}
 	else if (script_file_path == "cgi-bin/")
+	{
 		script_file_path.append(location.get_index_path());
+	}
 		
-	std::string script_ext = Utils::get_file_extension(script_file_path);
-	if (script_ext != ".sh" && script_ext != ".py")
+	std::string script_extension = Utils::get_file_extension(script_file_path);
+
+	if (script_extension != ".sh" && script_extension != ".py")
 	{
 		_errcode = 501;
 		return false;	
@@ -420,23 +429,24 @@ int		Server::_process(Request& rq, ClientInfo* ci, std::string& ret_file)
 
 		ret_file = _configure_file_path(loc_info, rq);
 
-		// handle if loc_path is a directory 
 		struct stat fst;
+
 		if (stat(ret_file.c_str(), &fst) != 0)
 		{
-			//_errcode = 400;
-			_errcode = 0;
 			std::stringstream ss;
 			ss << "Stat function for: " << ret_file << " failed. " << strerror(errno) << "\n";
 			Log::log(ss.str(), STD_ERR | ERROR_FILE);
-			return (_errcode);
+
+			_errcode = 0;
+			return _errcode;
 		}
 		if (S_ISDIR(fst.st_mode))
 		{
 			if (ret_file[ret_file.size() - 1] != '/')
 			{
 				_reloc = rq.get_path() + "/";
-				return (_errcode = 301);
+				_errcode = 301;
+				return _errcode;
 			}
 			if (!loc_info.get_index_path().empty())
 				ret_file += loc_info.get_index_path();
