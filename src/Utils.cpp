@@ -31,10 +31,6 @@ namespace Utils
 	    return access(path.c_str(), W_OK) == 0;
 	}
 
-	// checks existence of file
-	//
-	// @param path:		path to file to check
-	// @return (bool):	true if file exists, else false
 	bool	file_exists(const std::string& path)
 	{
 		std::ifstream	file(path.c_str());
@@ -42,12 +38,6 @@ namespace Utils
 		return file.good();
 	}
 
-	// trims line based on delimiters
-	//
-	// @param	str: string to trim
-	// @param	delimiters: string containing all delimiters
-	//
-	// @return	new trimmed string
 	std::string		trim(const std::string& str, const std::string& delimiters)
 	{
 		size_t	first = str.find_first_not_of(delimiters);
@@ -57,12 +47,6 @@ namespace Utils
 		return str.substr(first, (last - first + 1));
 	}
 
-	// splits line based on delmiters
-	//
-	// @param 	str: string to split
-	// @param 	delimiters: string containing all delimiters
-	//
-	// @return	vector of strings
 	std::vector <std::string>	split(const std::string& str, const std::string& delimiters)
 	{
 		size_t						left = str.find_first_not_of(delimiters, 0), right = 0;
@@ -83,12 +67,6 @@ namespace Utils
 		return ret;
 	}
 
-	// splits line based on delimiters, storing quoted sequences as one word regardless of delimiters
-	//
-	// @param str: 			string to split
-	// @param delimiters: 	string containing all delimiters
-	//
-	// @return:				vector of strings
 	std::vector <std::string>	split_keep_quoted_words(const std::string& str, const std::string& delimiters)
 	{
 		bool						in_quotes = false;
@@ -132,17 +110,6 @@ namespace Utils
 		return str.substr(0, str.find_first_of(delimiters));
 	}
 
-	// helper function for 'split_keep_delimiters'
-	// 
-	// 1.	creates a substring from pos left to pos right
-	// 2.	updates the line count
-	// 3.	if resulting string is not empty, add to the vector with the corresponding line number
-	//
-	// @param str:			config file as a string
-	// @param ret:			vector to store the values into
-	// @param left:			start position of the substring
-	// @param right:		end position of the substring
-	// @param line_number:	current line_number to update & add to the vector 
 	void	get_pair(const std::string& str, std::vector <std::pair <std::string, int> >& ret, size_t left, size_t right, int& line_number)
 	{
 		std::string segment = str.substr(left, right);
@@ -153,22 +120,6 @@ namespace Utils
 		}
 	}
 
-	// this function is ugly af sorry
-	// splits a string based on a delimiter string, adding the delimiters themselves to the resulting vector,
-	// taking double quotes into account & keeping track of the line count
-	//
-	// @param str:			config file as a string
-	// @param delimiters:	delimiters to split the string by
-	// @return:				a vector of pairs:
-	//							- pair.first (string): 	the line we extracted
-	//							- pair.second (int):	the corresponding line number in the file
-	//
-	// - loops over the string, keeping track of the current quote status
-	//		1. if we encounter quotes, flip the quote status -> while in quotes, delimiters are ignored!
-	//		2. else if we find a delimiter, add the line & the delimiter to the vector
-	//		3. edge case handling for the end of the string 
-	// 
-	// - after the loop, if still in quotes: unclosed quotes -> throw error 
 	std::vector <std::pair <std::string, int> > split_keep_delimiters(const std::string& str, const std::string& delimiters)
 	{
 		int 										line_number = 1;
@@ -211,7 +162,6 @@ namespace Utils
 		return ret;
 	}
 
-	// convert int to string
 	std::string	itoa(int num)
 	{
 		std::ostringstream	oss;
@@ -220,7 +170,6 @@ namespace Utils
 		return oss.str();
 	}
 
-	//finds the extension of a file in path
 	std::string get_file_extension(const std::string& file_path)
 	{
 		size_t pos = file_path.rfind(".");
@@ -313,14 +262,6 @@ namespace Utils
 		return error_status_codes;
 	}
 
-	// returns the error page for a given status code
-	//
-	// if:	the status code is not found in the error pages from the config
-	//		->	generate a default error page
-
-	// generates a default error page for a given status code
-	//
-	// cat DEFAULT_ERROR_PAGE | sed 's/400/XXX/g' | sed 's/bad request/new message/g' > new_html_path
 	std::string	generate_default_error_page(const int status_code)
 	{
 		std::string default_error_code = "400";
@@ -460,8 +401,6 @@ namespace Utils
 
 		return uri.substr(start_pos, end_pos);
 	}
-
-
 
 	std::string	to_lower(const std::string& str)
 	{
