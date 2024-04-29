@@ -2,18 +2,20 @@
 #include <cstring>
 #include <cerrno>
 #include "LocationInfo.hpp"
+#include <exception>
 #include <netinet/in.h>
+#include <stdexcept>
 #include <string>
 #include <vector>
 #include "Director.hpp"
 #include <fstream>
 #include "Log.hpp"
+#include "Utils.hpp"
 
 Server::Server() 
 {
 	_init_status_strings();
 	_init_content_types();
-	// _cgi = NULL;
 	_autoindex = false;
 	_errcode = 0;
 	_autoindex = false;
@@ -34,6 +36,7 @@ Server::Server()
 Server::~Server()
 {
 	std::vector<LocationInfo*>::iterator it;
+
 	for (it = _locations.begin(); it != _locations.end(); it++)
 	{
 		delete *it;
@@ -185,21 +188,21 @@ std::vector <LocationInfo*>	Server::get_locations() const
 
 std::string Server::respond(Request& rq)
 {
-	if (rq.get_method() == "GET" || rq.get_method() == "HEAD")
-	{
-		std::ifstream file("index.html");
-		if (file.fail())
+    if (rq.get_method() == "GET" || rq.get_method() == "HEAD")
+    {
+		try
 		{
-			return "Error"; 
+			std::string file = Utils::safe_ifstream("index.html");
+			return file;
 		}
-		std::ostringstream ss;
-		ss << file.rdbuf();
-		return ss.str();
-	}
-	return "Error";
+		catch (const std::exception& e)
+		{
+			Log::log(e.what(), STD_ERR | ERROR_FILE);
+			return "Error";
+		}
+    }
+    return "Error";
 }
-
-//Server
 
 int		Server::get_error_code() const
 {
@@ -348,18 +351,19 @@ void	Server::create_response(Request& rq, ClientInfo* client_info)
 	{
 		failed = true;
 	}
-	
+		
 	if (failed)
 	{
-		std::ifstream error_file(_director->get_config()->get_error_page(_errcode).c_str());
-		if (error_file.fail())
+		try
 		{
-			Log::log("Error reading error page file.\n", STD_ERR | ERROR_FILE);
+			std::string error_page_path = _director->get_config()->get_error_page(_errcode);
+			body = Utils::safe_ifstream(error_page_path);
+		}
+		catch (const std::exception& e)
+		{
+			Log::log(e.what(), STD_ERR | ERROR_FILE);
 			body = DEFAULT_ERROR_PAGE;
 		}
-		std::stringstream ss;
-		ss << error_file.rdbuf();
-		body = ss.str();
 	}
 	ss << "HTTP/1.1 " << _errcode << " " << _status_string[_errcode]  << "\r\n";
 	time_t	curr_time = time(NULL);
@@ -378,26 +382,17 @@ void	Server::create_response(Request& rq, ClientInfo* client_info)
 	ss << "Content-Type: " << _content_type[ex] << "\r\n";
 	if (rq.get_header("CONNECTION").empty())
 	{
-		// std::cout << "got in connections" << std::endl;
 		ss << "Connection: " << rq.get_header("CONNECTION") << "\r\n";
-		// std::cout << "got connection" << std::endl;
 	}
 	ss << "\r\n";
 	if (!body.empty())
 		ss << body;
-	// std::ofstream f("show.txt", std::ios::out);
-	// if (!f.is_open())
-	// {
-	// 	std::cerr << "Error op file" << std::endl;
-	// }
-	// f << ss.str();
-	// f.close();
 	client_info->set_response(ss.str());
 }
 
 std::string		Server::_get_body(Request& rq, ClientInfo *ci)
 {
-	std::string	loc_path;
+	std::string	loc_path = "";
 	std::string listing_body;
 
 	_errcode = _process(rq, ci, loc_path);
@@ -417,7 +412,7 @@ std::string		Server::_get_body(Request& rq, ClientInfo *ci)
 			if (_get_directory_list(loc_path, listing_body) < 0)
 			{
 				_errcode = 404;
-				Log::log("Error couldn't create directory listing", STD_ERR | ERROR_FILE);
+				Log::log("Error: couldn't create directory listing", STD_ERR | ERROR_FILE);
 				throw std::runtime_error("error");
 			}
 			_listing = false;
@@ -425,17 +420,18 @@ std::string		Server::_get_body(Request& rq, ClientInfo *ci)
  			return listing_body;	
 		}
 
-		std::ifstream file(loc_path.c_str());
-		if (file.fail())
+		try
 		{
-			_errcode = 404;
-			Log::log("Error reading request file\n", STD_ERR | ERROR_FILE); 
-			throw std::runtime_error("error");
+			std::string file = Utils::safe_ifstream(loc_path);
+			_errcode = 200;
+			return file;
 		}
-		std::ostringstream ss;
-		ss << file.rdbuf();
-		_errcode = 200;
-		return ss.str();
+		catch (const std::exception& e)
+		{
+			Log::log(e.what(), STD_ERR | ERROR_FILE);
+			_errcode = 404;
+			throw std::runtime_error(e.what());
+		}
 	}
 	else if (rq.get_method() == "PUT" || rq.get_method() == "POST")
 	{

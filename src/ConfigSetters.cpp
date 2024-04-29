@@ -1,5 +1,4 @@
 #include "ConfigSetters.hpp"
-#include "Log.hpp"
 #include "Config.hpp"
 #include "Server.hpp"
 

@@ -4,6 +4,7 @@
 #include <sstream>
 #include <cstdlib>
 #include <algorithm>
+#include <stdexcept>
 #include <string>
 #include <sys/socket.h>
 #include "Log.hpp"
@@ -530,5 +531,53 @@ namespace Utils
 		{
 			throw std::runtime_error("");
 		}
+	}
+
+	bool is_regular_file(const std::string& path)
+	{
+		struct stat path_stat;
+
+		if (stat(path.c_str(), &path_stat) == -1)
+		{
+			throw std::runtime_error("Error: unable to stat file " + path);
+		}
+		return S_ISREG(path_stat.st_mode);
+	}
+
+	std::string	safe_ifstream(const std::string &path)
+	{
+		if (is_regular_file(path) == false)
+		{
+			std::string error_message = "Error: " + path + " is not a regular file.\n";
+			throw std::runtime_error(error_message);
+		}
+
+		std::ifstream file(path.c_str(), std::ios::binary | std::ios::ate);
+		
+		if (file == false)
+		{
+			std::string error_message = "Error: " + path + " not found.\n";
+			throw std::runtime_error(error_message);
+		}
+			
+		std::ifstream::pos_type size = file.tellg();
+
+		if (size > MAX_FILE_SIZE)
+		{
+			std::string error_message = "Error: " + path + " is too big (max. 14KB)\n";
+			throw std::runtime_error(error_message);
+		}
+
+		file.seekg(0, std::ios::beg);
+		std::vector <char> buffer(size);
+		file.read(&buffer[0], size);
+
+		if (file.fail() == true)
+		{
+			std::string error_message = "Error reading " + path + "\n";
+			throw std::runtime_error(error_message);
+		}
+
+		return std::string(buffer.begin(), buffer.end());
 	}
 }
