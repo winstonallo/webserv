@@ -152,10 +152,40 @@ void	Server::create_response(Request& rq, ClientInfo* client_info)
 	client_info->set_response(ss.str());
 }
 
+std::string	Server::_do_get(std::string& location_path)
+{
+	std::string listing_body;
+
+	if (_autoindex == true)
+	{
+		if (_get_directory_list(location_path, listing_body) < 0)
+		{
+			_errcode = 404;
+			Log::log("Error: couldn't create directory listing", STD_ERR | ERROR_FILE);
+			throw std::runtime_error("Error");
+		}
+		_autoindex = false;
+		_errcode = 200;
+		return listing_body;
+	}
+
+	try
+	{
+		std::string file = Utils::safe_ifstream(location_path);
+		_errcode = 200;
+		return file;
+	}
+	catch (const std::exception& e)
+	{
+		Log::log(e.what(), STD_ERR | ERROR_FILE);
+		_errcode = 404;
+		throw std::runtime_error(e.what());
+	}
+}
+
 std::string		Server::_get_body(Request& rq, ClientInfo *ci)
 {
 	std::string	loc_path;
-	std::string listing_body;
 
 	_errcode = _process(rq, ci, loc_path);
 	if (_errcode != 0)
@@ -168,31 +198,7 @@ std::string		Server::_get_body(Request& rq, ClientInfo *ci)
 	}
 	if (rq.get_method() == "GET" || rq.get_method() == "HEAD")
 	{
-		if (_autoindex == true)
-		{
-			if (_get_directory_list(loc_path, listing_body) < 0)
-			{
-				_errcode = 404;
-				Log::log("Error: couldn't create directory listing", STD_ERR | ERROR_FILE);
-				throw std::runtime_error("Error");
-			}
-			_autoindex = false;
-			_errcode = 200;
- 			return listing_body;
-		}
-
-		try
-		{
-			std::string file = Utils::safe_ifstream(loc_path);
-			_errcode = 200;
-			return file;
-		}
-		catch (const std::exception& e)
-		{
-			Log::log(e.what(), STD_ERR | ERROR_FILE);
-			_errcode = 404;
-			throw std::runtime_error(e.what());
-		}
+		return _do_get(loc_path);
 	}
 	else if (rq.get_method() == "PUT" || rq.get_method() == "POST")
 	{

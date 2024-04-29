@@ -98,6 +98,8 @@ class Server : public Node
 		int									_get_directory_list(std::string &path, std::string& body);
 		void								_init_cgi(Request rq, LocationInfo loc);
 
+		std::string							_do_get(std::string& location_path);
+
 											Server(int tfd, struct sockaddr_storage ss, size_t addr_len);
 		Server&								operator=(const Server&) { return *this; }
 };
