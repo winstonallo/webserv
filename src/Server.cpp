@@ -46,7 +46,7 @@ Server::~Server()
 Server::Server(int tfd, struct sockaddr_storage ss, size_t taddr_len):
 	Node(tfd, ss, taddr_len, SERVER_NODE)
 {
-	_init_status_strings();
+	_status_string = Utils::get_status_codes();
 	_init_content_types(); 
 	_autoindex = false;
 	_errcode = 0;
@@ -81,61 +81,6 @@ std::string Server::respond(Request& rq)
 		}
     }
     return "Error";
-}
-
-void	Server::_init_status_strings()
-{
-	_status_string[100] = "Continue";
-	_status_string[101] = "Switching Protocol";
-	_status_string[200] = "OK";
-	_status_string[201] = "Created";
-	_status_string[202] = "Accepted";
-	_status_string[203] = "Non-Authoritative Information";
-	_status_string[204] = "No Content";
-	_status_string[205] = "Reset Content";
-	_status_string[206] = "Partial Content";
-	_status_string[300] = "Multiple Choice";
-	_status_string[301] = "Moved Permanently";
-	_status_string[302] = "Moved Temporarily";
-	_status_string[303] = "See Other";
-	_status_string[304] = "Not Modified";
-	_status_string[307] = "Temporary Redirect";
-	_status_string[308] = "Permanent Redirect";
-	_status_string[400] = "Bad Request";
-	_status_string[401] = "Unauthorized";
-	_status_string[403] = "Forbidden";
-	_status_string[404] = "Not Found";
-	_status_string[405] = "Method Not Allowed";
-	_status_string[406] = "Not Acceptable";
-	_status_string[407] = "Proxy Authentication Required";
-	_status_string[408] = "Request Timeout";
-	_status_string[409] = "Conflict";
-	_status_string[410] = "Gone";
-	_status_string[411] = "Length Required";
-	_status_string[412] = "Precondition Failed";
-	_status_string[413] = "Payload Too Large";
-	_status_string[414] = "URI Too Long";
-	_status_string[415] = "Unsupported Media Type";
-	_status_string[416] = "Requested Range Not Satisfiable";
-	_status_string[417] = "Expectation Failed";
-	_status_string[418] = "I'm a teapot";
-	_status_string[421] = "Misdirected Request";
-	_status_string[425] = "Too Early";
-	_status_string[426] = "Upgrade Required";
-	_status_string[428] = "Precondition Required";
-	_status_string[429] = "Too Many Requests";
-	_status_string[431] = "Request Header Fields Too Large";
-	_status_string[451] = "Unavailable for Legal Reasons";
-	_status_string[500] = "Internal Server Error";
-	_status_string[501] = "Not Implemented";
-	_status_string[502] = "Bad Gateway";
-	_status_string[503] = "Service Unavailable";
-	_status_string[504] = "Gateway Timeout";
-	_status_string[505] = "HTTP Version Not Supported";
-	_status_string[506] = "Variant Also Negotiates";
-	_status_string[507] = "Insufficient Storage";
-	_status_string[510] = "Not Extended";
-	_status_string[511] = "Network Authentication Required";
 }
 
 void	Server::_init_content_types()

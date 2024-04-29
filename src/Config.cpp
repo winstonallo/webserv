@@ -50,7 +50,7 @@ Config::Config(const std::string& config_path)
 	std::map <int, _map> servers = dispatcher.get_servers();
 
 	_error_pages = dispatcher.get_error_pages();
-	_error_status_codes = Utils::get_error_status_codes();
+	_error_status_codes = Utils::get_status_codes();
 	initialize_location_setters();
 	initialize_server_setters();
 	set_servers(servers);
