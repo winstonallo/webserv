@@ -547,7 +547,7 @@ namespace Utils
 
 		if (stat(path.c_str(), &path_stat) == -1)
 		{
-			throw std::runtime_error("Error: unable to stat file " + path);
+			throw std::runtime_error("Error: unable to stat file " + path + "\n");
 		}
 		return S_ISREG(path_stat.st_mode);
 	}
