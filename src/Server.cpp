@@ -4,18 +4,20 @@
 #include "LocationInfo.hpp"
 #include <exception>
 #include <netinet/in.h>
+#include <ostream>
 #include <stdexcept>
 #include <string>
 #include <vector>
 #include "Director.hpp"
 #include <fstream>
 #include "Log.hpp"
+#include "Request.hpp"
 #include "Utils.hpp"
 
 Server::Server() 
 {
-	_init_status_strings();
-	_init_content_types();
+	_status_string = Utils::get_status_codes();
+	_content_type = Utils::get_content_types();
 	_autoindex = false;
 	_errcode = 0;
 	_autoindex = false;
@@ -30,7 +32,7 @@ Server::Server()
 	_access_log = "";
 	_error_pages = std::map<int, std::string>();
 	_locations = std::vector<LocationInfo *>();
-	_listing = false;
+	_autoindex = false;
 }
 
 Server::~Server()
@@ -43,13 +45,11 @@ Server::~Server()
 	}
 }
 
-
 Server::Server(int tfd, struct sockaddr_storage ss, size_t taddr_len):
 	Node(tfd, ss, taddr_len, SERVER_NODE)
 {
-	_init_status_strings();
-	_init_content_types(); 
-	// _cgi = NULL;
+	_status_string = Utils::get_status_codes();
+	_content_type = Utils::get_content_types();
 	_autoindex = false;
 	_errcode = 0;
 	_autoindex = false;
@@ -64,126 +64,7 @@ Server::Server(int tfd, struct sockaddr_storage ss, size_t taddr_len):
 	_access_log = "";
 	_error_pages = std::map<int, std::string>();
 	_locations = std::vector<LocationInfo *>();
-	_listing = false;
-}
-
-Server::Server(const Server& rhs) : Node()
-{*this = rhs;}
-
-Server&	Server::operator=(const Server& rhs)
-{
-	if (this != &rhs)
-	{
-		_port = rhs._port;
-		_server_name = rhs._server_name;
-		_autoindex = rhs._autoindex;
-		_root = rhs._root;
-		_error_log = rhs._error_log;
-		_access_log = rhs._access_log;
-		_locations = rhs._locations;
-		_listing = rhs._listing;
-	}
-	return (*this);
-}
-
-int	Server::get_port() const
-{
-	return (_port);
-}
-
-void	Server::set_port(int prt)
-{
-	_port = prt;
-}
-
-void	Server::set_server_name(const std::vector <std::string>& tserver_name)
-{
-	_server_name = tserver_name;
-}
-
-std::vector <std::string>	Server::get_server_name() const
-{
-	return _server_name;
-}
-
-bool	Server::get_auto_index() const
-{
-	return (_listing); 
-}
-
-void	Server::set_auto_index(bool t)
-{
-	_listing = t;
-}
-
-std::string	Server::get_error_log() const
-{
-	return (_error_log);
-}
-
-void	Server::set_error_log(const std::string& log)
-{
-	_error_log = log;
-}
-
-std::string	Server::get_access_log() const
-{
-	return (_access_log);
-}
-
-void	Server::set_access_log(const std::string& log)
-{
-	_access_log = log;
-}
-
-struct in_addr		Server::get_host_address() const
-{
-	return _host_address;
-}
-
-void	Server::set_host_address(struct in_addr& host)
-{
-	_host_address = host;
-}
-
-int	Server::get_client_max_body_size() const
-{
-	return _client_max_body_size;
-}
-
-void	Server::set_client_max_body_size(const int client_max_body_size)
-{
-	_client_max_body_size= client_max_body_size;
-}
-
-void	Server::set_index_path(const std::string& loc)
-{
-	_index = loc;
-}
-
-std::string	Server::get_index_path() const
-{
-	return _index;
-}
-
-void	Server::add_locations(std::vector <LocationInfo*> locations)
-{
-	this->_locations = locations;
-}
-
-std::string	Server::get_root() const
-{
-	return _root;
-}
-
-void	Server::set_root(const std::string& rt)
-{
-	_root = rt;
-}
-
-std::vector <LocationInfo*>	Server::get_locations() const
-{
-	return _locations;
+	_autoindex = false;
 }
 
 std::string Server::respond(Request& rq)
@@ -204,138 +85,26 @@ std::string Server::respond(Request& rq)
     return "Error";
 }
 
-int		Server::get_error_code() const
-{
-	return _errcode;
-}
-
-void	Server::set_error_code(int cd)
-{
-	_errcode = cd;
-}
-
-void	Server::set_director(Director *d)
-{
-	_director = d;
-}
-
-Director*	Server::get_director() const
-{
-	return _director;
-}
-
-
-// std::string Server::get_response() const
-// {
-// 	return _response;
-// }
-
-// void	Server::set_response(const std::string& rs)
-// {
-// 	_response = rs;
-// }
-
-std::string Server::get_relocation() const
-{
-	return _reloc;
-}
-
-void	Server::set_relocation(const std::string& rs)
-{
-	_reloc = rs;
-}
-
-void	Server::_init_status_strings()
-{
-	_status_string[100] = "Continue";
-	_status_string[101] = "Switching Protocol";
-	_status_string[200] = "OK";
-	_status_string[201] = "Created";
-	_status_string[202] = "Accepted";
-	_status_string[203] = "Non-Authoritative Information";
-	_status_string[204] = "No Content";
-	_status_string[205] = "Reset Content";
-	_status_string[206] = "Partial Content";
-	_status_string[300] = "Multiple Choice";
-	_status_string[301] = "Moved Permanently";
-	_status_string[302] = "Moved Temporarily";
-	_status_string[303] = "See Other";
-	_status_string[304] = "Not Modified";
-	_status_string[307] = "Temporary Redirect";
-	_status_string[308] = "Permanent Redirect";
-	_status_string[400] = "Bad Request";
-	_status_string[401] = "Unauthorized";
-	_status_string[403] = "Forbidden";
-	_status_string[404] = "Not Found";
-	_status_string[405] = "Method Not Allowed";
-	_status_string[406] = "Not Acceptable";
-	_status_string[407] = "Proxy Authentication Required";
-	_status_string[408] = "Request Timeout";
-	_status_string[409] = "Conflict";
-	_status_string[410] = "Gone";
-	_status_string[411] = "Length Required";
-	_status_string[412] = "Precondition Failed";
-	_status_string[413] = "Payload Too Large";
-	_status_string[414] = "URI Too Long";
-	_status_string[415] = "Unsupported Media Type";
-	_status_string[416] = "Requested Range Not Satisfiable";
-	_status_string[417] = "Expectation Failed";
-	_status_string[418] = "I'm a teapot";
-	_status_string[421] = "Misdirected Request";
-	_status_string[425] = "Too Early";
-	_status_string[426] = "Upgrade Required";
-	_status_string[428] = "Precondition Required";
-	_status_string[429] = "Too Many Requests";
-	_status_string[431] = "Request Header Fields Too Large";
-	_status_string[451] = "Unavailable for Legal Reasons";
-	_status_string[500] = "Internal Server Error";
-	_status_string[501] = "Not Implemented";
-	_status_string[502] = "Bad Gateway";
-	_status_string[503] = "Service Unavailable";
-	_status_string[504] = "Gateway Timeout";
-	_status_string[505] = "HTTP Version Not Supported";
-	_status_string[506] = "Variant Also Negotiates";
-	_status_string[507] = "Insufficient Storage";
-	_status_string[510] = "Not Extended";
-	_status_string[511] = "Network Authentication Required";
-}
-
-void	Server::_init_content_types()
-{
-    _content_type["default"] = 	"text/html";
-    _content_type[".html"] 	= 	"text/html";
-    _content_type[".htm"] 	= 	"text/html";
-    _content_type[".css"] 	= 	"text/css";
-    _content_type[".txt"] 	= 	"text/plain";
-    _content_type[".bmp"] 	= 	"image/bmp";
-    _content_type[".gif"] 	= 	"image/gif";
-    _content_type[".ico"] 	= 	"image/x-icon";
-    _content_type[".ico"] 	= 	"image/x-icon";
-    _content_type[".jpg"] 	= 	"image/jpeg";
-    _content_type[".jpeg"]	= 	"image/jpeg";
-    _content_type[".png"] 	= 	"image/png";
-    _content_type[".pdf"] 	= 	"application/pdf";
-    _content_type[".gz"] 	= 	"application/x-gzip";
-    _content_type[".doc"] 	= 	"application/msword";
-    _content_type[".avi"] 	= 	"video/x-msvideo";
-    _content_type[".mp3"] 	= 	"audio/mp3";
-}
-
 void	Server::create_response(Request& rq, ClientInfo* client_info)
 {
 	std::stringstream 	ss;
 	std::string 		ex;
 	char				buf[100];
 	std::string			body;
-	bool				failed = false;
+	bool				failed = true;
 
 	if ((_errcode = rq.get_errcode()) == 0)
 	{
 		try
 		{
 			body = _get_body(rq, client_info);
+
 			if (client_info->is_cgi())
+			{
 				return ;
+			}
+
+			failed = false;
 		}
 		catch(const std::exception& e)
 		{
@@ -344,14 +113,8 @@ void	Server::create_response(Request& rq, ClientInfo* client_info)
 				failed = false;
 				_errcode = 301;
 			}
-			failed = true;
 		}
 	}
-	else
-	{
-		failed = true;
-	}
-		
 	if (failed)
 	{
 		try
@@ -390,74 +153,62 @@ void	Server::create_response(Request& rq, ClientInfo* client_info)
 	client_info->set_response(ss.str());
 }
 
-std::string		Server::_get_body(Request& rq, ClientInfo *ci)
+std::string	Server::_do_get(std::string& location_path)
 {
-	std::string	loc_path = "";
 	std::string listing_body;
 
-	_errcode = _process(rq, ci, loc_path);
-	if (_errcode)
+	if (_autoindex == true)
 	{
-		throw std::runtime_error("error");
-	}
-	if (ci->is_cgi())
-	{
-		return "";
-	}
-	if (rq.get_method() == "GET" || rq.get_method() == "HEAD")
-	{
-		// std::cerr << "got hererasdfasdfas" << std::endl;
-		if (_listing)
+		if (_get_directory_list(location_path, listing_body) < 0)
 		{
-			if (_get_directory_list(loc_path, listing_body) < 0)
-			{
-				_errcode = 404;
-				Log::log("Error: couldn't create directory listing", STD_ERR | ERROR_FILE);
-				throw std::runtime_error("error");
-			}
-			_listing = false;
-			_errcode = 200;
- 			return listing_body;	
-		}
-
-		try
-		{
-			std::string file = Utils::safe_ifstream(loc_path);
-			_errcode = 200;
-			return file;
-		}
-		catch (const std::exception& e)
-		{
-			Log::log(e.what(), STD_ERR | ERROR_FILE);
 			_errcode = 404;
-			throw std::runtime_error(e.what());
+			Log::log("Error: couldn't create directory listing", STD_ERR | ERROR_FILE);
+			throw std::runtime_error("Error");
 		}
+		_autoindex = false;
+		_errcode = 200;
+		return listing_body;
 	}
-	else if (rq.get_method() == "PUT" || rq.get_method() == "POST")
+
+	try
 	{
-		if ((Utils::file_exists(loc_path)) && rq.get_method() == "POST")
+		std::string file = Utils::safe_ifstream(location_path);
+		_errcode = 200;
+		return file;
+	}
+	catch (const std::exception& e)
+	{
+		Log::log(e.what(), STD_ERR | ERROR_FILE);
+		_errcode = 404;
+		throw std::runtime_error(e.what());
+	}
+}
+
+void	Server::_do_post(std::string& location_path, Request& request)
+{
+		if ((Utils::file_exists(location_path)) && request.get_method() == "POST")
 		{
 			_errcode = 204;
-			throw std::runtime_error("error");
+			throw std::runtime_error("Error");
 		}
-        std::string upload_dir = loc_path.substr(0, loc_path.find_last_of("/") + 1);
+        std::string upload_dir = location_path.substr(0, location_path.find_last_of("/") + 1);
         if (Utils::file_exists(upload_dir) == false)
         {
             if (mkdir(upload_dir.c_str(), 0777) == -1)
             {
                 _errcode = 500;
                 Log::log("Error. Couldn't create directory for file upload.\n", STD_ERR | ERROR_FILE);
-                throw std::runtime_error("error");
+                throw std::runtime_error("Error");
             }
         }
-		std::string filename = rq.get_header("CONTENT-DISPOSITION");
+		std::string filename = request.get_header("CONTENT-DISPOSITION");
 		if (filename != "default")
 		{
 			filename = upload_dir + filename.substr(filename.find("filename=") + 10, filename.find_last_of("\"") - filename.find("filename=") - 10);
 		}
 		else 
 		{
-			filename = loc_path;
+			filename = location_path;
 		}
 		std::ofstream file(filename.c_str(), std::ios::binary);
 		if (file.fail())
@@ -467,29 +218,266 @@ std::string		Server::_get_body(Request& rq, ClientInfo *ci)
 			throw std::runtime_error("error");
 		}
 		_errcode = 200;
-		file.write(rq.get_body().c_str(), rq.get_body().size());
+		file.write(request.get_body().c_str(), request.get_body().size());
 		Log::log(filename + " uploaded successfully.\n", STD_OUT);
-	}
-	else if (rq.get_method() == "DELETE")
+}
+
+void	Server::_do_delete(std::string& location_path, Request& request)
+{
+	std::string filename = request.get_uri().substr(request.get_uri().find_last_of("=") + 1);
+	filename = location_path.substr(0, location_path.find_last_of("/") + 1) + filename;
+
+	if (Utils::file_exists(filename) == false)
 	{
-        std::string filename = rq.get_uri().substr(rq.get_uri().find_last_of("=") + 1);
-        filename = loc_path.substr(0, loc_path.find_last_of("/") + 1) + filename;
-		if (Utils::file_exists(filename) == false)
-		{
-			_errcode = 404;
-			Log::log("Error. " + filename + " not found.\n", STD_ERR | ERROR_FILE);
-			throw std::runtime_error("error");
-		}
-		if (remove(filename.c_str()) != 0)
-		{
-			_errcode = 500;
-			Log::log("Error. Could not remove " + filename + ".\n", STD_ERR | ERROR_FILE);
-			throw std::runtime_error("error");
-		}
-		Log::log(filename + " deleted successfully.\n", STD_OUT);
-		_errcode = 200;
+		_errcode = 404;
+		Log::log("Error. " + filename + " not found.\n", STD_ERR | ERROR_FILE);
+		throw std::runtime_error("error");
 	}
+	if (remove(filename.c_str()) != 0)
+	{
+		_errcode = 500;
+		Log::log("Error. Could not remove " + filename + ".\n", STD_ERR | ERROR_FILE);
+		throw std::runtime_error("error");
+	}
+
+	Log::log(filename + " deleted successfully.\n", STD_OUT);
+	_errcode = 200;
+}
+
+std::string		Server::_get_body(Request& rq, ClientInfo *ci)
+{
+	std::string	loc_path;
+
+	_errcode = _process(rq, ci, loc_path);
+	if (_errcode != 0)
+	{
+		throw std::runtime_error("Error");
+	}
+
+	if (ci->is_cgi() == false)
+	{
+		if (rq.get_method() == "GET" || rq.get_method() == "HEAD")
+		{
+			return _do_get(loc_path);
+		}
+		else if (rq.get_method() == "PUT" || rq.get_method() == "POST")
+		{
+			_do_post(loc_path, rq);
+		}
+		else if (rq.get_method() == "DELETE")
+		{
+			_do_delete(loc_path, rq);
+		}
+	}
+
 	return "";
+}
+
+bool	Server::_configure_max_body_size(LocationInfo& location, Request& request)
+{
+	if (location.get_client_max_body_size() == 0)
+	{
+		location.set_client_max_body_size(_client_max_body_size);
+	}
+
+	if ((int)request.get_body().size() > location.get_client_max_body_size())
+	{
+		Log::log("Error. Client body is too big.\n", STD_ERR | ERROR_FILE);
+		_errcode = 413;
+		return false;
+	}
+
+	return true;
+}
+
+bool	Server::_method_allowed(LocationInfo& location, Request& request)
+{
+	std::vector<std::string> vec = location.get_allowed_methods();
+	std::vector<std::string>::iterator end = vec.end();
+	std::vector<std::string>::iterator begin = vec.begin();
+
+	if(std::find(begin,	end, request.get_method()) == end)
+	{	
+		std::stringstream ss;
+		ss << "Error. Method \"" << request.get_method() << "\" not allowed.\n";
+		Log::log(ss.str(), STD_ERR | ERROR_FILE);
+
+		_errcode = 405;
+		return false;
+	}
+	return true;
+}
+
+std::string Server::_get_cgi_path(LocationInfo& location, Request& request, ClientInfo* client)
+{
+	std::string script_file_path;
+	script_file_path = request.get_path();
+	script_file_path.erase(0, 1);
+
+	if (location.get_root().empty() == false)
+	{
+		script_file_path = location.get_root() + script_file_path;
+	}
+	else if (client->get_server()->get_root().empty() == false)
+	{
+		script_file_path = client->get_server()->get_root() + script_file_path;
+	}
+	if (script_file_path == "cgi-bin")
+	{
+		script_file_path.append("/" + location.get_index_path()); 
+	}
+	else if (script_file_path == "cgi-bin/")
+	{
+		script_file_path.append(location.get_index_path());
+	}
+
+	return script_file_path;
+}
+
+bool	Server::_validate_cgi(const std::string& script_file_path)
+{
+	std::string script_extension = Utils::get_file_extension(script_file_path);
+
+	if (script_extension != ".sh" && script_extension != ".py")
+	{
+		_errcode = 501;
+		return false;	
+	}
+	if (!Utils::is_file(script_file_path))
+	{
+		_errcode = 404;
+		return false;
+	}
+	if (access(script_file_path.c_str(), X_OK) == -1 || access(script_file_path.c_str(), X_OK | R_OK) == -1)
+	{
+		_errcode = 403;
+		return false;
+	}
+	return true;
+}
+
+bool	Server::_do_cgi(LocationInfo& location, Request& request, ClientInfo* client)
+{
+	std::string script_file_path = _get_cgi_path(location, request, client);
+
+	if (_validate_cgi(script_file_path) == false)
+	{
+		return _errcode;
+	}
+
+	if (client->get_cgi() == NULL)
+	{
+		client->set_cgi(new CGI());
+	}
+	else
+	{
+		client->get_cgi()->clear();
+	}
+	client->set_is_cgi(true);
+	client->get_cgi()->set_path(script_file_path);
+	client->get_cgi()->initialize_environment_map(request);
+	try
+	{
+		client->set_pid(client->get_cgi()->execute(_locations, script_file_path));
+	}
+	catch(const std::exception& e)
+	{
+		Log::log("Error. CGI execution failed.\n", STD_ERR | ERROR_FILE);
+		_errcode = 500;
+		return false;
+	}
+	return true;
+}
+
+std::string Server::_configure_file_path(LocationInfo& location, Request& request)
+{
+	std::string file_path;
+
+	if (location.get_alias().empty() == false) 
+	{
+		file_path = Utils::pathconcat(location.get_alias(), request.get_path().substr(location.get_path().size()));
+	}
+	else
+	{
+		if (location.get_root().empty())
+		{
+			file_path = Utils::pathconcat(get_root(), request.get_path());
+		}
+		else
+		{
+			file_path = Utils::pathconcat(location.get_root(), request.get_path());
+		}
+	}
+	return file_path; 
+}
+
+bool Server::_handle_empty_location_path(Request& request, const std::string& ret_file)
+{
+	std::string location_path;
+
+	location_path = Utils::pathconcat(get_root(), request.get_path());
+	struct stat fst;
+	if (stat(location_path.c_str(), &fst) != 0)
+	{
+		Log::log("Stat function on failed.\n", STD_ERR | ERROR_FILE);
+		_errcode = 400;
+		return false;
+	}
+	if (S_ISDIR(fst.st_mode))
+	{
+		if (ret_file.end()[-1] != '/')
+		{
+			_errcode = 301;
+		}
+	}
+	return true;
+}
+
+bool	Server::_handle_directory_request(std::string& ret_file, const Request& request, const LocationInfo& location)
+{
+	struct stat fst;
+
+	if (stat(ret_file.c_str(), &fst) != 0)
+	{
+		std::stringstream ss;
+		ss << "Stat function for: " << ret_file << " failed. " << strerror(errno) << "\n";
+		Log::log(ss.str(), STD_ERR | ERROR_FILE);
+
+		_errcode = 0;
+		return false;
+	}
+	if (S_ISDIR(fst.st_mode))
+	{
+		if (ret_file[ret_file.size() - 1] != '/')
+		{
+			_reloc = request.get_path() + "/";
+			_errcode = 301;
+			return false;
+		}
+		if (!location.get_index_path().empty())
+		{
+			ret_file += location.get_index_path();
+		}
+		else
+		{
+			ret_file += get_index_path();
+		}
+		if (Utils::file_exists(ret_file) == false)
+		{
+			if (location.get_autoindex() == true)
+			{
+				ret_file.erase(ret_file.find_last_of('/') + 1);
+				_autoindex = true;
+				return false;
+			}
+			else 
+			{
+				_errcode = 403;
+				return false;
+			}
+		}
+	}
+	return true;
 }
 
 int		Server::_process(Request& rq, ClientInfo* ci, std::string& ret_file)
@@ -498,140 +486,46 @@ int		Server::_process(Request& rq, ClientInfo* ci, std::string& ret_file)
 	std::string loc_path;
 
 	_get_best_location_match(_locations, rq, loc_path, &loc_info);
-	if (!loc_path.empty())
+
+	if (loc_path.empty() == false)
 	{
-		if (loc_info.get_client_max_body_size() == 0)
+		if (_configure_max_body_size(loc_info, rq) == false)
 		{
-			loc_info.set_client_max_body_size(_client_max_body_size);
+			return _errcode;
 		}
-		if ((int)rq.get_body().size() > loc_info.get_client_max_body_size())
+
+		if (_method_allowed(loc_info, rq) == false)
 		{
-			Log::log("Error. Client body is too big.\n", STD_ERR | ERROR_FILE);
-			return (_errcode = 413);
+			return _errcode;
 		}
-		// is method allowed?
-		std::vector<std::string> vec = loc_info.get_allowed_methods();
-		std::vector<std::string>::iterator end = vec.end();
-		std::vector<std::string>::iterator begin = vec.begin();
-		if(std::find(begin,	end, rq.get_method()) == end)
-		{	
-			std::stringstream ss;
-			ss << "Error. Method \"" << rq.get_method() << "\" not allowed.\n";
-			Log::log(ss.str(), STD_ERR | ERROR_FILE);
-			return (_errcode = 405);
-		}
-		// return handler
+
 		if (loc_info.get_return().empty() == false)
 		{
 			loc_path = loc_info.get_return();
-			return (_errcode = 301);
+			_errcode = 301;
+			return _errcode;
 		}
-		// handle cgi
+
 		if (loc_info.get_path().find("cgi-bin") != std::string::npos)
 		{
-			std::string script_file_path;
-			script_file_path = rq.get_path();
-			script_file_path.erase(0, 1);
-			if (!loc_info.get_root().empty())
-				script_file_path = loc_info.get_root() + script_file_path;
-			else if (!ci->get_server()->get_root().empty())
-				script_file_path = ci->get_server()->get_root() + script_file_path;
-			if (script_file_path == "cgi-bin")
-				script_file_path.append("/" + loc_info.get_index_path()); 
-			else if (script_file_path == "cgi-bin/")
-				script_file_path.append(loc_info.get_index_path());
-				
-			std::string script_ext = Utils::get_file_extension(script_file_path);
-			if (script_ext != ".sh" && script_ext != ".py")
-				return (_errcode = 501);	
-			if (!Utils::is_file(script_file_path))
-				return (_errcode = 404);
-			if (access(script_file_path.c_str(), X_OK) == -1 || access(script_file_path.c_str(), X_OK | R_OK) == -1)
-				return (_errcode = 403);
-			if (ci->get_cgi() == NULL)
+			if (_do_cgi(loc_info, rq, ci) == false)
 			{
-				ci->set_cgi(new CGI());
+				return _errcode;
 			}
-			else
-			{
-				ci->get_cgi()->clear();
-			}
-			ci->set_is_cgi(true);
-			ci->get_cgi()->set_path(script_file_path);
-			ci->get_cgi()->initialize_environment_map(rq);
-			try
-			{
-				ci->set_pid(ci->get_cgi()->execute(_locations, script_file_path));
-			}
-			catch(const std::exception& e)
-			{
-				Log::log("Error. CGI execution failed.\n", STD_ERR | ERROR_FILE);
-				return (_errcode = 500);
-			}
-			return 0;
 		}
-		// handle alias || create loc_path path
-		if (loc_info.get_alias().empty() == false) 
-			ret_file = Utils::pathconcat(loc_info.get_alias(), rq.get_path().substr(loc_info.get_path().size()));
-		else
-		{
-			if (loc_info.get_root().empty())
-				ret_file = Utils::pathconcat(get_root(), rq.get_path());
-			else
-				ret_file = Utils::pathconcat(loc_info.get_root(), rq.get_path());
-		} 
 
-		// handle if loc_path is a directory 
-		struct stat fst;
-		if (stat(ret_file.c_str(), &fst) != 0)
+		ret_file = _configure_file_path(loc_info, rq);
+
+		if (_handle_directory_request(ret_file, rq, loc_info) == false)
 		{
-			//_errcode = 400;
-			_errcode = 0;
-			std::stringstream ss;
-			ss << "Stat function for: " << ret_file << " failed. " << strerror(errno) << "\n";
-			Log::log(ss.str(), STD_ERR | ERROR_FILE);
-			return (_errcode);
-		}
-		if (S_ISDIR(fst.st_mode))
-		{
-			if (ret_file[ret_file.size() - 1] != '/')
-			{
-				_reloc = rq.get_path() + "/";
-				return (_errcode = 301);
-			}
-			if (!loc_info.get_index_path().empty())
-				ret_file += loc_info.get_index_path();
-			else
-				ret_file += get_index_path();
-			if (Utils::file_exists(ret_file) == false)
-			{
-				if (loc_info.get_autoindex())
-				{
-					ret_file.erase(ret_file.find_last_of('/') + 1);
-					_listing = true;
-					return 0;
-				}
-				else 
-					return (_errcode = 403);
-			}
+			return _errcode;
 		}
 	}
 	else
 	{
-		loc_path = Utils::pathconcat(get_root(), rq.get_path());
-		struct stat fst;
-		if (stat(loc_path.c_str(), &fst) != 0)
+		if (_handle_empty_location_path(rq, ret_file) == false)
 		{
-			_errcode = 400;
-			Log::log("Stat function on failed.\n", STD_ERR | ERROR_FILE);
-			return (_errcode);
-		}
-		if (S_ISDIR(fst.st_mode))
-		{
-			if (ret_file[ret_file.size() - 1] != '/')
-			{
-				_errcode = 301;
-			}
+			return _errcode;
 		}
 	}
 	return 0;
@@ -642,10 +536,10 @@ void	Server::_get_best_location_match(std::vector<LocationInfo*> locs,
 										std::string& best_match,
 										LocationInfo* locinfo)
 {
-	(void)locinfo;
 	int max_len = 0;
 	std::vector<LocationInfo*>::iterator e = locs.end();
 	std::vector<LocationInfo*>::iterator it;
+
 	for (it = locs.begin(); it != e; it++)
 	{
 		if(rq.get_path().find((*it)->get_path()) == 0)
@@ -672,11 +566,10 @@ int	Server::_get_directory_list(std::string &path, std::string& body)
 	std::string f_path;
 	struct stat fst;
 	struct dirent *dir_entry;
-	//std::cout << path << std::endl;
 	dir = opendir(path.c_str());
 	if (dir == NULL)
 	{
-		Log::log("Error oppening directory for directory listing.\n", STD_ERR | ERROR_FILE);
+		Log::log("Error opening directory for directory listing.\n", STD_ERR | ERROR_FILE);
 		return -1;
 	}
 	ss << "<html>\n";
@@ -691,7 +584,6 @@ int	Server::_get_directory_list(std::string &path, std::string& body)
 	ss << "<th style=\"text-align:left\"> Size </th>\n";
 	while((dir_entry = readdir(dir)) != NULL)
 	{
-		// if ((dir_entry->d_name[0] == '.') && (dir_entry->d_name[1] = '\0'))
 		if (strcmp(dir_entry->d_name, ".") == 0)
 			continue;
 		f_path = path + dir_entry->d_name;
@@ -730,10 +622,5 @@ void	Server::reset()
 	_autoindex = false;
 	_errcode = 0;
 	_reloc.clear();
-	_listing = false;
-	// if (_cgi)
-	// 	delete _cgi;
-	// _cgi = NULL;
-
-	// _response.clear();
+	_autoindex = false;
 }

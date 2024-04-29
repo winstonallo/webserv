@@ -31,10 +31,6 @@ namespace Utils
 	    return access(path.c_str(), W_OK) == 0;
 	}
 
-	// checks existence of file
-	//
-	// @param path:		path to file to check
-	// @return (bool):	true if file exists, else false
 	bool	file_exists(const std::string& path)
 	{
 		std::ifstream	file(path.c_str());
@@ -42,12 +38,6 @@ namespace Utils
 		return file.good();
 	}
 
-	// trims line based on delimiters
-	//
-	// @param	str: string to trim
-	// @param	delimiters: string containing all delimiters
-	//
-	// @return	new trimmed string
 	std::string		trim(const std::string& str, const std::string& delimiters)
 	{
 		size_t	first = str.find_first_not_of(delimiters);
@@ -57,12 +47,6 @@ namespace Utils
 		return str.substr(first, (last - first + 1));
 	}
 
-	// splits line based on delmiters
-	//
-	// @param 	str: string to split
-	// @param 	delimiters: string containing all delimiters
-	//
-	// @return	vector of strings
 	std::vector <std::string>	split(const std::string& str, const std::string& delimiters)
 	{
 		size_t						left = str.find_first_not_of(delimiters, 0), right = 0;
@@ -83,12 +67,6 @@ namespace Utils
 		return ret;
 	}
 
-	// splits line based on delimiters, storing quoted sequences as one word regardless of delimiters
-	//
-	// @param str: 			string to split
-	// @param delimiters: 	string containing all delimiters
-	//
-	// @return:				vector of strings
 	std::vector <std::string>	split_keep_quoted_words(const std::string& str, const std::string& delimiters)
 	{
 		bool						in_quotes = false;
@@ -132,17 +110,6 @@ namespace Utils
 		return str.substr(0, str.find_first_of(delimiters));
 	}
 
-	// helper function for 'split_keep_delimiters'
-	// 
-	// 1.	creates a substring from pos left to pos right
-	// 2.	updates the line count
-	// 3.	if resulting string is not empty, add to the vector with the corresponding line number
-	//
-	// @param str:			config file as a string
-	// @param ret:			vector to store the values into
-	// @param left:			start position of the substring
-	// @param right:		end position of the substring
-	// @param line_number:	current line_number to update & add to the vector 
 	void	get_pair(const std::string& str, std::vector <std::pair <std::string, int> >& ret, size_t left, size_t right, int& line_number)
 	{
 		std::string segment = str.substr(left, right);
@@ -153,22 +120,6 @@ namespace Utils
 		}
 	}
 
-	// this function is ugly af sorry
-	// splits a string based on a delimiter string, adding the delimiters themselves to the resulting vector,
-	// taking double quotes into account & keeping track of the line count
-	//
-	// @param str:			config file as a string
-	// @param delimiters:	delimiters to split the string by
-	// @return:				a vector of pairs:
-	//							- pair.first (string): 	the line we extracted
-	//							- pair.second (int):	the corresponding line number in the file
-	//
-	// - loops over the string, keeping track of the current quote status
-	//		1. if we encounter quotes, flip the quote status -> while in quotes, delimiters are ignored!
-	//		2. else if we find a delimiter, add the line & the delimiter to the vector
-	//		3. edge case handling for the end of the string 
-	// 
-	// - after the loop, if still in quotes: unclosed quotes -> throw error 
 	std::vector <std::pair <std::string, int> > split_keep_delimiters(const std::string& str, const std::string& delimiters)
 	{
 		int 										line_number = 1;
@@ -211,7 +162,6 @@ namespace Utils
 		return ret;
 	}
 
-	// convert int to string
 	std::string	itoa(int num)
 	{
 		std::ostringstream	oss;
@@ -220,7 +170,6 @@ namespace Utils
 		return oss.str();
 	}
 
-	//finds the extension of a file in path
 	std::string get_file_extension(const std::string& file_path)
 	{
 		size_t pos = file_path.rfind(".");
@@ -254,72 +203,97 @@ namespace Utils
 		return buffer.str();
 	}
 
-	std::map <int, std::string>	get_error_status_codes()
+	std::map <int, std::string>	get_status_codes()
 	{	
 		std::map <int, std::string>	error_status_codes;
 
-		error_status_codes[400] = "bad request";
-		error_status_codes[401] = "unauthorized";
-		error_status_codes[402] = "payment required";
-		error_status_codes[403] = "forbidden";
-		error_status_codes[404] = "not found";
-		error_status_codes[405] = "method not allowed";
-		error_status_codes[406] = "not acceptable";
-		error_status_codes[407] = "proxy authentication required";
-		error_status_codes[408] = "request timeout";
-		error_status_codes[409] = "conflict";
-		error_status_codes[410] = "gone";
-		error_status_codes[411] = "length required";
-		error_status_codes[412] = "precondition failed";
-		error_status_codes[413] = "payload too large";
-		error_status_codes[414] = "uri too long";
-		error_status_codes[415] = "unsupported media type";
-		error_status_codes[416] = "range not satisfiable";
-		error_status_codes[417] = "expectation failed";
-		error_status_codes[418] = "i'm a teapot";
-		error_status_codes[421] = "misdirected request";
-		error_status_codes[422] = "unprocessable entity";
-		error_status_codes[423] = "locked";
-		error_status_codes[424] = "failed dependency";
-		error_status_codes[425] = "too early";
-		error_status_codes[426] = "upgrade required";
-		error_status_codes[428] = "precondition required";
-		error_status_codes[429] = "too many requests";
-		error_status_codes[431] = "request header fields too large";
-		error_status_codes[444] = "no response";
-		error_status_codes[449] = "retry with";
-		error_status_codes[451] = "unavailable for legal reasons";
-		error_status_codes[499] = "client closed request";
-		error_status_codes[500] = "internal server error";
-		error_status_codes[501] = "not implemented";
-		error_status_codes[502] = "bad gateway";
-		error_status_codes[503] = "service unavailable";
-		error_status_codes[504] = "gateway timeout";
-		error_status_codes[505] = "http version not supported";
-		error_status_codes[506] = "variant also negotiates";
-		error_status_codes[507] = "insufficient storage";
-		error_status_codes[508] = "loop detected";
-		error_status_codes[510] = "not extended";
-		error_status_codes[511] = "network authentication required";
+		error_status_codes[100] = "Continue";
+		error_status_codes[101] = "Switching Protocol";
+		error_status_codes[200] = "OK";
+		error_status_codes[201] = "Created";
+		error_status_codes[202] = "Accepted";
+		error_status_codes[203] = "Non-Authoritative Information";
+		error_status_codes[204] = "No Content";
+		error_status_codes[205] = "Reset Content";
+		error_status_codes[206] = "Partial Content";
+		error_status_codes[300] = "Multiple Choice";
+		error_status_codes[301] = "Moved Permanently";
+		error_status_codes[302] = "Moved Temporarily";
+		error_status_codes[303] = "See Other";
+		error_status_codes[304] = "Not Modified";
+		error_status_codes[307] = "Temporary Redirect";
+		error_status_codes[308] = "Permanent Redirect";
+		error_status_codes[400] = "Bad Request";
+		error_status_codes[401] = "Unauthorized";
+		error_status_codes[403] = "Forbidden";
+		error_status_codes[404] = "Not Found";
+		error_status_codes[405] = "Method Not Allowed";
+		error_status_codes[406] = "Not Acceptable";
+		error_status_codes[407] = "Proxy Authentication Required";
+		error_status_codes[408] = "Request Timeout";
+		error_status_codes[409] = "Conflict";
+		error_status_codes[410] = "Gone";
+		error_status_codes[411] = "Length Required";
+		error_status_codes[412] = "Precondition Failed";
+		error_status_codes[413] = "Payload Too Large";
+		error_status_codes[414] = "URI Too Long";
+		error_status_codes[415] = "Unsupported Media Type";
+		error_status_codes[416] = "Requested Range Not Satisfiable";
+		error_status_codes[417] = "Expectation Failed";
+		error_status_codes[418] = "I'm a teapot";
+		error_status_codes[421] = "Misdirected Request";
+		error_status_codes[425] = "Too Early";
+		error_status_codes[426] = "Upgrade Required";
+		error_status_codes[428] = "Precondition Required";
+		error_status_codes[429] = "Too Many Requests";
+		error_status_codes[431] = "Request Header Fields Too Large";
+		error_status_codes[451] = "Unavailable for Legal Reasons";
+		error_status_codes[500] = "Internal Server Error";
+		error_status_codes[501] = "Not Implemented";
+		error_status_codes[502] = "Bad Gateway";
+		error_status_codes[503] = "Service Unavailable";
+		error_status_codes[504] = "Gateway Timeout";
+		error_status_codes[505] = "HTTP Version Not Supported";
+		error_status_codes[506] = "Variant Also Negotiates";
+		error_status_codes[507] = "Insufficient Storage";
+		error_status_codes[510] = "Not Extended";
+		error_status_codes[511] = "Network Authentication Required";
 
 		return error_status_codes;
 	}
 
-	// returns the error page for a given status code
-	//
-	// if:	the status code is not found in the error pages from the config
-	//		->	generate a default error page
+	std::map <std::string, std::string> get_content_types()
+	{
+		std::map <std::string, std::string> content_types;
 
-	// generates a default error page for a given status code
-	//
-	// cat DEFAULT_ERROR_PAGE | sed 's/400/XXX/g' | sed 's/bad request/new message/g' > new_html_path
+		content_types["default"] = 	"text/html";
+		content_types[".html"] 	= 	"text/html";
+		content_types[".htm"] 	= 	"text/html";
+		content_types[".css"] 	= 	"text/css";
+		content_types[".txt"] 	= 	"text/plain";
+		content_types[".bmp"] 	= 	"image/bmp";
+		content_types[".gif"] 	= 	"image/gif";
+		content_types[".ico"] 	= 	"image/x-icon";
+		content_types[".ico"] 	= 	"image/x-icon";
+		content_types[".jpg"] 	= 	"image/jpeg";
+		content_types[".jpeg"]	= 	"image/jpeg";
+		content_types[".png"] 	= 	"image/png";
+		content_types[".pdf"] 	= 	"application/pdf";
+		content_types[".gz"] 	= 	"application/x-gzip";
+		content_types[".doc"] 	= 	"application/msword";
+		content_types[".avi"] 	= 	"video/x-msvideo";
+		content_types[".mp3"] 	= 	"audio/mp3";
+
+		return content_types;
+	}
+
 	std::string	generate_default_error_page(const int status_code)
 	{
 		std::string default_error_code = "400";
 		std::string default_error_message = "bad request";
 		std::string default_html = DEFAULT_ERROR_PAGE;
 		std::string	new_error_code = Utils::itoa(status_code);
-		std::string new_error_message = get_error_status_codes()[status_code];
+		std::string new_error_message = get_status_codes()[status_code];
 
 		size_t pos_code = default_html.find(default_error_code);
 		size_t pos_message = default_html.find(default_error_message);
@@ -337,7 +311,16 @@ namespace Utils
 				pos_message = default_html.find(default_error_message, pos_message + new_error_message.size());
 			}
 		}
-		std::string new_html_path = Utils::itoa(status_code) + ".html";
+		if (is_directory("error_pages") == false)
+		{
+			if (mkdir("error_pages", 0777) == -1)
+			{
+				Log::log("Error: Could not create error_pages directory\n", STD_ERR | ERROR_FILE);
+				return DEFAULT_ERROR_PAGE;
+			}
+		}
+
+		std::string new_html_path = "error_pages/" + Utils::itoa(status_code) + ".html";
 
 		std::ofstream	oss(new_html_path.c_str());
 
@@ -453,8 +436,6 @@ namespace Utils
 		return uri.substr(start_pos, end_pos);
 	}
 
-
-
 	std::string	to_lower(const std::string& str)
 	{
 		std::string res = str;
@@ -539,7 +520,7 @@ namespace Utils
 
 		if (stat(path.c_str(), &path_stat) == -1)
 		{
-			throw std::runtime_error("Error: unable to stat file " + path);
+			throw std::runtime_error("Error: unable to stat file " + path + "\n");
 		}
 		return S_ISREG(path_stat.st_mode);
 	}
@@ -559,7 +540,7 @@ namespace Utils
 			std::string error_message = "Error: " + path + " not found.\n";
 			throw std::runtime_error(error_message);
 		}
-			
+
 		std::ifstream::pos_type size = file.tellg();
 
 		if (size > MAX_FILE_SIZE)

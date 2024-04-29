@@ -50,7 +50,7 @@ Config::Config(const std::string& config_path)
 	std::map <int, _map> servers = dispatcher.get_servers();
 
 	_error_pages = dispatcher.get_error_pages();
-	_error_status_codes = Utils::get_error_status_codes();
+	_error_status_codes = Utils::get_status_codes();
 	initialize_location_setters();
 	initialize_server_setters();
 	set_servers(servers);
@@ -106,7 +106,7 @@ void	Config::add_location(LocationInfo*& new_location, Server* new_server, bool 
 	}
 	if (add_to_server == true)
 	{
-		new_server->add_locations(_locations);
+		new_server->set_locations(_locations);
 		_locations.clear();
 	}
 }

@@ -2,6 +2,7 @@
 #include "Server.hpp"
 #include "Director.hpp"
 #include <exception>
+#include <signal.h>
 
 void	pipe_signal_handler(int signal)
 {
