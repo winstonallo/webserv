@@ -101,6 +101,10 @@ class Server : public Node
 		std::string							_do_get(std::string& location_path);
 		void								_do_post(std::string& location_path, Request& request);
 		void								_do_delete(std::string& location_path, Request& request);
+		bool								_do_cgi(LocationInfo& location, Request& request, ClientInfo* client);
+
+		bool								_configure_max_body_size(LocationInfo& location, Request& request);
+		bool								_method_allowed(LocationInfo& location, Request& request);
 
 											Server(int tfd, struct sockaddr_storage ss, size_t addr_len);
 		Server&								operator=(const Server&) { return *this; }

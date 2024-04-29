@@ -273,83 +273,127 @@ std::string		Server::_get_body(Request& rq, ClientInfo *ci)
 	return "";
 }
 
+bool	Server::_configure_max_body_size(LocationInfo& location, Request& request)
+{
+	if (location.get_client_max_body_size() == 0)
+	{
+		location.set_client_max_body_size(_client_max_body_size);
+	}
+
+	if ((int)request.get_body().size() > location.get_client_max_body_size())
+	{
+		Log::log("Error. Client body is too big.\n", STD_ERR | ERROR_FILE);
+		_errcode = 413;
+		return false;
+	}
+
+	return true;
+}
+
+bool	Server::_method_allowed(LocationInfo& location, Request& request)
+{
+	std::vector<std::string> vec = location.get_allowed_methods();
+	std::vector<std::string>::iterator end = vec.end();
+	std::vector<std::string>::iterator begin = vec.begin();
+
+	if(std::find(begin,	end, request.get_method()) == end)
+	{	
+		std::stringstream ss;
+		ss << "Error. Method \"" << request.get_method() << "\" not allowed.\n";
+		Log::log(ss.str(), STD_ERR | ERROR_FILE);
+
+		_errcode = 405;
+		return false;
+	}
+	return true;
+}
+
+bool	Server::_do_cgi(LocationInfo& location, Request& request, ClientInfo* client)
+{
+	std::string script_file_path;
+	script_file_path = request.get_path();
+	script_file_path.erase(0, 1);
+	if (!location.get_root().empty())
+		script_file_path = location.get_root() + script_file_path;
+	else if (!client->get_server()->get_root().empty())
+		script_file_path = client->get_server()->get_root() + script_file_path;
+	if (script_file_path == "cgi-bin")
+		script_file_path.append("/" + location.get_index_path()); 
+	else if (script_file_path == "cgi-bin/")
+		script_file_path.append(location.get_index_path());
+		
+	std::string script_ext = Utils::get_file_extension(script_file_path);
+	if (script_ext != ".sh" && script_ext != ".py")
+	{
+		_errcode = 501;
+		return false;	
+	}
+	if (!Utils::is_file(script_file_path))
+	{
+		_errcode = 404;
+		return false;
+	}
+	if (access(script_file_path.c_str(), X_OK) == -1 || access(script_file_path.c_str(), X_OK | R_OK) == -1)
+	{
+		_errcode = 403;
+		return false;
+	}
+	if (client->get_cgi() == NULL)
+	{
+		client->set_cgi(new CGI());
+	}
+	else
+	{
+		client->get_cgi()->clear();
+	}
+	client->set_is_cgi(true);
+	client->get_cgi()->set_path(script_file_path);
+	client->get_cgi()->initialize_environment_map(request);
+	try
+	{
+		client->set_pid(client->get_cgi()->execute(_locations, script_file_path));
+	}
+	catch(const std::exception& e)
+	{
+		Log::log("Error. CGI execution failed.\n", STD_ERR | ERROR_FILE);
+		_errcode = 500;
+		return false;
+	}
+	return true;
+}
+
 int		Server::_process(Request& rq, ClientInfo* ci, std::string& ret_file)
 {
 	LocationInfo loc_info;
 	std::string loc_path;
 
 	_get_best_location_match(_locations, rq, loc_path, &loc_info);
+
 	if (!loc_path.empty())
 	{
-		if (loc_info.get_client_max_body_size() == 0)
+		if (_configure_max_body_size(loc_info, rq) == false)
 		{
-			loc_info.set_client_max_body_size(_client_max_body_size);
+			return _errcode;
 		}
-		if ((int)rq.get_body().size() > loc_info.get_client_max_body_size())
+
+		if (_method_allowed(loc_info, rq) == false)
 		{
-			Log::log("Error. Client body is too big.\n", STD_ERR | ERROR_FILE);
-			return (_errcode = 413);
+			return _errcode;
 		}
-		// is method allowed?
-		std::vector<std::string> vec = loc_info.get_allowed_methods();
-		std::vector<std::string>::iterator end = vec.end();
-		std::vector<std::string>::iterator begin = vec.begin();
-		if(std::find(begin,	end, rq.get_method()) == end)
-		{	
-			std::stringstream ss;
-			ss << "Error. Method \"" << rq.get_method() << "\" not allowed.\n";
-			Log::log(ss.str(), STD_ERR | ERROR_FILE);
-			return (_errcode = 405);
-		}
-		// return handler
+
 		if (loc_info.get_return().empty() == false)
 		{
 			loc_path = loc_info.get_return();
-			return (_errcode = 301);
+			_errcode = 301;
+			return _errcode;
 		}
-		// handle cgi
+
 		if (loc_info.get_path().find("cgi-bin") != std::string::npos)
 		{
-			std::string script_file_path;
-			script_file_path = rq.get_path();
-			script_file_path.erase(0, 1);
-			if (!loc_info.get_root().empty())
-				script_file_path = loc_info.get_root() + script_file_path;
-			else if (!ci->get_server()->get_root().empty())
-				script_file_path = ci->get_server()->get_root() + script_file_path;
-			if (script_file_path == "cgi-bin")
-				script_file_path.append("/" + loc_info.get_index_path()); 
-			else if (script_file_path == "cgi-bin/")
-				script_file_path.append(loc_info.get_index_path());
-				
-			std::string script_ext = Utils::get_file_extension(script_file_path);
-			if (script_ext != ".sh" && script_ext != ".py")
-				return (_errcode = 501);	
-			if (!Utils::is_file(script_file_path))
-				return (_errcode = 404);
-			if (access(script_file_path.c_str(), X_OK) == -1 || access(script_file_path.c_str(), X_OK | R_OK) == -1)
-				return (_errcode = 403);
-			if (ci->get_cgi() == NULL)
+			if (_do_cgi(loc_info, rq, ci) == false)
 			{
-				ci->set_cgi(new CGI());
+				return _errcode;
 			}
-			else
-			{
-				ci->get_cgi()->clear();
-			}
-			ci->set_is_cgi(true);
-			ci->get_cgi()->set_path(script_file_path);
-			ci->get_cgi()->initialize_environment_map(rq);
-			try
-			{
-				ci->set_pid(ci->get_cgi()->execute(_locations, script_file_path));
-			}
-			catch(const std::exception& e)
-			{
-				Log::log("Error. CGI execution failed.\n", STD_ERR | ERROR_FILE);
-				return (_errcode = 500);
-			}
-			return 0;
 		}
 		// handle alias || create loc_path path
 		if (loc_info.get_alias().empty() == false) 
