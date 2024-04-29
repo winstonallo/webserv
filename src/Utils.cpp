@@ -311,7 +311,16 @@ namespace Utils
 				pos_message = default_html.find(default_error_message, pos_message + new_error_message.size());
 			}
 		}
-		std::string new_html_path = Utils::itoa(status_code) + ".html";
+		if (is_directory("error_pages") == false)
+		{
+			if (mkdir("error_pages", 0777) == -1)
+			{
+				Log::log("Error: Could not create error_pages directory\n", STD_ERR | ERROR_FILE);
+				return DEFAULT_ERROR_PAGE;
+			}
+		}
+
+		std::string new_html_path = "error_pages/" + Utils::itoa(status_code) + ".html";
 
 		std::ofstream	oss(new_html_path.c_str());
 

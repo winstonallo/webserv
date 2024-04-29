@@ -43,6 +43,7 @@ all		: $(NAME)
 
 fclean	: clean
 		$(RM) ./logs
+		$(RM) ./error_pages
 		$(RM) $(NAME)
 		$(RM) $(TEST_OBJS_DIR)
 		$(RM) $(OBJS_DIR)
