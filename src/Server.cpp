@@ -4,6 +4,7 @@
 #include "LocationInfo.hpp"
 #include <exception>
 #include <netinet/in.h>
+#include <ostream>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -30,7 +31,7 @@ Server::Server()
 	_access_log = "";
 	_error_pages = std::map<int, std::string>();
 	_locations = std::vector<LocationInfo *>();
-	_listing = false;
+	_autoindex = false;
 }
 
 Server::~Server()
@@ -62,7 +63,7 @@ Server::Server(int tfd, struct sockaddr_storage ss, size_t taddr_len):
 	_access_log = "";
 	_error_pages = std::map<int, std::string>();
 	_locations = std::vector<LocationInfo *>();
-	_listing = false;
+	_autoindex = false;
 }
 
 std::string Server::respond(Request& rq)
@@ -89,15 +90,20 @@ void	Server::create_response(Request& rq, ClientInfo* client_info)
 	std::string 		ex;
 	char				buf[100];
 	std::string			body;
-	bool				failed = false;
+	bool				failed = true;
 
 	if ((_errcode = rq.get_errcode()) == 0)
 	{
 		try
 		{
 			body = _get_body(rq, client_info);
+
 			if (client_info->is_cgi())
+			{
 				return ;
+			}
+
+			failed = false;
 		}
 		catch(const std::exception& e)
 		{
@@ -106,14 +112,8 @@ void	Server::create_response(Request& rq, ClientInfo* client_info)
 				failed = false;
 				_errcode = 301;
 			}
-			failed = true;
 		}
 	}
-	else
-	{
-		failed = true;
-	}
-		
 	if (failed)
 	{
 		try
@@ -154,13 +154,13 @@ void	Server::create_response(Request& rq, ClientInfo* client_info)
 
 std::string		Server::_get_body(Request& rq, ClientInfo *ci)
 {
-	std::string	loc_path = "";
+	std::string	loc_path;
 	std::string listing_body;
 
 	_errcode = _process(rq, ci, loc_path);
-	if (_errcode)
+	if (_errcode != 0)
 	{
-		throw std::runtime_error("error");
+		throw std::runtime_error("Error");
 	}
 	if (ci->is_cgi())
 	{
@@ -168,18 +168,17 @@ std::string		Server::_get_body(Request& rq, ClientInfo *ci)
 	}
 	if (rq.get_method() == "GET" || rq.get_method() == "HEAD")
 	{
-		// std::cerr << "got hererasdfasdfas" << std::endl;
-		if (_listing)
+		if (_autoindex == true)
 		{
 			if (_get_directory_list(loc_path, listing_body) < 0)
 			{
 				_errcode = 404;
 				Log::log("Error: couldn't create directory listing", STD_ERR | ERROR_FILE);
-				throw std::runtime_error("error");
+				throw std::runtime_error("Error");
 			}
-			_listing = false;
+			_autoindex = false;
 			_errcode = 200;
- 			return listing_body;	
+ 			return listing_body;
 		}
 
 		try
@@ -200,7 +199,7 @@ std::string		Server::_get_body(Request& rq, ClientInfo *ci)
 		if ((Utils::file_exists(loc_path)) && rq.get_method() == "POST")
 		{
 			_errcode = 204;
-			throw std::runtime_error("error");
+			throw std::runtime_error("Error");
 		}
         std::string upload_dir = loc_path.substr(0, loc_path.find_last_of("/") + 1);
         if (Utils::file_exists(upload_dir) == false)
@@ -209,7 +208,7 @@ std::string		Server::_get_body(Request& rq, ClientInfo *ci)
             {
                 _errcode = 500;
                 Log::log("Error. Couldn't create directory for file upload.\n", STD_ERR | ERROR_FILE);
-                throw std::runtime_error("error");
+                throw std::runtime_error("Error");
             }
         }
 		std::string filename = rq.get_header("CONTENT-DISPOSITION");
@@ -370,7 +369,7 @@ int		Server::_process(Request& rq, ClientInfo* ci, std::string& ret_file)
 				if (loc_info.get_autoindex())
 				{
 					ret_file.erase(ret_file.find_last_of('/') + 1);
-					_listing = true;
+					_autoindex = true;
 					return 0;
 				}
 				else 
@@ -434,7 +433,6 @@ int	Server::_get_directory_list(std::string &path, std::string& body)
 	std::string f_path;
 	struct stat fst;
 	struct dirent *dir_entry;
-	//std::cout << path << std::endl;
 	dir = opendir(path.c_str());
 	if (dir == NULL)
 	{
@@ -453,7 +451,6 @@ int	Server::_get_directory_list(std::string &path, std::string& body)
 	ss << "<th style=\"text-align:left\"> Size </th>\n";
 	while((dir_entry = readdir(dir)) != NULL)
 	{
-		// if ((dir_entry->d_name[0] == '.') && (dir_entry->d_name[1] = '\0'))
 		if (strcmp(dir_entry->d_name, ".") == 0)
 			continue;
 		f_path = path + dir_entry->d_name;
@@ -492,5 +489,5 @@ void	Server::reset()
 	_autoindex = false;
 	_errcode = 0;
 	_reloc.clear();
-	_listing = false;
+	_autoindex = false;
 }

@@ -34,8 +34,8 @@ class Server : public Node
 		std::vector <std::string>			get_server_name() const { return _server_name; }
 		void								set_server_name(const std::vector <std::string>& tserver_name) { _server_name = tserver_name; }
 
-		bool								get_auto_index() const { return _listing; }
-		void								set_auto_index(bool autoindex) {_listing = autoindex; }
+		bool								get_auto_index() const { return _autoindex; }
+		void								set_auto_index(bool autoindex) {_autoindex = autoindex; }
 
 		std::string							get_root() const { return _root; }
 		void								set_root(const std::string& root) { _root = root; }
