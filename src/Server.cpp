@@ -190,23 +190,16 @@ std::string Server::respond(Request& rq)
 {
     if (rq.get_method() == "GET" || rq.get_method() == "HEAD")
     {
-        std::ifstream file("index.html", std::ios::binary | std::ios::ate);
-        if (file.fail())
-        {
-            return "Error"; 
-        }
-
-        std::ifstream::pos_type size = file.tellg();
-        file.seekg(0, std::ios::beg);
-
-        if (size > 10000)
-        {
-            return "Error: File too large";
-        }
-
-        std::ostringstream ss;
-        ss << file.rdbuf();
-        return ss.str();
+		try
+		{
+			std::string file = Utils::safe_ifstream("index.html");
+			return file;
+		}
+		catch (const std::exception& e)
+		{
+			Log::log(e.what(), STD_ERR | ERROR_FILE);
+			return "Error";
+		}
     }
     return "Error";
 }
