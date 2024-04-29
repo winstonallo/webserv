@@ -253,22 +253,23 @@ std::string		Server::_get_body(Request& rq, ClientInfo *ci)
 	{
 		throw std::runtime_error("Error");
 	}
-	if (ci->is_cgi())
+
+	if (ci->is_cgi() == false)
 	{
-		return "";
+		if (rq.get_method() == "GET" || rq.get_method() == "HEAD")
+		{
+			return _do_get(loc_path);
+		}
+		else if (rq.get_method() == "PUT" || rq.get_method() == "POST")
+		{
+			_do_post(loc_path, rq);
+		}
+		else if (rq.get_method() == "DELETE")
+		{
+			_do_delete(loc_path, rq);
+		}
 	}
-	if (rq.get_method() == "GET" || rq.get_method() == "HEAD")
-	{
-		return _do_get(loc_path);
-	}
-	else if (rq.get_method() == "PUT" || rq.get_method() == "POST")
-	{
-		_do_post(loc_path, rq);
-	}
-	else if (rq.get_method() == "DELETE")
-	{
-		_do_delete(loc_path, rq);
-	}
+
 	return "";
 }
 
@@ -422,7 +423,6 @@ void	Server::_get_best_location_match(std::vector<LocationInfo*> locs,
 										std::string& best_match,
 										LocationInfo* locinfo)
 {
-	(void)locinfo;
 	int max_len = 0;
 	std::vector<LocationInfo*>::iterator e = locs.end();
 	std::vector<LocationInfo*>::iterator it;
