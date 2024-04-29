@@ -43,13 +43,11 @@ Server::~Server()
 	}
 }
 
-
 Server::Server(int tfd, struct sockaddr_storage ss, size_t taddr_len):
 	Node(tfd, ss, taddr_len, SERVER_NODE)
 {
 	_init_status_strings();
 	_init_content_types(); 
-	// _cgi = NULL;
 	_autoindex = false;
 	_errcode = 0;
 	_autoindex = false;
@@ -86,106 +84,6 @@ Server&	Server::operator=(const Server& rhs)
 	return (*this);
 }
 
-int	Server::get_port() const
-{
-	return (_port);
-}
-
-void	Server::set_port(int prt)
-{
-	_port = prt;
-}
-
-void	Server::set_server_name(const std::vector <std::string>& tserver_name)
-{
-	_server_name = tserver_name;
-}
-
-std::vector <std::string>	Server::get_server_name() const
-{
-	return _server_name;
-}
-
-bool	Server::get_auto_index() const
-{
-	return (_listing); 
-}
-
-void	Server::set_auto_index(bool t)
-{
-	_listing = t;
-}
-
-std::string	Server::get_error_log() const
-{
-	return (_error_log);
-}
-
-void	Server::set_error_log(const std::string& log)
-{
-	_error_log = log;
-}
-
-std::string	Server::get_access_log() const
-{
-	return (_access_log);
-}
-
-void	Server::set_access_log(const std::string& log)
-{
-	_access_log = log;
-}
-
-struct in_addr		Server::get_host_address() const
-{
-	return _host_address;
-}
-
-void	Server::set_host_address(struct in_addr& host)
-{
-	_host_address = host;
-}
-
-int	Server::get_client_max_body_size() const
-{
-	return _client_max_body_size;
-}
-
-void	Server::set_client_max_body_size(const int client_max_body_size)
-{
-	_client_max_body_size= client_max_body_size;
-}
-
-void	Server::set_index_path(const std::string& loc)
-{
-	_index = loc;
-}
-
-std::string	Server::get_index_path() const
-{
-	return _index;
-}
-
-void	Server::add_locations(std::vector <LocationInfo*> locations)
-{
-	this->_locations = locations;
-}
-
-std::string	Server::get_root() const
-{
-	return _root;
-}
-
-void	Server::set_root(const std::string& rt)
-{
-	_root = rt;
-}
-
-std::vector <LocationInfo*>	Server::get_locations() const
-{
-	return _locations;
-}
-
 std::string Server::respond(Request& rq)
 {
     if (rq.get_method() == "GET" || rq.get_method() == "HEAD")
@@ -202,47 +100,6 @@ std::string Server::respond(Request& rq)
 		}
     }
     return "Error";
-}
-
-int		Server::get_error_code() const
-{
-	return _errcode;
-}
-
-void	Server::set_error_code(int cd)
-{
-	_errcode = cd;
-}
-
-void	Server::set_director(Director *d)
-{
-	_director = d;
-}
-
-Director*	Server::get_director() const
-{
-	return _director;
-}
-
-
-// std::string Server::get_response() const
-// {
-// 	return _response;
-// }
-
-// void	Server::set_response(const std::string& rs)
-// {
-// 	_response = rs;
-// }
-
-std::string Server::get_relocation() const
-{
-	return _reloc;
-}
-
-void	Server::set_relocation(const std::string& rs)
-{
-	_reloc = rs;
 }
 
 void	Server::_init_status_strings()
@@ -731,9 +588,4 @@ void	Server::reset()
 	_errcode = 0;
 	_reloc.clear();
 	_listing = false;
-	// if (_cgi)
-	// 	delete _cgi;
-	// _cgi = NULL;
-
-	// _response.clear();
 }

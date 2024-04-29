@@ -10,11 +10,9 @@
 #include <netdb.h>
 #include <sys/stat.h>
 #include <dirent.h>
-#include <signal.h>
 #include "Node.hpp"
 #include "Request.hpp"
 #include "LocationInfo.hpp"
-#include "CGI.hpp"
 
 class LocationInfo;
 class Director;
@@ -33,40 +31,46 @@ class Server : public Node
 		Server&								operator=(const Server& rhs);
 
 		// getters and setters
-		int									get_port() const;
-		void								set_port(int prt);
-		int									get_sock_fd() const;
-		void								set_sock_fd(int sfd);
-		std::vector <std::string>			get_server_name() const;
-		void								set_server_name(const std::vector <std::string>& tserver_name);
-		bool								get_auto_index() const;
-		void								set_auto_index(bool b);
-		std::string							get_root() const;
-		void								set_root(const std::string& rt);
-		std::string							get_error_log() const;
-		void								set_error_log(const std::string& rt);
-		std::string							get_access_log() const;
-		void								set_access_log(const std::string& rt);
-		struct in_addr						get_host_address() const;
-		void								set_host_address(struct in_addr& host);
-		int									get_client_max_body_size() const;
-		void								set_client_max_body_size(const int client_max_body_size);
-		void								set_director(Director *d);
-		Director*							get_director() const;
-		LocationInfo&						get_location(int);
-		void								add_locations(std::vector <LocationInfo *> locations);
-		std::vector <LocationInfo *>		get_locations() const;
-		bool								is_fd_in_clients(int fd) const;
-		std::string							get_index_path() const;
-		void								set_index_path(const std::string& loc);
+		int									get_port() const { return _port; }
+		void								set_port(int port) {_port = port; }
+
+		std::vector <std::string>			get_server_name() const { return _server_name; }
+		void								set_server_name(const std::vector <std::string>& tserver_name) { _server_name = tserver_name; }
+
+		bool								get_auto_index() const { return _listing; }
+		void								set_auto_index(bool autoindex) {_listing = autoindex; }
+
+		std::string							get_root() const { return _root; }
+		void								set_root(const std::string& root) { _root = root; }
+
+		std::string							get_error_log() const { return _error_log; }
+		void								set_error_log(const std::string& error_log) { _error_log = error_log; }
+
+		std::string							get_access_log() const { return _access_log; }
+		void								set_access_log(const std::string& access_log) { _access_log = access_log; }
+
+		struct in_addr						get_host_address() const { return _host_address; }
+		void								set_host_address(struct in_addr& host_address) { _host_address = host_address; }
+
+		int									get_client_max_body_size() const { return _client_max_body_size; }
+		void								set_client_max_body_size(const int client_max_body_size) { _client_max_body_size = client_max_body_size; }
+
+		Director*							get_director() const { return _director; }
+		void								set_director(Director *director) { _director = director; }
+
+		std::vector <LocationInfo *>		get_locations() const { return _locations; }
+		void								set_locations(std::vector <LocationInfo *> locations) { _locations = locations; }
+
+		std::string							get_index_path() const { return _index; }
+		void								set_index_path(const std::string& index) { _index = index; }
 // Server
+		int									get_error_code() const { return _errcode; }
+		void								set_error_code(int errcode) { _errcode = errcode; }
+
+		std::string							get_relocation() const { return _reloc; }
+		void								set_relocation(const std::string& relocation) { _reloc = relocation; }
+
 		std::string							respond(Request& rq);
-		int									get_error_code() const;
-		void								set_error_code(int err);
-		std::string							get_relocation() const;
-		void								set_relocation(const std::string& rel);
-		// std::string						get_response() const;
-		// void								set_response(const std::string& rs);
 		void								create_response(Request&, ClientInfo* client_info);
 		void								reset();
 
@@ -76,10 +80,7 @@ class Server : public Node
 		int									_client_max_body_size;
 		std::vector <std::string>			_server_name;
 		struct in_addr						_host_address;
-// in_addr_t							_host_address;
-//		struct sockaddr_in					address;
 		bool								_autoindex;
-		// std::string							_response;
 		std::string							_index;
 		std::string							_root;
 		std::string							_error_log;
@@ -87,7 +88,6 @@ class Server : public Node
 		std::string							_reloc;
 		std::map<int, std::string>			_error_pages;
 		std::vector<LocationInfo*>			_locations;
-		// CGI*								_cgi;
 //Server
 		void								_init_status_strings();
 		void								_init_content_types();

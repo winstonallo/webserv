@@ -8,6 +8,7 @@
 #include "Node.hpp"
 #include "Request.hpp"
 #include "Server.hpp"
+#include "CGI.hpp"
 
 //purpose:	data filled from the request parsing for and used for 
 //			answering requests

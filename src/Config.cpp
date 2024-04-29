@@ -106,7 +106,7 @@ void	Config::add_location(LocationInfo*& new_location, Server* new_server, bool 
 	}
 	if (add_to_server == true)
 	{
-		new_server->add_locations(_locations);
+		new_server->set_locations(_locations);
 		_locations.clear();
 	}
 }
