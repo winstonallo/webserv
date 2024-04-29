@@ -2,12 +2,14 @@
 #include <cstring>
 #include <cerrno>
 #include "LocationInfo.hpp"
+#include <exception>
 #include <netinet/in.h>
 #include <string>
 #include <vector>
 #include "Director.hpp"
 #include <fstream>
 #include "Log.hpp"
+#include "Utils.hpp"
 
 Server::Server() 
 {
@@ -358,30 +360,15 @@ void	Server::create_response(Request& rq, ClientInfo* client_info)
 		
 	if (failed)
 	{
-		std::ifstream error_file(_director->get_config()->get_error_page(_errcode).c_str(), std::ios::binary | std::ios::ate);
-		if (error_file.fail())
+		try
 		{
-			Log::log("Error reading error page file.\n", STD_ERR | ERROR_FILE);
-			body = DEFAULT_ERROR_PAGE;
+			std::string error_page_path = _director->get_config()->get_error_page(_errcode);
+			body = Utils::safe_ifstream(error_page_path);
 		}
-		else
+		catch (const std::exception& e)
 		{
-			std::ifstream::pos_type size = error_file.tellg();
-			error_file.seekg(0, std::ios::beg);
-
-			if (size > 100000) // MAX_FILE_SIZE ist eine Konstante, die Sie definieren
-			{
-				Log::log("Error: Error page file too large.\n", STD_ERR | ERROR_FILE);
-				body = DEFAULT_ERROR_PAGE;
-			}
-			else
-			{
-				std::vector<char> buffer(size);
-				if (error_file.read(buffer.data(), size))
-				{
-					body = std::string(buffer.begin(), buffer.end());
-				}
-			}
+			Log::log(e.what(), STD_ERR | ERROR_FILE);
+			body = DEFAULT_ERROR_PAGE;
 		}
 	}
 	ss << "HTTP/1.1 " << _errcode << " " << _status_string[_errcode]  << "\r\n";
@@ -406,13 +393,6 @@ void	Server::create_response(Request& rq, ClientInfo* client_info)
 	ss << "\r\n";
 	if (!body.empty())
 		ss << body;
-	// std::ofstream f("show.txt", std::ios::out);
-	// if (!f.is_open())
-	// {
-	// 	std::cerr << "Error op file" << std::endl;
-	// }
-	// f << ss.str();
-	// f.close();
 	client_info->set_response(ss.str());
 }
 

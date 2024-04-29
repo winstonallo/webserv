@@ -49,6 +49,7 @@ namespace Utils
 	void											print_location_info(std::ostream& out, LocationInfo* location);
 	std::string										extract_cgi_identifier(const std::string& key);
 	void											config_error_on_line(int line_number, const std::string& error_message, e_exception throw_exception=LOG);
+	std::string										safe_ifstream(const std::string& path);
 };
 
 #define MAX_FILE_SIZE 140000
