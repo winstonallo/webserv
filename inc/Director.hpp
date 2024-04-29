@@ -30,6 +30,7 @@ class Config;
 class Director 
 {
 	public:
+
 		struct TimeoutInfo
 		{
 			time_t last_activity;
@@ -44,13 +45,15 @@ class Director
 
 										Director(const std::string& path);
 										~Director();
+
 		int								init_servers();
 		int								run_servers();
-		Config*							get_config();
+
+		Config*							get_config() const { return _config; }
 
 	private:
-										Director(const Director& rhs);
-		Director&						operator=(const Director& rhs);
+										Director(const Director&) {}
+		Director&						operator=(const Director&) { return *this; }
 		void							*get_in_addr(struct sockaddr *sa);
 		int								init_server(Server *si);
 		int								create_client_connection(int listener);
@@ -67,11 +70,12 @@ class Director
 		void							remove_client(int client_fd, ClientInfo* client=NULL);
 		void							clear_file_descriptor(int client_fd, bool close_fd=true);
 
-		int								fdmax;
-		Config*							config;
+		int								_fdmax;
+		Config*							_config;
 		std::map <int, TimeoutInfo>		_client_timeouts;
 		std::map <int, Node*>			_nodes;
-		fd_set							read_fds, write_fds;
+		fd_set							_read_fds;
+		fd_set							_write_fds;
 };
 
 #endif

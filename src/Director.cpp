@@ -15,14 +15,15 @@
 #include "Server.hpp"
 #include "Utils.hpp"
 
-Director::Director(const std::string& config_path):fdmax(-1)
+Director::Director(const std::string& config_path) : _fdmax(-1)
 {
-	config = new Config(config_path);
+	_config = new Config(config_path);
 }
 
 Director::~Director()
 {
 	std::map <int, Node*>::iterator it;
+
 	for (it = _nodes.begin(); it != _nodes.end(); it++)
 	{
 		if (it->second)
@@ -34,24 +35,7 @@ Director::~Director()
 			delete it->second;
 		}
 	}
-	delete config;
-}
-
-Director::Director(const Director& rhs)
-{
-	*this = rhs;
-}
-
-Director&	Director::operator=(const Director& rhs)
-{
-	if (this != &rhs)
-	{}
-	return (*this);
-}
-
-Config*	Director::get_config()
-{
-	return config;
+	delete _config;
 }
 
 // purpose: gets the inner address of sockaddr sa for both cases that 
@@ -63,7 +47,10 @@ Config*	Director::get_config()
 void*	Director::get_in_addr(struct sockaddr *sa)
 {
 	if (sa->sa_family == AF_INET)
+	{
 		return &(((struct sockaddr_in *)sa)->sin_addr);
+	}
+
 	return &(((struct sockaddr_in6 *)sa)->sin6_addr);
 }
 
@@ -134,7 +121,7 @@ int	Director::init_server(Server *si)
 		freeaddrinfo(ai);
 		return -1;
 	}
-									fdmax--;
+									_fdmax--;
 	si->set_fd(listener);
 	freeaddrinfo(ai);
 	return 0;
@@ -150,10 +137,10 @@ int	Director::init_server(Server *si)
 // return: int -> -1 if there was an error 0 if successfull
 int	Director::init_servers()
 {
-	FD_ZERO(&read_fds);
-	FD_ZERO(&write_fds);
+	FD_ZERO(&_read_fds);
+	FD_ZERO(&_write_fds);
 
-	std::vector<Server*> 			servers = config->get_servers();
+	std::vector<Server*> 			servers = _config->get_servers();
 	std::vector<Server*>::iterator 	e = servers.end();
 	std::vector<Server*>::iterator 	it ;
 	std::vector<Server*>::iterator 	sub_it;
@@ -201,8 +188,8 @@ int	Director::init_servers()
 			Log::log(ss.str(), ERROR_FILE | STD_ERR);
 			return -1;
 		}
-		FD_SET(listener, &read_fds);
-		if (fdmax < listener) fdmax = listener;
+		FD_SET(listener, &_read_fds);
+		if (_fdmax < listener) _fdmax = listener;
 		_nodes[listener] = *it;
 		_nodes[listener]->set_type(SERVER_NODE);
 		_nodes[listener]->set_fd(listener);
@@ -229,8 +216,8 @@ int	Director::run_servers()
 
 	while (is_running)
 	{
-		readfds_backup = read_fds;
-		writefds_backup = write_fds;
+		readfds_backup = _read_fds;
+		writefds_backup = _write_fds;
 		timeout_time.tv_sec = 1;
 		timeout_time.tv_usec = 0;
 		std::vector <int> to_delete;
@@ -239,7 +226,7 @@ int	Director::run_servers()
 			_client_timeouts.erase(to_delete[i]);
 		}
 		to_delete.clear();
-		if ((ret = select(fdmax + 1, &readfds_backup, &writefds_backup, NULL, &timeout_time)) < 0 )
+		if ((ret = select(_fdmax + 1, &readfds_backup, &writefds_backup, NULL, &timeout_time)) < 0 )
 		{
 			std::stringstream ss;
 			if (is_running == false)
@@ -248,7 +235,7 @@ int	Director::run_servers()
 			Log::log(ss.str(), ERROR_FILE | STD_ERR);
 			return -1;
 		}
-		for (int i = 0; i <= fdmax; i++)
+		for (int i = 0; i <= _fdmax; i++)
 		{
 			if (_nodes.find(i) != _nodes.end())
 			{
@@ -379,20 +366,20 @@ int	Director::run_servers()
 
 void Director::clear_file_descriptor(int client_fd, bool close_fd)
 {
-	if (FD_ISSET(client_fd, &read_fds))
+	if (FD_ISSET(client_fd, &_read_fds))
 	{
-		FD_CLR(client_fd, &read_fds);
-		if (client_fd == fdmax)
+		FD_CLR(client_fd, &_read_fds);
+		if (client_fd == _fdmax)
 		{
-			fdmax--;
+			_fdmax--;
 		}
 	}
-	if (FD_ISSET(client_fd, &write_fds))
+	if (FD_ISSET(client_fd, &_write_fds))
 	{
-		FD_CLR(client_fd, &write_fds);
-		if (client_fd == fdmax)
+		FD_CLR(client_fd, &_write_fds);
+		if (client_fd == _fdmax)
 		{
-			fdmax--;
+			_fdmax--;
 		}
 	}
 	if (close_fd == true)
@@ -510,8 +497,8 @@ int	Director::create_client_connection(int listener)
 	{
 		if (_nodes.find(newfd) == _nodes.end())
 		{
-			if (fdmax < newfd)
-				fdmax = newfd;
+			if (_fdmax < newfd)
+				_fdmax = newfd;
 			ClientInfo* newcl = new ClientInfo(newfd, remoteaddr, (size_t)addrlen);
 			_client_timeouts[newfd].last_activity = time(NULL);
 			_client_timeouts[newfd].client = newcl;
@@ -547,7 +534,7 @@ int	Director::create_client_connection(int listener)
 			_client_timeouts.erase(newfd);
 			close(newfd);
 		}
-		FD_SET(newfd, &read_fds);
+		FD_SET(newfd, &_read_fds);
 	}
 	return 0;
 }
@@ -615,7 +602,7 @@ int	Director::read_from_client(int client_fd)
 		Log::log(ss.str(), STD_OUT);
 
 		// virtual servers, we go throug the servers and match the host name / server name 
-		std::vector<Server*> servers = config->get_servers();
+		std::vector<Server*> servers = _config->get_servers();
 		std::vector<Server*>::iterator it;
 		int wrong_host = 1;
 		for (it = servers.begin(); it != servers.end(); it++)
@@ -643,19 +630,19 @@ int	Director::read_from_client(int client_fd)
 		ci->get_server()->create_response(*ci->get_request(), ci);
 		if (ci->is_cgi())
 		{
-			FD_SET(ci->get_cgi()->request_fd[1], &write_fds);
-			if (ci->get_cgi()->request_fd[1] > fdmax)
-				fdmax = ci->get_cgi()->request_fd[1];
-			FD_SET(ci->get_cgi()->response_fd[0], &read_fds);
-			if (ci->get_cgi()->response_fd[0] > fdmax)
-				fdmax = ci->get_cgi()->response_fd[0];
+			FD_SET(ci->get_cgi()->request_fd[1], &_write_fds);
+			if (ci->get_cgi()->request_fd[1] > _fdmax)
+				_fdmax = ci->get_cgi()->request_fd[1];
+			FD_SET(ci->get_cgi()->response_fd[0], &_read_fds);
+			if (ci->get_cgi()->response_fd[0] > _fdmax)
+				_fdmax = ci->get_cgi()->response_fd[0];
 			close(ci->get_cgi()->request_fd[0]);
 			close(ci->get_cgi()->response_fd[1]);
 		}	
-		FD_CLR(client_fd, &read_fds);
-		if (client_fd == fdmax)	fdmax--;
-		FD_SET(client_fd, &write_fds);
-		if (client_fd > fdmax)	fdmax = client_fd;
+		FD_CLR(client_fd, &_read_fds);
+		if (client_fd == _fdmax)	_fdmax--;
+		FD_SET(client_fd, &_write_fds);
+		if (client_fd > _fdmax)	_fdmax = client_fd;
 		// ci->get_request()->clean();
 		ci->_read_msg.clear();
 	}
@@ -707,10 +694,10 @@ int	Director::write_to_client(int fd)
 		}
 		else
 		{
-			FD_CLR(fd, &write_fds);
-			if (fd == fdmax) { fdmax--; }
-			FD_SET(fd, &read_fds);
-			if (fd > fdmax) { fdmax=fd; } 
+			FD_CLR(fd, &_write_fds);
+			if (fd == _fdmax) { _fdmax--; }
+			FD_SET(fd, &_read_fds);
+			if (fd > _fdmax) { _fdmax=fd; } 
 			cl->get_request()->clean();
 			cl->clear_response();
 		}
