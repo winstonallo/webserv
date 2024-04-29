@@ -103,6 +103,9 @@ class Server : public Node
 		void								_do_delete(std::string& location_path, Request& request);
 		bool								_do_cgi(LocationInfo& location, Request& request, ClientInfo* client);
 
+		bool								_validate_cgi(const std::string& script_file_path);
+		std::string							_get_cgi_path(LocationInfo& location, Request& request, ClientInfo* client);
+
 		bool								_configure_max_body_size(LocationInfo& location, Request& request);
 		bool								_method_allowed(LocationInfo& location, Request& request);
 		std::string							_configure_file_path(LocationInfo& location, Request& request);

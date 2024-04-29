@@ -308,16 +308,17 @@ bool	Server::_method_allowed(LocationInfo& location, Request& request)
 	return true;
 }
 
-bool	Server::_do_cgi(LocationInfo& location, Request& request, ClientInfo* client)
+std::string Server::_get_cgi_path(LocationInfo& location, Request& request, ClientInfo* client)
 {
 	std::string script_file_path;
 	script_file_path = request.get_path();
 	script_file_path.erase(0, 1);
-	if (!location.get_root().empty())
+
+	if (location.get_root().empty() == false)
 	{
 		script_file_path = location.get_root() + script_file_path;
 	}
-	else if (!client->get_server()->get_root().empty())
+	else if (client->get_server()->get_root().empty() == false)
 	{
 		script_file_path = client->get_server()->get_root() + script_file_path;
 	}
@@ -329,7 +330,12 @@ bool	Server::_do_cgi(LocationInfo& location, Request& request, ClientInfo* clien
 	{
 		script_file_path.append(location.get_index_path());
 	}
-		
+
+	return script_file_path;
+}
+
+bool	Server::_validate_cgi(const std::string& script_file_path)
+{
 	std::string script_extension = Utils::get_file_extension(script_file_path);
 
 	if (script_extension != ".sh" && script_extension != ".py")
@@ -347,6 +353,18 @@ bool	Server::_do_cgi(LocationInfo& location, Request& request, ClientInfo* clien
 		_errcode = 403;
 		return false;
 	}
+	return true;
+}
+
+bool	Server::_do_cgi(LocationInfo& location, Request& request, ClientInfo* client)
+{
+	std::string script_file_path = _get_cgi_path(location, request, client);
+
+	if (_validate_cgi(script_file_path) == false)
+	{
+		return _errcode;
+	}
+
 	if (client->get_cgi() == NULL)
 	{
 		client->set_cgi(new CGI());
@@ -494,6 +512,7 @@ void	Server::_get_best_location_match(std::vector<LocationInfo*> locs,
 	int max_len = 0;
 	std::vector<LocationInfo*>::iterator e = locs.end();
 	std::vector<LocationInfo*>::iterator it;
+
 	for (it = locs.begin(); it != e; it++)
 	{
 		if(rq.get_path().find((*it)->get_path()) == 0)
