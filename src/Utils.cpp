@@ -4,6 +4,7 @@
 #include <sstream>
 #include <cstdlib>
 #include <algorithm>
+#include <stdexcept>
 #include <string>
 #include <sys/socket.h>
 #include "Log.hpp"
@@ -536,7 +537,10 @@ namespace Utils
 	{
 		struct stat path_stat;
 
-		stat(path.c_str(), &path_stat);
+		if (stat(path.c_str(), &path_stat) == -1)
+		{
+			throw std::runtime_error("Error: unable to stat file " + path);
+		}
 		return S_ISREG(path_stat.st_mode);
 	}
 

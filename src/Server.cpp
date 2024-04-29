@@ -16,7 +16,6 @@ Server::Server()
 {
 	_init_status_strings();
 	_init_content_types();
-	// _cgi = NULL;
 	_autoindex = false;
 	_errcode = 0;
 	_autoindex = false;
@@ -37,6 +36,7 @@ Server::Server()
 Server::~Server()
 {
 	std::vector<LocationInfo*>::iterator it;
+
 	for (it = _locations.begin(); it != _locations.end(); it++)
 	{
 		delete *it;
@@ -392,7 +392,7 @@ void	Server::create_response(Request& rq, ClientInfo* client_info)
 
 std::string		Server::_get_body(Request& rq, ClientInfo *ci)
 {
-	std::string	loc_path;
+	std::string	loc_path = "";
 	std::string listing_body;
 
 	_errcode = _process(rq, ci, loc_path);
