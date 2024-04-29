@@ -14,7 +14,7 @@
 
 Server::Server() 
 {
-	_init_status_strings();
+	_status_string = Utils::get_status_codes();
 	_init_content_types();
 	_autoindex = false;
 	_errcode = 0;
