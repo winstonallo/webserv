@@ -531,7 +531,7 @@ namespace Utils
 			std::string error_message = "Error: " + path + " not found.\n";
 			throw std::runtime_error(error_message);
 		}
-			
+
 		std::ifstream::pos_type size = file.tellg();
 
 		if (size > MAX_FILE_SIZE)

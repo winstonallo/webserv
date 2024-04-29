@@ -411,6 +411,75 @@ std::string Server::_configure_file_path(LocationInfo& location, Request& reques
 	return file_path; 
 }
 
+bool Server::_handle_empty_location_path(Request& request, const std::string& ret_file)
+{
+	std::string location_path;
+
+	location_path = Utils::pathconcat(get_root(), request.get_path());
+	struct stat fst;
+	if (stat(location_path.c_str(), &fst) != 0)
+	{
+		Log::log("Stat function on failed.\n", STD_ERR | ERROR_FILE);
+		_errcode = 400;
+		return false;
+	}
+	if (S_ISDIR(fst.st_mode))
+	{
+		if (ret_file.end()[-1] != '/')
+		{
+			_errcode = 301;
+		}
+	}
+	return true;
+}
+
+bool	Server::_handle_directory_request(std::string& ret_file, const Request& request, const LocationInfo& location)
+{
+	struct stat fst;
+
+	if (stat(ret_file.c_str(), &fst) != 0)
+	{
+		std::stringstream ss;
+		ss << "Stat function for: " << ret_file << " failed. " << strerror(errno) << "\n";
+		Log::log(ss.str(), STD_ERR | ERROR_FILE);
+
+		_errcode = 0;
+		return false;
+	}
+	if (S_ISDIR(fst.st_mode))
+	{
+		if (ret_file[ret_file.size() - 1] != '/')
+		{
+			_reloc = request.get_path() + "/";
+			_errcode = 301;
+			return false;
+		}
+		if (!location.get_index_path().empty())
+		{
+			ret_file += location.get_index_path();
+		}
+		else
+		{
+			ret_file += get_index_path();
+		}
+		if (Utils::file_exists(ret_file) == false)
+		{
+			if (location.get_autoindex() == true)
+			{
+				ret_file.erase(ret_file.find_last_of('/') + 1);
+				_autoindex = true;
+				return false;
+			}
+			else 
+			{
+				_errcode = 403;
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
 int		Server::_process(Request& rq, ClientInfo* ci, std::string& ret_file)
 {
 	LocationInfo loc_info;
@@ -418,7 +487,7 @@ int		Server::_process(Request& rq, ClientInfo* ci, std::string& ret_file)
 
 	_get_best_location_match(_locations, rq, loc_path, &loc_info);
 
-	if (!loc_path.empty())
+	if (loc_path.empty() == false)
 	{
 		if (_configure_max_body_size(loc_info, rq) == false)
 		{
@@ -447,58 +516,16 @@ int		Server::_process(Request& rq, ClientInfo* ci, std::string& ret_file)
 
 		ret_file = _configure_file_path(loc_info, rq);
 
-		struct stat fst;
-
-		if (stat(ret_file.c_str(), &fst) != 0)
+		if (_handle_directory_request(ret_file, rq, loc_info) == false)
 		{
-			std::stringstream ss;
-			ss << "Stat function for: " << ret_file << " failed. " << strerror(errno) << "\n";
-			Log::log(ss.str(), STD_ERR | ERROR_FILE);
-
-			_errcode = 0;
 			return _errcode;
-		}
-		if (S_ISDIR(fst.st_mode))
-		{
-			if (ret_file[ret_file.size() - 1] != '/')
-			{
-				_reloc = rq.get_path() + "/";
-				_errcode = 301;
-				return _errcode;
-			}
-			if (!loc_info.get_index_path().empty())
-				ret_file += loc_info.get_index_path();
-			else
-				ret_file += get_index_path();
-			if (Utils::file_exists(ret_file) == false)
-			{
-				if (loc_info.get_autoindex())
-				{
-					ret_file.erase(ret_file.find_last_of('/') + 1);
-					_autoindex = true;
-					return 0;
-				}
-				else 
-					return (_errcode = 403);
-			}
 		}
 	}
 	else
 	{
-		loc_path = Utils::pathconcat(get_root(), rq.get_path());
-		struct stat fst;
-		if (stat(loc_path.c_str(), &fst) != 0)
+		if (_handle_empty_location_path(rq, ret_file) == false)
 		{
-			_errcode = 400;
-			Log::log("Stat function on failed.\n", STD_ERR | ERROR_FILE);
-			return (_errcode);
-		}
-		if (S_ISDIR(fst.st_mode))
-		{
-			if (ret_file[ret_file.size() - 1] != '/')
-			{
-				_errcode = 301;
-			}
+			return _errcode;
 		}
 	}
 	return 0;

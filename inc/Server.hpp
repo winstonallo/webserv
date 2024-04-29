@@ -92,6 +92,9 @@ class Server : public Node
 
 		std::string							_get_body(Request& rq, ClientInfo *ci);
 		int									_process(Request &rq, ClientInfo* ci, std::string& loc_path);
+		bool								_handle_empty_location_path(Request& request, const std::string& ret_file);
+		bool								_handle_directory_request(std::string& ret_file, const Request& request, const LocationInfo& location);
+
 		void								_get_best_location_match(std::vector<LocationInfo*> locs, 
 														Request& rq, std::string& best_match, 
 														LocationInfo* locinfo);
