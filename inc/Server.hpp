@@ -63,7 +63,7 @@ class Server : public Node
 
 		std::string							get_index_path() const { return _index; }
 		void								set_index_path(const std::string& index) { _index = index; }
-// Server
+
 		int									get_error_code() const { return _errcode; }
 		void								set_error_code(int errcode) { _errcode = errcode; }
 
@@ -88,7 +88,7 @@ class Server : public Node
 		std::string							_reloc;
 		std::map<int, std::string>			_error_pages;
 		std::vector<LocationInfo*>			_locations;
-//Server
+
 		void								_init_status_strings();
 		void								_init_content_types();
 		std::string							_get_body(Request& rq, ClientInfo *ci);
