@@ -91,8 +91,6 @@ class Server : public Node
 		Director*							_director;
 		bool								_listing;
 
-		void								_init_status_strings();
-		void								_init_content_types();
 		std::string							_get_body(Request& rq, ClientInfo *ci);
 		int									_process(Request &rq, ClientInfo* ci, std::string& loc_path);
 		void								_get_best_location_match(std::vector<LocationInfo*> locs, 

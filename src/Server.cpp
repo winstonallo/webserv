@@ -15,7 +15,7 @@
 Server::Server() 
 {
 	_status_string = Utils::get_status_codes();
-	_init_content_types();
+	_content_type = Utils::get_content_types();
 	_autoindex = false;
 	_errcode = 0;
 	_autoindex = false;
@@ -47,7 +47,7 @@ Server::Server(int tfd, struct sockaddr_storage ss, size_t taddr_len):
 	Node(tfd, ss, taddr_len, SERVER_NODE)
 {
 	_status_string = Utils::get_status_codes();
-	_init_content_types(); 
+	_content_type = Utils::get_content_types();
 	_autoindex = false;
 	_errcode = 0;
 	_autoindex = false;
@@ -81,27 +81,6 @@ std::string Server::respond(Request& rq)
 		}
     }
     return "Error";
-}
-
-void	Server::_init_content_types()
-{
-    _content_type["default"] = 	"text/html";
-    _content_type[".html"] 	= 	"text/html";
-    _content_type[".htm"] 	= 	"text/html";
-    _content_type[".css"] 	= 	"text/css";
-    _content_type[".txt"] 	= 	"text/plain";
-    _content_type[".bmp"] 	= 	"image/bmp";
-    _content_type[".gif"] 	= 	"image/gif";
-    _content_type[".ico"] 	= 	"image/x-icon";
-    _content_type[".ico"] 	= 	"image/x-icon";
-    _content_type[".jpg"] 	= 	"image/jpeg";
-    _content_type[".jpeg"]	= 	"image/jpeg";
-    _content_type[".png"] 	= 	"image/png";
-    _content_type[".pdf"] 	= 	"application/pdf";
-    _content_type[".gz"] 	= 	"application/x-gzip";
-    _content_type[".doc"] 	= 	"application/msword";
-    _content_type[".avi"] 	= 	"video/x-msvideo";
-    _content_type[".mp3"] 	= 	"audio/mp3";
 }
 
 void	Server::create_response(Request& rq, ClientInfo* client_info)

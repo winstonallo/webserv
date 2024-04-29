@@ -262,6 +262,31 @@ namespace Utils
 		return error_status_codes;
 	}
 
+	std::map <std::string, std::string> get_content_types()
+	{
+		std::map <std::string, std::string> content_types;
+
+		content_types["default"] = 	"text/html";
+		content_types[".html"] 	= 	"text/html";
+		content_types[".htm"] 	= 	"text/html";
+		content_types[".css"] 	= 	"text/css";
+		content_types[".txt"] 	= 	"text/plain";
+		content_types[".bmp"] 	= 	"image/bmp";
+		content_types[".gif"] 	= 	"image/gif";
+		content_types[".ico"] 	= 	"image/x-icon";
+		content_types[".ico"] 	= 	"image/x-icon";
+		content_types[".jpg"] 	= 	"image/jpeg";
+		content_types[".jpeg"]	= 	"image/jpeg";
+		content_types[".png"] 	= 	"image/png";
+		content_types[".pdf"] 	= 	"application/pdf";
+		content_types[".gz"] 	= 	"application/x-gzip";
+		content_types[".doc"] 	= 	"application/msword";
+		content_types[".avi"] 	= 	"video/x-msvideo";
+		content_types[".mp3"] 	= 	"audio/mp3";
+
+		return content_types;
+	}
+
 	std::string	generate_default_error_page(const int status_code)
 	{
 		std::string default_error_code = "400";

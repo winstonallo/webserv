@@ -33,6 +33,7 @@ namespace Utils
 	int												parse_client_max_body_size(const std::string& client_max_body_size);
 	std::string										file_to_string(const std::string& path);
 	std::map <int, std::string>						get_status_codes();
+	std::map <std::string, std::string>				get_content_types();
 	std::string										pathconcat(std::string s1, std::string s2);
 	std::string										generate_default_error_page(const int status_code);
 	std::string										extract_location_name(const std::string& location);
