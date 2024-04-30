@@ -7,11 +7,46 @@
 #include <stdexcept>
 #include <string>
 #include <sys/socket.h>
+#include <limits.h>
 #include "Log.hpp"
 #include "Server.hpp"
+#include "Config.hpp"
 
 namespace Utils
 {
+	int		find_closest_valid_size(int input)
+	{
+		const int valid_sizes[] = {1, 2, 4, 8, 16};
+		const int num_sizes = sizeof(valid_sizes) / sizeof(valid_sizes[0]);
+
+		int closest_size = valid_sizes[0];
+		int min_difference = INT_MAX;
+
+		for (int i = 0; i < num_sizes; i++)
+		{
+			int difference = abs(input - valid_sizes[i]);
+
+			if (difference < min_difference)
+			{
+				min_difference = difference;
+				closest_size = valid_sizes[i];
+			}
+		}
+		if (closest_size != input)
+		{
+			config_error_on_line(
+				-1,
+				"Client max body size " +
+				itoa(input) +
+				"M is not valid, using closest supported value: " +
+				itoa(closest_size) +
+				"M.",
+				LOG
+			);
+		}
+		return closest_size;
+	}
+
 	int		parse_client_max_body_size(const std::string& client_max_body_size)
 	{
 		size_t non_digit_char_pos = client_max_body_size.find_first_not_of("0123456789");
@@ -22,7 +57,11 @@ namespace Utils
 		}
 		else
 		{
-			return std::atoi(client_max_body_size.substr(0, non_digit_char_pos).c_str()) * 1000000;
+			std::string digit_str = client_max_body_size.substr(0, non_digit_char_pos).c_str();
+			int size = std::atoi(digit_str.c_str());
+
+			int valid_size = find_closest_valid_size(size);
+			return valid_size * MEGABYTE;
 		}
 	}
 
