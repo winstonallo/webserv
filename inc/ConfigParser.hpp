@@ -1,7 +1,7 @@
 #ifndef CONFIGPARSER_HPP
 #define CONFIGPARSER_HPP
 
-#include <iostream>
+#include <string>
 #include <vector>
 #include <map>
 #include <cstdlib>
@@ -14,7 +14,7 @@ class ConfigParser
 
         typedef std::map <std::string, std::pair <std::vector <std::string>, int> > line_count_map;
 
-		ConfigParser(const std::string& path="assets/config/simple.conf");
+		ConfigParser(const std::string& path="assets/config/webserv.conf");
 		~ConfigParser() {}
 
 		std::map <std::string, std::pair <std::vector <std::string>, int> >		get_config() const { return _config; }

@@ -42,7 +42,7 @@ int main(int argc, char **argv)
 			}
 			else
 			{
-				config_file = "assets/config/simple.conf";
+				config_file = "assets/config/webserv.conf";
 			}
 
 			Director director(config_file);

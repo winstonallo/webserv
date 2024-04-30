@@ -22,7 +22,7 @@ class Config
 		std::string								get_error_page(const int key);
 		std::vector <Server *>					get_servers() const { return _servers; }
 
-		Config(const std::string& config_path="config_files/webserv.conf");
+		Config(const std::string& config_path="assets/config/webserv.conf");
 		~Config();
 	
 	private:
