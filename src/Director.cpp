@@ -267,7 +267,7 @@ int	Director::run_servers()
 						}
 						catch(const std::exception& e)
 						{
-							Log::log("Error creating client connection: " + std::string(e.what()), STD_ERR | ERROR_FILE);
+							Log::log(e.what(), STD_ERR | ERROR_FILE);
 						}
 					}
 				}
@@ -510,17 +510,20 @@ int	Director::create_client_connection(int listener)
 	int newfd = accept(listener, (struct sockaddr *)&remoteaddr, &addrlen);
 	if (newfd == -1)
 	{
-		std::stringstream	ss;
-		ss << "Error accepting client: " << strerror(errno) << std::endl;
-		Log::log(ss.str(), ERROR_FILE | STD_ERR);
-		return -1;
+		throw std::runtime_error(
+			"Error: Could not accept client: " +
+			std::string(strerror(errno)) +
+			".\n"
+		);
 	}
 	else
 	{
 		if (_nodes.find(newfd) == _nodes.end())
 		{
 			if (_fdmax < newfd)
+			{
 				_fdmax = newfd;
+			}
 			ClientInfo* newcl = new ClientInfo(newfd, remoteaddr, (size_t)addrlen);
 			_client_timeouts[newfd].last_activity = time(NULL);
 			_client_timeouts[newfd].client = newcl;
@@ -529,14 +532,13 @@ int	Director::create_client_connection(int listener)
 		}
 		else
 		{
-			std::stringstream ss;
-			ss << "Tried to overwrite socket: " << newfd << std::endl;
-			Log::log(ss.str(), STD_ERR | ERROR_FILE);
-			delete _nodes[newfd];
-			_nodes.erase(newfd);
-			_client_timeouts.erase(newfd);
-			close(newfd);
-			throw std::runtime_error(ss.str());
+			close_client_connection(newfd);
+
+			throw std::runtime_error(
+				"Tried to overwrite socket: " +
+				Utils::itoa(newfd) +
+				".\n"
+			);
 		}
 		std::stringstream ss2;
 
@@ -551,7 +553,8 @@ int	Director::create_client_connection(int listener)
 			close_client_connection(
 				newfd,
 				"Error: Could not set non-blocking I/O: " +
-				std::string(strerror(errno)) + ".\n"
+				std::string(strerror(errno)) +
+				".\n"
 			);
 		}
 		FD_SET(newfd, &_read_fds);
