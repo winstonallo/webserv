@@ -70,6 +70,8 @@ class Director
 		void							remove_client(int client_fd, ClientInfo* client=NULL);
 		void							clear_file_descriptor(int client_fd, bool close_fd=true);
 
+		bool							is_same_socket(std::vector<Server*>::iterator it, std::vector<Server*>::iterator sub_it);
+
 		int								_fdmax;
 		Config*							_config;
 		std::map <int, TimeoutInfo>		_client_timeouts;

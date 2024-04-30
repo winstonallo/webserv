@@ -4,6 +4,7 @@
 #include <ctime>
 #include <netdb.h>
 #include <sstream>
+#include <stdexcept>
 #include <string.h>
 #include <string>
 #include <map>
@@ -82,10 +83,10 @@ int	Director::init_server(Server *server)
 	port << server->get_port();
 	if ((rv = getaddrinfo(NULL, port.str().c_str(), &hints, &address_info)) != 0) 
 	{
-		std::stringstream ss;
-		ss << "Error reading addrinfo: " << gai_strerror(rv) << std::endl;
-		Log::log(ss.str(), ERROR_FILE | STD_ERR);
-		return -1;
+		throw std::runtime_error(
+			"Error: Could not read address info: " +
+			std::string(gai_strerror(rv)) + ".\n"
+		);
 	}
 	for (p = address_info; p != NULL; p = p->ai_next)
 	{
@@ -112,26 +113,32 @@ int	Director::init_server(Server *server)
 		server->set_addr_len((size_t)p->ai_addrlen);
 
 		Log::log("Server created on localhost with domain name: " +
-		server->get_server_name()[0] + ", port: " + Utils::itoa(server->get_port()) + "\n",
-		ACCEPT_FILE | STD_OUT);
+			server->get_server_name()[0] + ", port: " +
+			Utils::itoa(server->get_port()) + "\n",
+		ACCEPT_FILE | STD_OUT
+		);
 
-		break;
+		break ;
 	}
 
 	if (p == NULL)
 	{
-		std::stringstream ss;
-		ss << "Select server failed to bind." << std::endl;
-		Log::log(ss.str(), ERROR_FILE | STD_ERR);
 		freeaddrinfo(address_info);
-		return -1;
+		throw std::runtime_error("Error: Select server failed to bind.\n");
 	}
-									_fdmax--;
+
+	_fdmax--;
 	server->set_fd(listener);
 	freeaddrinfo(address_info);
 	return 0;
 }
 
+bool Director::is_same_socket(std::vector<Server*>::iterator it, std::vector<Server*>::iterator sub_it)
+{
+	return ((*sub_it)->get_host_address().s_addr == (*it)->get_host_address().s_addr &&
+		(*sub_it)->get_port() == (*it)->get_port()
+		);
+}
 
 // purpose: Take the Servers which we got from Config parsing
 // 			and Initializes each one of them, set them so they don't block
@@ -147,7 +154,7 @@ int	Director::init_servers()
 
 	std::vector<Server*> 			servers = _config->get_servers();
 	std::vector<Server*>::iterator 	e = servers.end();
-	std::vector<Server*>::iterator 	it ;
+	std::vector<Server*>::iterator 	it;
 	std::vector<Server*>::iterator 	sub_it;
 	bool							same_socket;	
 
@@ -156,17 +163,14 @@ int	Director::init_servers()
 		same_socket = false;
 		for (sub_it = servers.begin(); sub_it != it; sub_it++) 
 		{
-			if ((*sub_it)->get_host_address().s_addr == (*it)->get_host_address().s_addr &&
-				(*sub_it)->get_port() == (*it)->get_port())
+			if ((same_socket = is_same_socket(it, sub_it)))
 			{
 				(*it)->set_fd((*sub_it)->get_fd());
-				same_socket = true;
 			}
 		}
 		if (same_socket == false)
 		{
-			if (init_server(*it) < 0)
-				return -1;
+			init_server(*it);
 		}
 		else
 		{
@@ -179,19 +183,21 @@ int	Director::init_servers()
 		int listener = (*it)->get_fd();
 		if (fcntl(listener, F_SETFL, O_NONBLOCK) < 0)
 		{
-			std::stringstream ss;
-			ss << "Error unblocking socket: " << strerror(errno) << std::endl;
-			Log::log(ss.str(), ERROR_FILE | STD_ERR);
-			return -1;
+			throw std::runtime_error(
+				"Error: Could not unblock socket: " +
+				std::string(strerror(errno)) + ".\n"
+			);
 		}
 		if (listen(listener, 512) == -1)
 		{
-			std::stringstream ss;
-			ss << "Error listening: " << strerror(errno) << std::endl;
-			Log::log(ss.str(), ERROR_FILE | STD_ERR);
-			return -1;
+			throw std::runtime_error(
+				"Error: Could not listen: " +
+				std::string(strerror(errno)) + ".\n"
+			);
 		}
+
 		FD_SET(listener, &_read_fds);
+
 		if (_fdmax < listener)
 		{
 			_fdmax = listener;

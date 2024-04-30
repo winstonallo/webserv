@@ -3,6 +3,7 @@
 #include "Director.hpp"
 #include <exception>
 #include <signal.h>
+#include <stdexcept>
 
 void	pipe_signal_handler(int signal)
 {
@@ -14,53 +15,48 @@ void	pipe_signal_handler(int signal)
 
 bool interrupted = false;
 
-void	ctrlhandler(int)
+void	sigint_handler(int)
 {
 	interrupted = true;
 }
 
+Director	*webserv_init(int argc, char** argv)
+{
+	if (argc > 2)
+	{
+		std::string	error_message = "Error: Invalid number of arguments\nUsage: ./webserv [optional]<*.conf>\n";
+		
+		throw std::runtime_error(error_message);
+	}
+	std::string config_file_path = (argc == 2 ? argv[1] : "assets/config/webserv.conf");
+	Director* director = new Director(config_file_path);
+
+	Log::create_logs_directory();
+	
+	signal(SIGPIPE, pipe_signal_handler);
+	signal(SIGINT, sigint_handler);
+
+	return director;
+}
+
 int main(int argc, char **argv)
 {
-	try 
+	Director* director;
+
+	try
 	{
-		Log::create_logs_directory();
+		director = webserv_init(argc, argv);
 
-		if (argc != 1 && argc != 2)
-		{
-			std::cerr << "Error. Invalid number of arguments." << std::endl;
-			std::cerr << "Usage: " << argv[0] << " [config file <.conf>]" << std::endl;
-			return 1;
-		}
-		else
-		{
-			signal(SIGPIPE, pipe_signal_handler);
-			signal(SIGINT, ctrlhandler);
-			std::string	config_file;
-			if (argc == 2)
-			{
-				config_file = argv[1];
-			}
-			else
-			{
-				config_file = "assets/config/webserv.conf";
-			}
-
-			Director director(config_file);
-
-			if(director.init_servers() < 0)
-			{
-				std::cerr << "Error initializing servers." << std::endl;
-				return 1;
-			}
-			if (director.run_servers() < 0)
-			{
-				return 1;
-			}
-		}
+		director->init_servers();
+		director->run_servers();
 	}
 	catch (const std::exception& e)
 	{
+		Log::log(e.what(), ERROR_FILE | STD_ERR);
+		delete director;
 		return 1;
 	}
+
+	delete director;
 	return 0;
 }

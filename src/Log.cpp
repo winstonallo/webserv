@@ -41,18 +41,12 @@ void	Log::set_error_file(const std::string& ferr)
 {
 	error_file = ferr;
 }
-//purpose:	sets the accept log file to a new file path
-//
-//argument: ferr -> string to the new accept file.
+
 void	Log::set_accept_file(const std::string& ferr)
 {
 	accept_file = ferr;
 }
 
-//purpose:	to get the current time / date in a format
-//			Year-Month-Day Hour:Minutes:Seconds
-//
-//return string -> Date string
 std::string Log::get_time_stamp()
 {
 	time_t cur_time;
@@ -63,11 +57,6 @@ std::string Log::get_time_stamp()
 	return timestr;
 }
 
-//purpose:	the formatting of the log messages
-//
-//argument: msg -> The message for the log
-//
-//return: string -> the final log string
 std::string Log::logmessage(const std::string& msg)
 {
 	std::stringstream ss;
