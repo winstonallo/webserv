@@ -326,7 +326,7 @@ namespace Utils
 
 		if (!oss)
 		{
-			Log::log("Error: Could not create default error page, falling back to 400: bad_request\n", STD_ERR | ERROR_FILE);
+			Log::log("Error: Could not create default error page, falling back to 400: Bad Request\n", STD_ERR | ERROR_FILE);
 			return DEFAULT_ERROR_PAGE;
 		}
 
@@ -535,7 +535,7 @@ namespace Utils
 
 		std::ifstream file(path.c_str(), std::ios::binary | std::ios::ate);
 		
-		if (file == false)
+		if (!file)
 		{
 			std::string error_message = "Error: " + path + " not found.\n";
 			throw std::runtime_error(error_message);

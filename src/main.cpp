@@ -7,14 +7,16 @@
 void	pipe_signal_handler(int signal)
 {
 	if (signal)
+	{
 		return ;
+	}
 }
 
-bool is_running = true;
+bool interrupted = false;
 
 void	ctrlhandler(int)
 {
-	is_running = false;
+	interrupted = true;
 }
 
 int main(int argc, char **argv)
@@ -22,6 +24,7 @@ int main(int argc, char **argv)
 	try 
 	{
 		Log::create_logs_directory();
+
 		if (argc != 1 && argc != 2)
 		{
 			std::cerr << "Error. Invalid number of arguments." << std::endl;
@@ -34,10 +37,16 @@ int main(int argc, char **argv)
 			signal(SIGINT, ctrlhandler);
 			std::string	config_file;
 			if (argc == 2)
+			{
 				config_file = argv[1];
+			}
 			else
+			{
 				config_file = "assets/config/simple.conf";
+			}
+
 			Director director(config_file);
+
 			if(director.init_servers() < 0)
 			{
 				std::cerr << "Error initializing servers." << std::endl;
@@ -51,7 +60,6 @@ int main(int argc, char **argv)
 	}
 	catch (const std::exception& e)
 	{
-		std::cerr << "Error: " << e.what() << std::endl;
 		return 1;
 	}
 	return 0;

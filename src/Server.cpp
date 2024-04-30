@@ -85,6 +85,18 @@ std::string Server::respond(Request& rq)
     return "Error";
 }
 
+std::string	Server::get_error_page(const int status_code)
+{
+	if (_error_pages.find(status_code) != _error_pages.end())
+	{
+		return _error_pages[status_code];
+	}
+	else
+	{
+		return Utils::generate_default_error_page(status_code);
+	}
+}
+
 void	Server::create_response(Request& rq, ClientInfo* client_info)
 {
 	std::stringstream 	ss;
@@ -97,7 +109,7 @@ void	Server::create_response(Request& rq, ClientInfo* client_info)
 	{
 		try
 		{
-			body = _get_body(rq, client_info);
+			body = get_body(rq, client_info);
 
 			if (client_info->is_cgi())
 			{
@@ -117,15 +129,14 @@ void	Server::create_response(Request& rq, ClientInfo* client_info)
 	}
 	if (failed)
 	{
-		try
+		std::string error_page_path = get_error_page(_errcode);
+		if (error_page_path == DEFAULT_ERROR_PAGE)
 		{
-			std::string error_page_path = _director->get_config()->get_error_page(_errcode);
-			body = Utils::safe_ifstream(error_page_path);
-		}
-		catch (const std::exception& e)
-		{
-			Log::log(e.what(), STD_ERR | ERROR_FILE);
 			body = DEFAULT_ERROR_PAGE;
+		}
+		else
+		{
+			body = Utils::safe_ifstream(error_page_path);
 		}
 	}
 	ss << "HTTP/1.1 " << _errcode << " " << _status_string[_errcode]  << "\r\n";
@@ -153,13 +164,13 @@ void	Server::create_response(Request& rq, ClientInfo* client_info)
 	client_info->set_response(ss.str());
 }
 
-std::string	Server::_do_get(std::string& location_path)
+std::string	Server::do_get(std::string& location_path)
 {
 	std::string listing_body;
 
 	if (_autoindex == true)
 	{
-		if (_get_directory_list(location_path, listing_body) < 0)
+		if (get_directory_list(location_path, listing_body) < 0)
 		{
 			_errcode = 404;
 			Log::log("Error: couldn't create directory listing", STD_ERR | ERROR_FILE);
@@ -184,7 +195,7 @@ std::string	Server::_do_get(std::string& location_path)
 	}
 }
 
-void	Server::_do_post(std::string& location_path, Request& request)
+void	Server::do_post(std::string& location_path, Request& request)
 {
 		if ((Utils::file_exists(location_path)) && request.get_method() == "POST")
 		{
@@ -222,7 +233,7 @@ void	Server::_do_post(std::string& location_path, Request& request)
 		Log::log(filename + " uploaded successfully.\n", STD_OUT);
 }
 
-void	Server::_do_delete(std::string& location_path, Request& request)
+void	Server::do_delete(std::string& location_path, Request& request)
 {
 	std::string filename = request.get_uri().substr(request.get_uri().find_last_of("=") + 1);
 	filename = location_path.substr(0, location_path.find_last_of("/") + 1) + filename;
@@ -244,11 +255,11 @@ void	Server::_do_delete(std::string& location_path, Request& request)
 	_errcode = 200;
 }
 
-std::string		Server::_get_body(Request& rq, ClientInfo *ci)
+std::string		Server::get_body(Request& rq, ClientInfo *ci)
 {
 	std::string	loc_path;
 
-	_errcode = _process(rq, ci, loc_path);
+	_errcode = process(rq, ci, loc_path);
 	if (_errcode != 0)
 	{
 		throw std::runtime_error("Error");
@@ -258,22 +269,22 @@ std::string		Server::_get_body(Request& rq, ClientInfo *ci)
 	{
 		if (rq.get_method() == "GET" || rq.get_method() == "HEAD")
 		{
-			return _do_get(loc_path);
+			return do_get(loc_path);
 		}
 		else if (rq.get_method() == "PUT" || rq.get_method() == "POST")
 		{
-			_do_post(loc_path, rq);
+			do_post(loc_path, rq);
 		}
 		else if (rq.get_method() == "DELETE")
 		{
-			_do_delete(loc_path, rq);
+			do_delete(loc_path, rq);
 		}
 	}
 
 	return "";
 }
 
-bool	Server::_configure_max_body_size(LocationInfo& location, Request& request)
+bool	Server::configure_max_body_size(LocationInfo& location, Request& request)
 {
 	if (location.get_client_max_body_size() == 0)
 	{
@@ -290,7 +301,7 @@ bool	Server::_configure_max_body_size(LocationInfo& location, Request& request)
 	return true;
 }
 
-bool	Server::_method_allowed(LocationInfo& location, Request& request)
+bool	Server::method_allowed(LocationInfo& location, Request& request)
 {
 	std::vector<std::string> vec = location.get_allowed_methods();
 	std::vector<std::string>::iterator end = vec.end();
@@ -308,7 +319,7 @@ bool	Server::_method_allowed(LocationInfo& location, Request& request)
 	return true;
 }
 
-std::string Server::_get_cgi_path(LocationInfo& location, Request& request, ClientInfo* client)
+std::string Server::get_cgi_path(LocationInfo& location, Request& request, ClientInfo* client)
 {
 	std::string script_file_path;
 	script_file_path = request.get_path();
@@ -334,7 +345,7 @@ std::string Server::_get_cgi_path(LocationInfo& location, Request& request, Clie
 	return script_file_path;
 }
 
-bool	Server::_validate_cgi(const std::string& script_file_path)
+bool	Server::validate_cgi(const std::string& script_file_path)
 {
 	std::string script_extension = Utils::get_file_extension(script_file_path);
 
@@ -356,11 +367,11 @@ bool	Server::_validate_cgi(const std::string& script_file_path)
 	return true;
 }
 
-bool	Server::_do_cgi(LocationInfo& location, Request& request, ClientInfo* client)
+bool	Server::do_cgi(LocationInfo& location, Request& request, ClientInfo* client)
 {
-	std::string script_file_path = _get_cgi_path(location, request, client);
+	std::string script_file_path = get_cgi_path(location, request, client);
 
-	if (_validate_cgi(script_file_path) == false)
+	if (validate_cgi(script_file_path) == false)
 	{
 		return _errcode;
 	}
@@ -389,7 +400,7 @@ bool	Server::_do_cgi(LocationInfo& location, Request& request, ClientInfo* clien
 	return true;
 }
 
-std::string Server::_configure_file_path(LocationInfo& location, Request& request)
+std::string Server::configure_file_path(LocationInfo& location, Request& request)
 {
 	std::string file_path;
 
@@ -411,7 +422,7 @@ std::string Server::_configure_file_path(LocationInfo& location, Request& reques
 	return file_path; 
 }
 
-bool Server::_handle_empty_location_path(Request& request, const std::string& ret_file)
+bool Server::handle_empty_location_path(Request& request, const std::string& ret_file)
 {
 	std::string location_path;
 
@@ -433,7 +444,7 @@ bool Server::_handle_empty_location_path(Request& request, const std::string& re
 	return true;
 }
 
-bool	Server::_handle_directory_request(std::string& ret_file, const Request& request, const LocationInfo& location)
+bool	Server::handle_directory_request(std::string& ret_file, const Request& request, const LocationInfo& location)
 {
 	struct stat fst;
 
@@ -480,21 +491,21 @@ bool	Server::_handle_directory_request(std::string& ret_file, const Request& req
 	return true;
 }
 
-int		Server::_process(Request& rq, ClientInfo* ci, std::string& ret_file)
+int		Server::process(Request& rq, ClientInfo* ci, std::string& ret_file)
 {
 	LocationInfo loc_info;
 	std::string loc_path;
 
-	_get_best_location_match(_locations, rq, loc_path, &loc_info);
+	get_best_location_match(_locations, rq, loc_path, &loc_info);
 
 	if (loc_path.empty() == false)
 	{
-		if (_configure_max_body_size(loc_info, rq) == false)
+		if (configure_max_body_size(loc_info, rq) == false)
 		{
 			return _errcode;
 		}
 
-		if (_method_allowed(loc_info, rq) == false)
+		if (method_allowed(loc_info, rq) == false)
 		{
 			return _errcode;
 		}
@@ -508,22 +519,22 @@ int		Server::_process(Request& rq, ClientInfo* ci, std::string& ret_file)
 
 		if (loc_info.get_path().find("cgi-bin") != std::string::npos)
 		{
-			if (_do_cgi(loc_info, rq, ci) == false)
+			if (do_cgi(loc_info, rq, ci) == false)
 			{
 				return _errcode;
 			}
 		}
 
-		ret_file = _configure_file_path(loc_info, rq);
+		ret_file = configure_file_path(loc_info, rq);
 
-		if (_handle_directory_request(ret_file, rq, loc_info) == false)
+		if (handle_directory_request(ret_file, rq, loc_info) == false)
 		{
 			return _errcode;
 		}
 	}
 	else
 	{
-		if (_handle_empty_location_path(rq, ret_file) == false)
+		if (handle_empty_location_path(rq, ret_file) == false)
 		{
 			return _errcode;
 		}
@@ -531,7 +542,7 @@ int		Server::_process(Request& rq, ClientInfo* ci, std::string& ret_file)
 	return 0;
 }
 
-void	Server::_get_best_location_match(std::vector<LocationInfo*> locs, 
+void	Server::get_best_location_match(std::vector<LocationInfo*> locs, 
 										Request &rq,
 										std::string& best_match,
 										LocationInfo* locinfo)
@@ -559,13 +570,14 @@ void	Server::_get_best_location_match(std::vector<LocationInfo*> locs,
 	}
 }
 
-int	Server::_get_directory_list(std::string &path, std::string& body)
+int	Server::get_directory_list(std::string &path, std::string& body)
 {
 	DIR	*dir;
 	std::stringstream ss;	
 	std::string f_path;
 	struct stat fst;
 	struct dirent *dir_entry;
+
 	dir = opendir(path.c_str());
 	if (dir == NULL)
 	{

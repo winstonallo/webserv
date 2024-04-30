@@ -67,6 +67,9 @@ class Server : public Node
 		std::string							get_relocation() const { return _reloc; }
 		void								set_relocation(const std::string& relocation) { _reloc = relocation; }
 
+		std::string							get_error_page(const int status_code);
+		void								add_error_page(const int status_code, const std::string& error_page_path) { _error_pages[status_code] = error_page_path; }
+
 		std::string							respond(Request& rq);
 		void								create_response(Request&, ClientInfo* client_info);
 		void								reset();
@@ -90,28 +93,28 @@ class Server : public Node
 		int									_errcode;
 		Director*							_director;
 
-		std::string							_get_body(Request& rq, ClientInfo *ci);
-		int									_process(Request &rq, ClientInfo* ci, std::string& loc_path);
-		bool								_handle_empty_location_path(Request& request, const std::string& ret_file);
-		bool								_handle_directory_request(std::string& ret_file, const Request& request, const LocationInfo& location);
+		std::string							get_body(Request& rq, ClientInfo *ci);
+		int									process(Request &rq, ClientInfo* ci, std::string& loc_path);
+		bool								handle_empty_location_path(Request& request, const std::string& ret_file);
+		bool								handle_directory_request(std::string& ret_file, const Request& request, const LocationInfo& location);
 
-		void								_get_best_location_match(std::vector<LocationInfo*> locs, 
+		void								get_best_location_match(std::vector<LocationInfo*> locs, 
 														Request& rq, std::string& best_match, 
 														LocationInfo* locinfo);
-		int									_get_directory_list(std::string &path, std::string& body);
-		void								_init_cgi(Request rq, LocationInfo loc);
+		int									get_directory_list(std::string &path, std::string& body);
+		void								init_cgi(Request rq, LocationInfo loc);
 
-		std::string							_do_get(std::string& location_path);
-		void								_do_post(std::string& location_path, Request& request);
-		void								_do_delete(std::string& location_path, Request& request);
-		bool								_do_cgi(LocationInfo& location, Request& request, ClientInfo* client);
+		std::string							do_get(std::string& location_path);
+		void								do_post(std::string& location_path, Request& request);
+		void								do_delete(std::string& location_path, Request& request);
+		bool								do_cgi(LocationInfo& location, Request& request, ClientInfo* client);
 
-		bool								_validate_cgi(const std::string& script_file_path);
-		std::string							_get_cgi_path(LocationInfo& location, Request& request, ClientInfo* client);
+		bool								validate_cgi(const std::string& script_file_path);
+		std::string							get_cgi_path(LocationInfo& location, Request& request, ClientInfo* client);
 
-		bool								_configure_max_body_size(LocationInfo& location, Request& request);
-		bool								_method_allowed(LocationInfo& location, Request& request);
-		std::string							_configure_file_path(LocationInfo& location, Request& request);
+		bool								configure_max_body_size(LocationInfo& location, Request& request);
+		bool								method_allowed(LocationInfo& location, Request& request);
+		std::string							configure_file_path(LocationInfo& location, Request& request);
 
 											Server(int tfd, struct sockaddr_storage ss, size_t addr_len);
 		Server&								operator=(const Server&) { return *this; }

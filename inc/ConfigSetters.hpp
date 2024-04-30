@@ -20,6 +20,7 @@ namespace Setters
     void	                                configure_autoindex(const std::vector <std::string>& server, Server*& new_server);
     void	                                configure_root(const std::vector <std::string>& server, Server*& new_server);
     void	                                configure_client_max_body_size(const std::vector <std::string>& server, Server*& new_server);
+    void                                    add_error_page(const std::vector <std::string>& error_page, Server*& new_server);
 }
 
 #endif

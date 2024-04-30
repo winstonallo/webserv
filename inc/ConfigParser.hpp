@@ -11,13 +11,14 @@
 class ConfigParser
 {
 	public:
-	
-		ConfigParser(const std::string& path="config_files/webserv.conf");
+
+        typedef std::map <std::string, std::pair <std::vector <std::string>, int> > line_count_map;
+
+		ConfigParser(const std::string& path="assets/config/simple.conf");
 		~ConfigParser() {}
 
 		std::map <std::string, std::pair <std::vector <std::string>, int> >		get_config() const { return _config; }
-		std::map <int, std::string>												get_error_pages() { return _error_pages; }
-		std::map <int, std::map <std::string, std::vector <std::string> > >		get_servers() { return _servers; }
+		std::map <int, line_count_map>											get_servers() { return _servers; }
 
 	private:
 
@@ -34,39 +35,35 @@ class ConfigParser
 		void																	validate_config(const std::string& config);
 		std::string																remove_comments(const std::string& config);
 
-		void																	dispatch_values();
+		void																	store_server_values_in_map(const std::string& key);
+		void																	dispatch_servers();
+
 	
 		std::string																_config_file_path;
 		std::stack <std::string> 												_nesting_level;
 		size_t																	_server_count;
 
-		std::map <std::string, std::pair <std::vector <std::string> , int> >	_config;
+		std::map <std::string, std::pair <std::vector <std::string>, int> >		_config;
 
-		std::map <int, std::map <std::string, std::vector <std::string> > >		_servers;
-		std::map <int, std::string>												_error_pages;
+		line_count_map															_raw_config;
+		std::map <int, line_count_map>			                                _servers;
 
 		ConfigParser(const ConfigParser&) {}
 		ConfigParser&	operator=(const ConfigParser&) { return *this; }
 };
 
+#define SERVER_PREFIX "webserv:server"
 #define EXPECTED_EXT ".conf"
-#define UNINITIALIZED_SCOPE "uninitialized scope: expected identifier"             
-#define UNEXPECTED_NL "unexpected newline - terminate value lines with ';'"
-#define UNTERM_VALUE_SCOPE "unterminated value scope - terminate value lines with ';'"
-#define EMPTY "config file is empty"
-#define MISSING_CLOSING_BRACE "missing closing brace - terminate scope with '}'"
-#define EXTRA_CLOSING_BRACE "extraneous closing brace"
-#define MISSING_OPENING_BRACE "missing opening brace - use '{ }' for nesting"
-#define INVALID_EXT "invalid file extension (expected: '.conf')"
-#define INV_HEADER "invalid config file header (expected: 'webserv')"
-#define NOT_FOUND "could not open file"
-#define FALLBACK "falling back to default config: '\033[1mconfig/webserv.conf\033[0m'"
-#define RULES "refer to '\033[1mconfig/rules/config-formatting-rules.md\033[0m' for more details"
-
-#define BOLD "\033[1m"
-#define RESET "\033[0m"
-#define UNDERLINE "\033[4m"
-
-std::ostream& operator<<(std::ostream& os, const ConfigParser& config);
+#define UNINITIALIZED_SCOPE "Uninitialized scope: Expected identifier."             
+#define UNEXPECTED_NL "Unexpected newline - Terminate value lines with ';'."
+#define UNTERM_VALUE_SCOPE "Unterminated value scope - Terminate value lines with ';'."
+#define EMPTY "Configuration file is empty."
+#define MISSING_CLOSING_BRACE "Missing closing brace - Terminate scope with '}'."
+#define EXTRA_CLOSING_BRACE "Extraneous closing brace."
+#define MISSING_OPENING_BRACE "Missing opening brace - use '{ }' for nesting."
+#define INVALID_EXT "Invalid file extension (expected: '.conf')."
+#define INV_HEADER "Invalid configuration file header (expected: 'webserv')."
+#define NOT_FOUND "Could not open file."
+#define INVALID_SCOPE "Global values are not supported."
 
 #endif

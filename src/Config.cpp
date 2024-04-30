@@ -1,5 +1,4 @@
 #include "Config.hpp"
-#include "ConfigDispatcher.hpp"
 #include "ConfigParser.hpp"
 #include "LocationInfo.hpp"
 #include "Server.hpp"
@@ -31,11 +30,6 @@
 //		2. 	performs error handling on file structure
 //		3. 	stores config in a one level map with the config path as key
 //
-// ConfigDispatcher:
-//		1. 	splits the config into logical parts
-//			a. servers
-//			b. error pages
-//
 // Config:
 // 		1. 	gets error pages (already fully parsed in ConfigDispatcher 
 //			since they are simple top level key-value pairs)
@@ -45,12 +39,9 @@
 Config::Config(const std::string& config_path)
 {
 	ConfigParser 		parser(config_path);
-	ConfigDispatcher 	dispatcher(parser.get_config());
 
-	std::map <int, _map> servers = dispatcher.get_servers();
+	std::map <int, _map> servers = parser.get_servers();
 
-	_error_pages = dispatcher.get_error_pages();
-	_error_status_codes = Utils::get_status_codes();
 	initialize_location_setters();
 	initialize_server_setters();
 	set_servers(servers);
@@ -263,18 +254,6 @@ void	Config::configure_port(_map& server, Server*& new_server)
 	new_server->set_port(std::atoi(port.c_str()));
 }
 
-std::string	Config::get_error_page(const int key)
-{
-	if (_error_pages.find(key) != _error_pages.end())
-	{
-		return _error_pages[key];
-	}
-	else 
-	{
-		return Utils::generate_default_error_page(key);
-	}
-}
-
 void	Config::initialize_server_setters()
 {
 	_server_setters["access_log"] = &Setters::configure_access_log;
@@ -282,6 +261,7 @@ void	Config::initialize_server_setters()
 	_server_setters["autoindex"] = &Setters::configure_autoindex;
 	_server_setters["root"] = &Setters::configure_root;
 	_server_setters["index"] = &Setters::configure_index;
+	_server_setters["error_pages"] = &Setters::add_error_page;
 }
 
 void	Config::initialize_location_setters()
