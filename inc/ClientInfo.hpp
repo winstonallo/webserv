@@ -15,11 +15,46 @@ class Server;
 class ClientInfo : public Node 
 {
 	public:
-									~ClientInfo();
-		void						clean();
 
-									ClientInfo() :  _cgi(NULL), _isCGI(false) {}
-									ClientInfo(int fd, const struct sockaddr_storage& addr, size_t addr_len);
+		ClientInfo() :
+		_cgi(NULL),
+		_isCGI(false) {}
+
+		ClientInfo(
+			int fd,
+			const struct sockaddr_storage& address,
+			size_t addr_len
+		) : Node(
+				fd,
+				address,
+				addr_len,
+				CLIENT_NODE
+			),
+			_cgi(NULL),
+			_isCGI(false),
+			_pid(-1),
+			_fin(false) {}
+
+		~ClientInfo()
+		{
+			if (_cgi != NULL)
+			{
+				delete _cgi;
+			}
+		}
+		
+		void clean()
+		{
+			_response.clear();
+			if (_cgi != NULL)
+			{
+				delete _cgi;
+			}
+			_isCGI = false;
+			_pid = -1;
+			_fin = false;
+		}
+
 
 		CGI*						get_cgi() { return _cgi; }
 		void						set_cgi(CGI* cgi) { _cgi = cgi; }

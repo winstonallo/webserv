@@ -12,7 +12,6 @@ CXXFLAGS	= -Wall -Wextra -Werror -MP -MD -std=c++98 -g -Iinc
 
 SRCS   	= \
 		$(SRCS_DIR)/CGI.cpp \
-		$(SRCS_DIR)/ClientInfo.cpp \
 		$(SRCS_DIR)/LocationInfo.cpp \
 		$(SRCS_DIR)/Server.cpp \
 		$(SRCS_DIR)/Log.cpp \
@@ -23,7 +22,6 @@ SRCS   	= \
         $(SRCS_DIR)/ConfigSetters.cpp \
         $(SRCS_DIR)/Utils.cpp \
 		$(SRCS_DIR)/main.cpp
-TESTS	= \
 
 OBJS		= $(SRCS:${SRCS_DIR}/%.cpp=${OBJS_DIR}/%.o)
 
@@ -35,7 +33,6 @@ $(NAME): $(OBJS)
 $(OBJS_DIR)/%.o: $(SRCS_DIR)/%.cpp
 	mkdir -p $(OBJS_DIR)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
-
 
 all		: $(NAME)
 
