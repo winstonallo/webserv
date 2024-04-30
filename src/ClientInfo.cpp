@@ -3,7 +3,9 @@
 ClientInfo::~ClientInfo()
 {
 	if (_cgi)
+	{
 		delete _cgi;
+	}
 }
 
 ClientInfo::ClientInfo(
