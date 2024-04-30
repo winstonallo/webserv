@@ -671,14 +671,14 @@ int	Director::read_from_client(int client_fd)
 int	Director::write_to_client(int fd)
 {
 	int				num_bytes;
-	ClientInfo*		cl = dynamic_cast<ClientInfo*>(_nodes[fd]);
+	ClientInfo*		client = dynamic_cast<ClientInfo*>(_nodes[fd]);
 
-	std::string content = cl->get_response();
-	int sz = content.size();
+	std::string content = client->get_response();
+	int size = content.size();
 
-	if (sz < MSG_SIZE)
+	if (size < MSG_SIZE)
 	{
-		num_bytes = write(fd, content.c_str(), sz);
+		num_bytes = write(fd, content.c_str(), size);
 	}
 	else
 	{
@@ -691,11 +691,15 @@ int	Director::write_to_client(int fd)
 	}
 	else if (num_bytes == (int)(content.size()) || num_bytes == 0)
 	{
-		std::stringstream ss;
-		ss << "Response " << cl->get_request()->get_path() << " send to socket:" << fd << std::endl;
-		Log::log(ss.str(), STD_OUT);
+		Log::log(
+			"Response " +
+			client->get_request()->get_path() +
+			" sent to socket" +
+			Utils::itoa(fd),
+			STD_OUT
+		);
 
-		if(	cl->get_request()->get_errcode() != 0 || cl->is_cgi() == true)
+		if(	client->get_request()->get_errcode() != 0 || client->is_cgi() == true)
 		{
 			close_client_connection(
 				fd, 
@@ -707,13 +711,13 @@ int	Director::write_to_client(int fd)
 		{
 			clear_file_descriptor(fd, false);
 			add_file_descriptor(fd, _read_fds);
-			cl->get_request()->clean();
-			cl->clear_response();
+			client->get_request()->clean();
+			client->clear_response();
 		}
 	}
 	else
 	{
-		cl->set_response(cl->get_response().substr(num_bytes));
+		client->set_response(client->get_response().substr(num_bytes));
 	}
 	return (0);
 }
