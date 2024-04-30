@@ -60,8 +60,9 @@ class Config
 
 std::ostream& operator<<(std::ostream& out, const Config& config);
 
-#define CLIENT_MAX_BODY_SIZE_DEFAULT 1000000
-#define CLIENT_MAX_BODY_SIZE_MAX 10000000
+#define MEGABYTE 1048576
+#define CLIENT_MAX_BODY_SIZE_DEFAULT MEGABYTE
+#define CLIENT_MAX_BODY_SIZE_MAX (16 * MEGABYTE)
 #define MAX_URL_LENGTH 1024
 #define MAX_HEADER_LENGTH 4096
 #define ACCESS_LOG_DEFAULT "access.log"
