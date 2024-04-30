@@ -11,7 +11,6 @@ OBJS_DIR		= obj
 CXXFLAGS	= -Wall -Wextra -Werror -MP -MD -std=c++98 -g -Iinc
 
 SRCS   	= \
-		$(SRCS_DIR)/Node.cpp \
 		$(SRCS_DIR)/CGI.cpp \
 		$(SRCS_DIR)/ClientInfo.cpp \
 		$(SRCS_DIR)/LocationInfo.cpp \

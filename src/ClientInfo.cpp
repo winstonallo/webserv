@@ -21,7 +21,7 @@ ClientInfo::ClientInfo(
 		)
 {
 	_cgi = NULL;
-	type = CLIENT_NODE;
+	_type = CLIENT_NODE;
 	_isCGI = false;
 	_pid = -1;
 	_fin = false;
