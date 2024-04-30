@@ -321,7 +321,6 @@ int	Director::run_servers()
 							}
 							else
 							{
-								client->set_time();
 								reqb = reqb.substr(send);
 							}
 						}
@@ -661,7 +660,6 @@ int	Director::read_from_client(int client_fd)
 		add_file_descriptor(client_fd, _write_fds);
 		ci->_read_msg.clear();
 	}
-	ci->set_time();
 	return 0;
 }
 
@@ -716,7 +714,6 @@ int	Director::write_to_client(int fd)
 	}
 	else
 	{
-		cl->set_time();
 		cl->set_response(cl->get_response().substr(num_bytes));
 	}
 	return (0);
