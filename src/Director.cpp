@@ -87,7 +87,8 @@ int	Director::init_server(Server *server)
 	{
 		throw std::runtime_error(
 			"Error: Could not read address info: " +
-			std::string(gai_strerror(rv)) + ".\n"
+			std::string(gai_strerror(rv)) +
+			".\n"
 		);
 	}
 	for (p = address_info; p != NULL; p = p->ai_next)
@@ -95,19 +96,25 @@ int	Director::init_server(Server *server)
 		listener = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
 		if (listener < 0)
 		{
-			std::stringstream ss;
-			ss << "Error opening socket: " << strerror(errno) << std::endl;	
-			Log::log(ss.str(), ERROR_FILE | STD_ERR);
+			Log::log(
+				"Error: Could not open socket: " +
+				std::string(strerror(errno)) +
+				".\n",
+				ERROR_FILE | STD_ERR
+			);
 			continue ;
 		}
 
 		setsockopt(listener, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
 		if (bind(listener, p->ai_addr, p->ai_addrlen) < 0)
 		{
+			Log::log(
+				"Error: Could not bind: " +
+				std::string(strerror(errno)) +
+				".\n",
+				ERROR_FILE | STD_ERR
+			);
 			close(listener);
-			std::stringstream ss;
-			ss << "Bind error: " << strerror(errno) << std::endl;
-			Log::log(ss.str(), ERROR_FILE | STD_ERR);
 			continue ;
 		}
 
@@ -478,10 +485,6 @@ void Director::close_client_connection(int client_fd, const std::string& message
 	_client_timeouts.erase(client_fd);
 }
 
-// purpose: close the cgi client and log the status code
-//
-// argument: client -> the client that is a cgi
-// 			 status_code -> the status code of the response
 void	Director::close_cgi(ClientInfo* client, int status_code)
 {
 	if (client->get_cgi())
