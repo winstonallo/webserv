@@ -17,7 +17,6 @@ ClientInfo::ClientInfo(int tfd, const struct sockaddr_storage& address, size_t t
 {
 	type = CLIENT_NODE;
 	_isCGI = false;
-	_prev_time = time(NULL);
 	_pid = -1;
 	_fin = false;
 }
@@ -47,11 +46,6 @@ void	ClientInfo::set_cgi(CGI *cg)
 	_cgi = cg; 
 }
 
-time_t	ClientInfo::get_prev_time() const
-{
-	return _prev_time;
-}
-
 bool	ClientInfo::is_cgi() const
 {
 	return _isCGI;
@@ -60,16 +54,6 @@ bool	ClientInfo::is_cgi() const
 void	ClientInfo::set_is_cgi(bool b)
 {
 	_isCGI = b;
-}
-
-void	ClientInfo::set_prev_time(time_t tm)
-{
-	_prev_time = tm;
-}
-
-void	ClientInfo::set_time()
-{
-	_prev_time = time(NULL);
 }
 
 void	ClientInfo::set_server(Server *si)

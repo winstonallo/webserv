@@ -677,9 +677,13 @@ int	Director::write_to_client(int fd)
 	int sz = content.size();
 
 	if (sz < MSG_SIZE)
+	{
 		num_bytes = write(fd, content.c_str(), sz);
+	}
 	else
+	{
 		num_bytes = write(fd, content.c_str(), MSG_SIZE);
+	}
 	if (num_bytes < 0)
 	{
 		close_client_connection(fd, "Error sending a response: "
@@ -690,24 +694,19 @@ int	Director::write_to_client(int fd)
 		std::stringstream ss;
 		ss << "Response " << cl->get_request()->get_path() << " send to socket:" << fd << std::endl;
 		Log::log(ss.str(), STD_OUT);
-		if(	cl->get_request()->get_errcode() || cl->is_cgi())
+
+		if(	cl->get_request()->get_errcode() != 0 || cl->is_cgi() == true)
 		{
-			close_client_connection(fd, "Closing client connection on: "
-			+ Utils::itoa(fd) + "\n");
+			close_client_connection(
+				fd, 
+				"Closing client connection on: " + 
+				Utils::itoa(fd) + "\n"
+			);
 		}
 		else
 		{
-			FD_CLR(fd, &_write_fds);
-			if (fd == _fdmax)
-			{ 
-				_fdmax--;
-			}
-			FD_SET(fd, &_read_fds);
-
-			if (fd > _fdmax)
-			{
-				_fdmax=fd;
-			} 
+			clear_file_descriptor(fd, false);
+			add_file_descriptor(fd, _read_fds);
 			cl->get_request()->clean();
 			cl->clear_response();
 		}
