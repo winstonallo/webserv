@@ -535,7 +535,7 @@ namespace Utils
 
 		std::ifstream file(path.c_str(), std::ios::binary | std::ios::ate);
 		
-		if (file == false)
+		if (!file)
 		{
 			std::string error_message = "Error: " + path + " not found.\n";
 			throw std::runtime_error(error_message);
