@@ -130,7 +130,6 @@ namespace Setters
 
     void    add_error_page(const std::vector <std::string>& error_page, Server*& new_server)
     {
-        std::cout << "hello" << std::endl;
         try
         {
             Utils::safe_ifstream(error_page[1]);

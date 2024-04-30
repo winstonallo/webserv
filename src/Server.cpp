@@ -129,15 +129,14 @@ void	Server::create_response(Request& rq, ClientInfo* client_info)
 	}
 	if (failed)
 	{
-		try
+		std::string error_page_path = get_error_page(_errcode);
+		if (error_page_path == DEFAULT_ERROR_PAGE)
 		{
-			std::string error_page_path = _director->get_config()->get_error_page(_errcode);
-			body = Utils::safe_ifstream(error_page_path);
-		}
-		catch (const std::exception& e)
-		{
-			Log::log(e.what(), STD_ERR | ERROR_FILE);
 			body = DEFAULT_ERROR_PAGE;
+		}
+		else
+		{
+			body = Utils::safe_ifstream(error_page_path);
 		}
 	}
 	ss << "HTTP/1.1 " << _errcode << " " << _status_string[_errcode]  << "\r\n";

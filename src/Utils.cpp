@@ -326,7 +326,7 @@ namespace Utils
 
 		if (!oss)
 		{
-			Log::log("Error: Could not create default error page, falling back to 400: bad_request\n", STD_ERR | ERROR_FILE);
+			Log::log("Error: Could not create default error page, falling back to 400: Bad Request\n", STD_ERR | ERROR_FILE);
 			return DEFAULT_ERROR_PAGE;
 		}
 
