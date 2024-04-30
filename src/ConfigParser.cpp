@@ -176,13 +176,14 @@ void	ConfigParser::store_server_values_in_map(const std::string& key)
 		int	server_id = Utils::extract_numeric_value(key.substr(server_prefix_size));
 		std::string server_scope_key = key.substr(server_prefix_size + 3);
 		
-		if (server_scope_key.size() > 12)
+		if (server_scope_key.find("error_pages:") != std::string::npos)
 		{
 			std::string subkey = server_scope_key.substr(0, 11);
 
 			if (subkey == "error_pages")
 			{
 				std::vector <std::string> error_page;
+
 				error_page.push_back(server_scope_key.substr(server_scope_key.find_first_of(":") + 1));
 				error_page.push_back(_config[key].first[0]);
 				_servers[server_id][subkey].first = error_page;
