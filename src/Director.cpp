@@ -196,18 +196,22 @@ int	Director::init_servers()
 			);
 		}
 
-		FD_SET(listener, &_read_fds);
-
-		if (_fdmax < listener)
-		{
-			_fdmax = listener;
-		} 
-
+		add_file_descriptor(listener, _read_fds);
 		_nodes[listener] = *it;
 		_nodes[listener]->set_type(SERVER_NODE);
 		_nodes[listener]->set_fd(listener);
 	}
 	return 0;
+}
+
+void	Director::add_file_descriptor(int fd, fd_set& set)
+{
+	FD_SET(fd, &set);
+
+	if (_fdmax < fd)
+	{
+		_fdmax = fd;
+	}
 }
 
 extern bool interrupted;
@@ -648,20 +652,13 @@ int	Director::read_from_client(int client_fd)
 		ci->get_server()->create_response(*ci->get_request(), ci);
 		if (ci->is_cgi())
 		{
-			FD_SET(ci->get_cgi()->request_fd[1], &_write_fds);
-			if (ci->get_cgi()->request_fd[1] > _fdmax)
-				_fdmax = ci->get_cgi()->request_fd[1];
-			FD_SET(ci->get_cgi()->response_fd[0], &_read_fds);
-			if (ci->get_cgi()->response_fd[0] > _fdmax)
-				_fdmax = ci->get_cgi()->response_fd[0];
+			add_file_descriptor(ci->get_cgi()->request_fd[1], _write_fds);
+			add_file_descriptor(ci->get_cgi()->response_fd[0], _read_fds);
 			close(ci->get_cgi()->request_fd[0]);
 			close(ci->get_cgi()->response_fd[1]);
 		}	
-		FD_CLR(client_fd, &_read_fds);
-		if (client_fd == _fdmax)	_fdmax--;
-		FD_SET(client_fd, &_write_fds);
-		if (client_fd > _fdmax)	_fdmax = client_fd;
-		// ci->get_request()->clean();
+		clear_file_descriptor(client_fd, false);
+		add_file_descriptor(client_fd, _write_fds);
 		ci->_read_msg.clear();
 	}
 	ci->set_time();
