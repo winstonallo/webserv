@@ -1,13 +1,16 @@
 #include "Director.hpp"
+#include <arpa/inet.h>
 #include <cerrno>
 #include <cstddef>
 #include <ctime>
 #include <netdb.h>
 #include <sstream>
+#include <stdexcept>
 #include <string.h>
 #include <string>
 #include <map>
 #include <sys/select.h>
+#include <sys/socket.h>
 #include <sys/wait.h>
 #include <vector>
 #include "ClientInfo.hpp"
@@ -82,29 +85,36 @@ int	Director::init_server(Server *server)
 	port << server->get_port();
 	if ((rv = getaddrinfo(NULL, port.str().c_str(), &hints, &address_info)) != 0) 
 	{
-		std::stringstream ss;
-		ss << "Error reading addrinfo: " << gai_strerror(rv) << std::endl;
-		Log::log(ss.str(), ERROR_FILE | STD_ERR);
-		return -1;
+		throw std::runtime_error(
+			"Error: Could not read address info: " +
+			std::string(gai_strerror(rv)) +
+			".\n"
+		);
 	}
 	for (p = address_info; p != NULL; p = p->ai_next)
 	{
 		listener = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
 		if (listener < 0)
 		{
-			std::stringstream ss;
-			ss << "Error opening socket: " << strerror(errno) << std::endl;	
-			Log::log(ss.str(), ERROR_FILE | STD_ERR);
+			Log::log(
+				"Error: Could not open socket: " +
+				std::string(strerror(errno)) +
+				".\n",
+				ERROR_FILE | STD_ERR
+			);
 			continue ;
 		}
 
 		setsockopt(listener, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
 		if (bind(listener, p->ai_addr, p->ai_addrlen) < 0)
 		{
+			Log::log(
+				"Error: Could not bind: " +
+				std::string(strerror(errno)) +
+				".\n",
+				ERROR_FILE | STD_ERR
+			);
 			close(listener);
-			std::stringstream ss;
-			ss << "Bind error: " << strerror(errno) << std::endl;
-			Log::log(ss.str(), ERROR_FILE | STD_ERR);
 			continue ;
 		}
 
@@ -112,26 +122,32 @@ int	Director::init_server(Server *server)
 		server->set_addr_len((size_t)p->ai_addrlen);
 
 		Log::log("Server created on localhost with domain name: " +
-		server->get_server_name()[0] + ", port: " + Utils::itoa(server->get_port()) + "\n",
-		ACCEPT_FILE | STD_OUT);
+			server->get_server_name()[0] + ", port: " +
+			Utils::itoa(server->get_port()) + "\n",
+		ACCEPT_FILE | STD_OUT
+		);
 
-		break;
+		break ;
 	}
 
 	if (p == NULL)
 	{
-		std::stringstream ss;
-		ss << "Select server failed to bind." << std::endl;
-		Log::log(ss.str(), ERROR_FILE | STD_ERR);
 		freeaddrinfo(address_info);
-		return -1;
+		throw std::runtime_error("Error: Select server failed to bind.\n");
 	}
-									_fdmax--;
+
+	_fdmax--;
 	server->set_fd(listener);
 	freeaddrinfo(address_info);
 	return 0;
 }
 
+bool Director::is_same_socket(std::vector<Server*>::iterator it, std::vector<Server*>::iterator sub_it)
+{
+	return ((*sub_it)->get_host_address().s_addr == (*it)->get_host_address().s_addr &&
+		(*sub_it)->get_port() == (*it)->get_port()
+		);
+}
 
 // purpose: Take the Servers which we got from Config parsing
 // 			and Initializes each one of them, set them so they don't block
@@ -147,7 +163,7 @@ int	Director::init_servers()
 
 	std::vector<Server*> 			servers = _config->get_servers();
 	std::vector<Server*>::iterator 	e = servers.end();
-	std::vector<Server*>::iterator 	it ;
+	std::vector<Server*>::iterator 	it;
 	std::vector<Server*>::iterator 	sub_it;
 	bool							same_socket;	
 
@@ -156,17 +172,14 @@ int	Director::init_servers()
 		same_socket = false;
 		for (sub_it = servers.begin(); sub_it != it; sub_it++) 
 		{
-			if ((*sub_it)->get_host_address().s_addr == (*it)->get_host_address().s_addr &&
-				(*sub_it)->get_port() == (*it)->get_port())
+			if ((same_socket = is_same_socket(it, sub_it)))
 			{
 				(*it)->set_fd((*sub_it)->get_fd());
-				same_socket = true;
 			}
 		}
 		if (same_socket == false)
 		{
-			if (init_server(*it) < 0)
-				return -1;
+			init_server(*it);
 		}
 		else
 		{
@@ -179,29 +192,35 @@ int	Director::init_servers()
 		int listener = (*it)->get_fd();
 		if (fcntl(listener, F_SETFL, O_NONBLOCK) < 0)
 		{
-			std::stringstream ss;
-			ss << "Error unblocking socket: " << strerror(errno) << std::endl;
-			Log::log(ss.str(), ERROR_FILE | STD_ERR);
-			return -1;
+			throw std::runtime_error(
+				"Error: Could not unblock socket: " +
+				std::string(strerror(errno)) + ".\n"
+			);
 		}
 		if (listen(listener, 512) == -1)
 		{
-			std::stringstream ss;
-			ss << "Error listening: " << strerror(errno) << std::endl;
-			Log::log(ss.str(), ERROR_FILE | STD_ERR);
-			return -1;
+			throw std::runtime_error(
+				"Error: Could not listen: " +
+				std::string(strerror(errno)) + ".\n"
+			);
 		}
-		FD_SET(listener, &_read_fds);
-		if (_fdmax < listener)
-		{
-			_fdmax = listener;
-		} 
 
+		add_file_descriptor(listener, _read_fds);
 		_nodes[listener] = *it;
 		_nodes[listener]->set_type(SERVER_NODE);
 		_nodes[listener]->set_fd(listener);
 	}
 	return 0;
+}
+
+void	Director::add_file_descriptor(int fd, fd_set& set)
+{
+	FD_SET(fd, &set);
+
+	if (_fdmax < fd)
+	{
+		_fdmax = fd;
+	}
 }
 
 extern bool interrupted;
@@ -255,7 +274,7 @@ int	Director::run_servers()
 						}
 						catch(const std::exception& e)
 						{
-							Log::log("Error creating client connection: " + std::string(e.what()), STD_ERR | ERROR_FILE);
+							Log::log(e.what(), STD_ERR | ERROR_FILE);
 						}
 					}
 				}
@@ -311,7 +330,6 @@ int	Director::run_servers()
 							}
 							else
 							{
-								client->set_time();
 								reqb = reqb.substr(send);
 							}
 						}
@@ -467,10 +485,6 @@ void Director::close_client_connection(int client_fd, const std::string& message
 	_client_timeouts.erase(client_fd);
 }
 
-// purpose: close the cgi client and log the status code
-//
-// argument: client -> the client that is a cgi
-// 			 status_code -> the status code of the response
 void	Director::close_cgi(ClientInfo* client, int status_code)
 {
 	if (client->get_cgi())
@@ -495,22 +509,24 @@ int	Director::create_client_connection(int listener)
 {
 	struct sockaddr_storage remoteaddr;
 	socklen_t 				addrlen = sizeof remoteaddr;
-	char					remoteIP[INET6_ADDRSTRLEN];	
 
 	int newfd = accept(listener, (struct sockaddr *)&remoteaddr, &addrlen);
 	if (newfd == -1)
 	{
-		std::stringstream	ss;
-		ss << "Error accepting client: " << strerror(errno) << std::endl;
-		Log::log(ss.str(), ERROR_FILE | STD_ERR);
-		return -1;
+		throw std::runtime_error(
+			"Error: Could not accept client: " +
+			std::string(strerror(errno)) +
+			".\n"
+		);
 	}
 	else
 	{
 		if (_nodes.find(newfd) == _nodes.end())
 		{
 			if (_fdmax < newfd)
+			{
 				_fdmax = newfd;
+			}
 			ClientInfo* newcl = new ClientInfo(newfd, remoteaddr, (size_t)addrlen);
 			_client_timeouts[newfd].last_activity = time(NULL);
 			_client_timeouts[newfd].client = newcl;
@@ -519,32 +535,30 @@ int	Director::create_client_connection(int listener)
 		}
 		else
 		{
-			std::stringstream ss;
-			ss << "Tried to overwrite socket: " << newfd << std::endl;
-			Log::log(ss.str(), STD_ERR | ERROR_FILE);
-			delete _nodes[newfd];
-			_nodes.erase(newfd);
-			_client_timeouts.erase(newfd);
-			close(newfd);
-			throw std::runtime_error(ss.str());
+			close_client_connection(newfd);
+
+			throw std::runtime_error(
+				"Tried to overwrite socket: " +
+				Utils::itoa(newfd) +
+				".\n"
+			);
 		}
 		std::stringstream ss2;
 
-		ss2 << "New connection from ";
-		ss2 << inet_ntop(remoteaddr.ss_family,
-						get_in_addr((struct sockaddr *)&remoteaddr),
-						remoteIP, INET6_ADDRSTRLEN);
-		ss2 << " on socket " << newfd << std::endl;
-		Utils::notify_client_connection(dynamic_cast<Server*>(_nodes[listener]), newfd, remoteaddr);
+		Utils::notify_client_connection(
+			dynamic_cast<Server*>(_nodes[listener]),
+			newfd,
+			remoteaddr
+		);
+
 		if (fcntl(newfd, F_SETFL, O_NONBLOCK) < 0)
 		{
-			std::stringstream ss3;
-			ss3 << "Error while non-blocking: " << strerror(errno) << std::endl;
-			Log::log(ss3.str(), ERROR_FILE | STD_ERR);
-			delete _nodes[newfd];
-			_nodes.erase(newfd);
-			_client_timeouts.erase(newfd);
-			close(newfd);
+			close_client_connection(
+				newfd,
+				"Error: Could not set non-blocking I/O: " +
+				std::string(strerror(errno)) +
+				".\n"
+			);
 		}
 		FD_SET(newfd, &_read_fds);
 	}
@@ -560,161 +574,149 @@ int	Director::create_client_connection(int listener)
 // argument: clientfd -> the file descriptor
 //
 // return: int -> -1 if it failed and 0 for success
-
 int	Director::read_from_client(int client_fd)
 {
 	static std::map<int ,std::string>		requestmsg;
-	char									remoteIP[INET6_ADDRSTRLEN];
+	char									remote_IP[INET6_ADDRSTRLEN];
 	int										flag = 0;
-	ClientInfo								*ci;
+	ClientInfo								*client;
 
-	ci = dynamic_cast<ClientInfo *>(_nodes[client_fd]);
-	flag = Request::read_request(client_fd, MSG_SIZE, ci->_read_msg);
-	if (!flag)
+	client = dynamic_cast<ClientInfo *>(_nodes[client_fd]);
+	flag = Request::read_request(client_fd, MSG_SIZE, client->_read_msg);
+	if (flag == 0)
 	{
-		std::stringstream ss;
-		ss << "Connection closed by " << inet_ntop(AF_INET, get_in_addr((struct sockaddr *)&ci->get_addr()),
-						remoteIP, INET6_ADDRSTRLEN);
-		ss << " on socket " << client_fd << std::endl;
-		Log::log(ss.str(), ACCEPT_FILE | STD_OUT);
-		clear_file_descriptor(client_fd);
-		ci->get_request()->clean();
-		ci->_read_msg.clear();
-		delete _nodes[client_fd];
-		_client_timeouts.erase(client_fd);
-		_nodes.erase(client_fd);
+		close_client_connection(
+			client_fd,
+			"Connection closed by " +
+			std::string(inet_ntop(
+				AF_INET,
+				get_in_addr((struct sockaddr *)&client->get_addr()),
+				remote_IP,
+				INET6_ADDRSTRLEN
+				)) +
+			" on socket " +
+			Utils::itoa(client_fd) + ".\n"
+		);
+		client->get_request()->clean();
 		return 0;
 	}
 	else if (flag == -1)
 	{
-		clear_file_descriptor(client_fd);
-		ci->get_request()->clean();
-		delete _nodes[client_fd];
-		_nodes.erase(client_fd);
-		_client_timeouts.erase(client_fd);
-		std::stringstream ss;
-		ss << "Error reading from socket: " << client_fd << std::endl;
-		Log::log(ss.str(), ERROR_FILE | STD_ERR);
-		ci->_read_msg.clear();
+		close_client_connection(client_fd, "Error: Could not read from socket: " + Utils::itoa(client_fd));
+		client->get_request()->clean();
+		client->_read_msg.clear();
 		return -1;	
 	}
 	else if (flag == READ)
 	{
 		_client_timeouts[client_fd].last_activity = time(NULL);
-		try
-		{
-			ci->get_request()->init(ci->_read_msg);
-		}
-		catch(const std::exception& e)
-		{}
-		// print Request parsed log
-		std::stringstream ss;
-		ss << "Request: " << client_fd << " parsed: " << ci->get_request()->get_method();
-		ss << " " << ci->get_request()->get_path() << std::endl;
-		Log::log(ss.str(), STD_OUT);
+		client->get_request()->init(client->_read_msg);
 
-		// virtual servers, we go throug the servers and match the host name / server name 
+		Log::log(
+			"Request: " +
+			Utils::itoa(client_fd) +
+			" parsed: " +
+			client->get_request()->get_method() +
+			" " + client->get_request()->get_path() + ".\n"
+			, STD_OUT
+		);
+
 		std::vector<Server*> servers = _config->get_servers();
 		std::vector<Server*>::iterator it;
-		int wrong_host = 1;
+
+		bool wrong_host = true;
 		for (it = servers.begin(); it != servers.end(); it++)
 		{
-			if ((*it)->get_host_address().s_addr == ci->get_server()->get_host_address().s_addr &&
-			(*it)->get_port() == ci->get_server()->get_port())
+			if ((*it)->get_host_address().s_addr == client->get_server()->get_host_address().s_addr &&
+			(*it)->get_port() == client->get_server()->get_port())
 			{
 				std::vector<std::string> host_names = (*it)->get_server_name(); 
 				std::vector<std::string>::iterator host_it;
-				std::string host_header = Utils::to_lower(ci->get_request()->get_header("HOST"));
+				std::string host_header = Utils::to_lower(client->get_request()->get_header("HOST"));
+
 				for (host_it = host_names.begin(); host_it != host_names.end(); host_it++) 
 				{
 					if (Utils::to_lower(*host_it) == host_header)
 					{
-						wrong_host = 0;
-						ci->set_server(*it);
+						wrong_host = false;
+						client->set_server(*it);
 					}
 				}
 			}
 		}
-		if (wrong_host && ci->get_request()->get_errcode() == 0)
+		if (wrong_host == true && client->get_request()->get_errcode() == 0)
 		{
-			ci->get_request()->set_errcode(404);
+			client->get_request()->set_errcode(404);
 		}
-		ci->get_server()->create_response(*ci->get_request(), ci);
-		if (ci->is_cgi())
+		client->get_server()->create_response(*client->get_request(), client);
+		if (client->is_cgi())
 		{
-			FD_SET(ci->get_cgi()->request_fd[1], &_write_fds);
-			if (ci->get_cgi()->request_fd[1] > _fdmax)
-				_fdmax = ci->get_cgi()->request_fd[1];
-			FD_SET(ci->get_cgi()->response_fd[0], &_read_fds);
-			if (ci->get_cgi()->response_fd[0] > _fdmax)
-				_fdmax = ci->get_cgi()->response_fd[0];
-			close(ci->get_cgi()->request_fd[0]);
-			close(ci->get_cgi()->response_fd[1]);
+			add_file_descriptor(client->get_cgi()->request_fd[1], _write_fds);
+			add_file_descriptor(client->get_cgi()->response_fd[0], _read_fds);
+			close(client->get_cgi()->request_fd[0]);
+			close(client->get_cgi()->response_fd[1]);
 		}	
-		FD_CLR(client_fd, &_read_fds);
-		if (client_fd == _fdmax)	_fdmax--;
-		FD_SET(client_fd, &_write_fds);
-		if (client_fd > _fdmax)	_fdmax = client_fd;
-		// ci->get_request()->clean();
-		ci->_read_msg.clear();
+		clear_file_descriptor(client_fd, false);
+		add_file_descriptor(client_fd, _write_fds);
+		client->_read_msg.clear();
 	}
-	ci->set_time();
 	return 0;
 }
 
-// purpose: (TODO) after getting the request message, this function sends back
-// 			the answer, which in a simple case is the requested file or in case of a
-// 			cgi the generated file. 
-//
-// return: int -> -1 if it failed and 0 for success
 int	Director::write_to_client(int fd)
 {
 	int				num_bytes;
-	ClientInfo*		cl = dynamic_cast<ClientInfo*>(_nodes[fd]);
+	ClientInfo*		client = dynamic_cast<ClientInfo*>(_nodes[fd]);
 
-	std::string content = cl->get_response();
-	int sz = content.size();
+	std::string content = client->get_response();
+	int size = content.size();
 
-	if (sz < MSG_SIZE)
-		num_bytes = write(fd, content.c_str(), sz);
+	if (size < MSG_SIZE)
+	{
+		num_bytes = write(fd, content.c_str(), size);
+	}
 	else
+	{
 		num_bytes = write(fd, content.c_str(), MSG_SIZE);
+	}
 	if (num_bytes < 0)
 	{
-		close_client_connection(fd, "Error sending a response: "
-		+ std::string(strerror(errno)) + "\n");
+		close_client_connection(
+			fd,
+			"Error sending a response: " +
+			std::string(strerror(errno)) +
+			"\n."
+		);
 	}
 	else if (num_bytes == (int)(content.size()) || num_bytes == 0)
 	{
-		std::stringstream ss;
-		ss << "Response " << cl->get_request()->get_path() << " send to socket:" << fd << std::endl;
-		Log::log(ss.str(), STD_OUT);
-		if(	cl->get_request()->get_errcode() || cl->is_cgi())
+		Log::log(
+			"Response " +
+			client->get_request()->get_path() +
+			" sent to socket" +
+			Utils::itoa(fd) + ".\n",
+			STD_OUT
+		);
+
+		if(	client->get_request()->get_errcode() != 0 || client->is_cgi() == true)
 		{
-			close_client_connection(fd, "Closing client connection on: "
-			+ Utils::itoa(fd) + "\n");
+			close_client_connection(
+				fd, 
+				"Closing client connection on: " + 
+				Utils::itoa(fd) + "\n"
+			);
 		}
 		else
 		{
-			FD_CLR(fd, &_write_fds);
-			if (fd == _fdmax)
-			{ 
-				_fdmax--;
-			}
-			FD_SET(fd, &_read_fds);
-
-			if (fd > _fdmax)
-			{
-				_fdmax=fd;
-			} 
-			cl->get_request()->clean();
-			cl->clear_response();
+			clear_file_descriptor(fd, false);
+			add_file_descriptor(fd, _read_fds);
+			client->get_request()->clean();
+			client->clear_response();
 		}
 	}
 	else
 	{
-		cl->set_time();
-		cl->set_response(cl->get_response().substr(num_bytes));
+		client->set_response(client->get_response().substr(num_bytes));
 	}
 	return (0);
 }

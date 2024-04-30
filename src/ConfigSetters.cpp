@@ -68,11 +68,6 @@ namespace Setters
         set_string_value(root, new_location, &LocationInfo::set_root);
     }
 
-    void	set_directory_listing(const std::vector <std::string>& directory_listing, LocationInfo*& new_location)
-    {
-        set_bool_value(directory_listing, new_location, &LocationInfo::set_directory_listing);
-    }
-
     void	set_allowed_methods(const std::vector <std::string>& allowed_methods, LocationInfo*& new_location)
     {
         set_vector_value(allowed_methods, new_location, &LocationInfo::set_allowed_methods);

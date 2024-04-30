@@ -7,9 +7,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <exception>
-#include <iostream>
 #include <netinet/in.h>
-#include <ostream>
 #include <string>
 #include "Log.hpp"
 #include <cstdlib>
@@ -282,19 +280,4 @@ Config::~Config()
 	{
 		delete *it;
 	}
-}
-
-std::ostream &operator<<(std::ostream &out, const Config &config)
-{
-	std::vector <Server *> servers = config.get_servers();
-	for (std::vector <Server *>::iterator server = servers.begin(); server != servers.end(); server++)
-	{
-		Utils::print_server_info(out, *server);
-		std::vector <LocationInfo *> locations = (*server)->get_locations();
-		for (std::vector <LocationInfo *>::iterator location = locations.begin(); location != locations.end(); location++)
-		{
-			Utils::print_location_info(out, *location);
-		}
-	}
-	return out;
 }

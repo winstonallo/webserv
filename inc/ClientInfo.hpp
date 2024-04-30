@@ -10,50 +10,82 @@
 #include "Server.hpp"
 #include "CGI.hpp"
 
-//purpose:	data filled from the request parsing for and used for 
-//			answering requests
-
 class Server;
 
 class ClientInfo : public Node 
 {
 	public:
-									ClientInfo();
-									~ClientInfo();
-									ClientInfo(const ClientInfo& rhs);
-									ClientInfo(int fd, const struct sockaddr_storage& addr, size_t addr_len);
-		ClientInfo&					operator=(const ClientInfo& rhs);
 
-		time_t						get_prev_time() const;
-		void						set_prev_time(time_t tm);
-		CGI*						get_cgi();
-		void						set_cgi(CGI* cg);
-		bool						is_cgi() const;
-		void						set_is_cgi(bool);
-		void						set_time();
-		time_t						get_time() { return _prev_time; }
-		int							get_pid() const;
-		void						set_pid(int p);
-		bool							get_fin() const;
-		void						set_fin(bool f);
-		Server*						get_server() const;
-		void						set_server(Server* si);
-		Request*					get_request();
-		std::string&				get_response();
-		void						set_response(const std::string& res);
-		void						clear_response();
-		void						clear_request(); 
-		void						clean();
+		ClientInfo() :
+		_cgi(NULL),
+		_isCGI(false) {}
+
+		ClientInfo(
+			int fd,
+			const struct sockaddr_storage& address,
+			size_t addr_len
+		) : Node(
+				fd,
+				address,
+				addr_len,
+				CLIENT_NODE
+			),
+			_cgi(NULL),
+			_isCGI(false),
+			_pid(-1),
+			_fin(false) {}
+
+		~ClientInfo()
+		{
+			if (_cgi != NULL)
+			{
+				delete _cgi;
+			}
+		}
+		
+		void clean()
+		{
+			_response.clear();
+			if (_cgi != NULL)
+			{
+				delete _cgi;
+			}
+			_isCGI = false;
+			_pid = -1;
+			_fin = false;
+		}
+
+
+		CGI*						get_cgi() { return _cgi; }
+		void						set_cgi(CGI* cgi) { _cgi = cgi; }
+		bool						is_cgi() const { return _isCGI; }
+		void						set_is_cgi(bool isCGI) { _isCGI = isCGI; }
+		int							get_pid() const { return _pid; }
+		void						set_pid(int pid) { _pid = pid; }
+		bool						get_fin() const { return _fin; }
+		void						set_fin(bool fin) { _fin = fin; }
+		Server*						get_server() const { return _server; }
+		void						set_server(Server* server) { _server = server; }
+		Request*					get_request() { return &_request; }
+		std::string&				get_response() { return _response; }
+		void						set_response(const std::string& response) { _response = response; }
+		void						clear_response() { _response.clear(); }
+		void						clear_request() { _request.clean(); }
+
 		std::string					_response;
 		std::string					_read_msg;
+
 	private:
+
 		Server*						_server;
 		Request						_request;
-		time_t						_prev_time;
 		CGI*						_cgi;
 		bool						_isCGI;
 		int							_pid;
 		bool						_fin;
+
+		ClientInfo&					operator=(const ClientInfo&) { return *this; }
+									ClientInfo(const ClientInfo&) {}
 };
 
 #endif
