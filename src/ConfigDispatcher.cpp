@@ -51,11 +51,12 @@ void ConfigDispatcher::handle_error_page(const std::pair <std::string, std::pair
 		{
 			Utils::config_error_on_line(key_value.second.second, file_path + ": invalid file - expecting .html, falling back to default\n");
 		}
-		else if (Utils::file_exists(error_page))
+		try
 		{
+			Utils::safe_ifstream(error_page);
 			_error_pages[status_code] = error_page;
 		}
-		else
+		catch (const std::exception& e)
 		{
 			Utils::config_error_on_line(key_value.second.second, file_path + ": file not found, falling back to default\n");
 		}
