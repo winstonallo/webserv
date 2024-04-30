@@ -282,6 +282,7 @@ void	Config::initialize_server_setters()
 	_server_setters["autoindex"] = &Setters::configure_autoindex;
 	_server_setters["root"] = &Setters::configure_root;
 	_server_setters["index"] = &Setters::configure_index;
+	_server_setters["error_pages"] = &Setters::add_error_page;
 }
 
 void	Config::initialize_location_setters()

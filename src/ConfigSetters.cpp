@@ -1,6 +1,7 @@
 #include "ConfigSetters.hpp"
 #include "Config.hpp"
 #include "Server.hpp"
+#include "Log.hpp"
 
 namespace Setters
 {
@@ -127,16 +128,20 @@ namespace Setters
         set_string_value(root_vector, new_server, &Server::set_root);
     }
 
-    // validates client max body size from config
-    //
-    // if:	the value is missing or empty
-    //		->	log error & fall back to default
-    //
-    // else if: the value is too high
-    //		->	log error & cap it to 10M
-    //
-    // else if: the value is invalid
-    //		->	log error & fall back to default
+    void    add_error_page(const std::vector <std::string>& error_page, Server*& new_server)
+    {
+        std::cout << "hello" << std::endl;
+        try
+        {
+            Utils::safe_ifstream(error_page[1]);
+            new_server->add_error_page(std::atoi(error_page[0].c_str()), error_page[1]);
+        }
+        catch (const std::exception& e)
+        {
+            Log::log(e.what(), STD_ERR | ERROR_FILE);
+        }
+    }
+
     void	configure_client_max_body_size(const std::vector <std::string>& body_size_vector, Server*& new_server)
     {
         if (body_size_vector.empty() == true)

@@ -67,6 +67,9 @@ class Server : public Node
 		std::string							get_relocation() const { return _reloc; }
 		void								set_relocation(const std::string& relocation) { _reloc = relocation; }
 
+		std::string							get_error_page(const int status_code);
+		void								add_error_page(const int status_code, const std::string& error_page_path) { _error_pages[status_code] = error_page_path; }
+
 		std::string							respond(Request& rq);
 		void								create_response(Request&, ClientInfo* client_info);
 		void								reset();

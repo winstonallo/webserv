@@ -85,6 +85,18 @@ std::string Server::respond(Request& rq)
     return "Error";
 }
 
+std::string	Server::get_error_page(const int status_code)
+{
+	if (_error_pages.find(status_code) != _error_pages.end())
+	{
+		return _error_pages[status_code];
+	}
+	else
+	{
+		return Utils::generate_default_error_page(status_code);
+	}
+}
+
 void	Server::create_response(Request& rq, ClientInfo* client_info)
 {
 	std::stringstream 	ss;

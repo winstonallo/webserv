@@ -18,7 +18,6 @@ void	ConfigDispatcher::dispatch_values()
 	for (line_count_map::iterator it = _raw_config.begin(); it != _raw_config.end(); it++)
 	{
 		handle_server(it->first);
-		handle_error_page(std::make_pair(it->first, it->second));
 	}
 }
 
@@ -29,36 +28,21 @@ void	ConfigDispatcher::handle_server(const std::string& key)
 	if (key.substr(0, server_prefix_size) == SERVER_PREFIX)
 	{
 		int	server_id = Utils::extract_numeric_value(key.substr(server_prefix_size));
+		std::string server_scope_key = key.substr(server_prefix_size + 3);
+		
+		if (server_scope_key.size() > 12)
+		{
+			std::string subkey = server_scope_key.substr(0, 11);
 
-		_servers[server_id][key.substr(server_prefix_size + 3)] = _raw_config[key];
+			if (subkey == "error_pages")
+			{
+				std::vector <std::string> error_page;
+				error_page.push_back(server_scope_key.substr(server_scope_key.find_first_of(":") + 1));
+				error_page.push_back(_raw_config[key].first[0]);
+				_servers[server_id][subkey].first = error_page;
+				return ;			
+			}
+		}
+		_servers[server_id][server_scope_key] = _raw_config[key];
 	}
-}
-
-void ConfigDispatcher::handle_error_page(const std::pair <std::string, std::pair <std::vector<std::string>, int> >& key_value)
-{
-    std::string file_path = key_value.first.substr(0, key_value.first.find_last_of(":"));
-
-    if (file_path == ERROR_PAGE_PREFIX)
-    {
-    	std::string error_page = key_value.second.first[0];
-		int status_code = std::atoi(key_value.first.substr(key_value.first.size() - 3).c_str());
-
-		if (error_page == ".html")
-		{
-			Utils::config_error_on_line(key_value.second.second, file_path +  ": invalid file - hidden files not accepted, falling back to default\n");
-		}
-		else if (error_page.size() < 6 || error_page.substr(error_page.size() - 5) != ".html")
-		{
-			Utils::config_error_on_line(key_value.second.second, file_path + ": invalid file - expecting .html, falling back to default\n");
-		}
-		try
-		{
-			Utils::safe_ifstream(error_page);
-			_error_pages[status_code] = error_page;
-		}
-		catch (const std::exception& e)
-		{
-			Utils::config_error_on_line(key_value.second.second, file_path + ": file not found, falling back to default\n");
-		}
-    }
 }
