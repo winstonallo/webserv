@@ -587,7 +587,6 @@ void Request::init(std::string request)
     pct_decode();
     check_length();
     check_headers();
-    //std::cout << *this << std::endl;
 }
 void Request::clean(void)
 {
