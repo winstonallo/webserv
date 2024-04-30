@@ -506,7 +506,6 @@ int	Director::create_client_connection(int listener)
 {
 	struct sockaddr_storage remoteaddr;
 	socklen_t 				addrlen = sizeof remoteaddr;
-	char					remoteIP[INET6_ADDRSTRLEN];	
 
 	int newfd = accept(listener, (struct sockaddr *)&remoteaddr, &addrlen);
 	if (newfd == -1)
@@ -541,21 +540,19 @@ int	Director::create_client_connection(int listener)
 		}
 		std::stringstream ss2;
 
-		ss2 << "New connection from ";
-		ss2 << inet_ntop(remoteaddr.ss_family,
-						get_in_addr((struct sockaddr *)&remoteaddr),
-						remoteIP, INET6_ADDRSTRLEN);
-		ss2 << " on socket " << newfd << std::endl;
-		Utils::notify_client_connection(dynamic_cast<Server*>(_nodes[listener]), newfd, remoteaddr);
+		Utils::notify_client_connection(
+			dynamic_cast<Server*>(_nodes[listener]),
+			newfd,
+			remoteaddr
+		);
+
 		if (fcntl(newfd, F_SETFL, O_NONBLOCK) < 0)
 		{
-			std::stringstream ss3;
-			ss3 << "Error while non-blocking: " << strerror(errno) << std::endl;
-			Log::log(ss3.str(), ERROR_FILE | STD_ERR);
-			delete _nodes[newfd];
-			_nodes.erase(newfd);
-			_client_timeouts.erase(newfd);
-			close(newfd);
+			close_client_connection(
+				newfd,
+				"Error: Could not set non-blocking I/O: " +
+				std::string(strerror(errno)) + ".\n"
+			);
 		}
 		FD_SET(newfd, &_read_fds);
 	}
@@ -571,7 +568,6 @@ int	Director::create_client_connection(int listener)
 // argument: clientfd -> the file descriptor
 //
 // return: int -> -1 if it failed and 0 for success
-
 int	Director::read_from_client(int client_fd)
 {
 	static std::map<int ,std::string>		requestmsg;

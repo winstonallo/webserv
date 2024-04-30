@@ -224,9 +224,13 @@ int Request::read_request(int client_fd, int size,std::string& requestmsg)
     std::string chunked;
     
     if (to_upper(requestmsg).find("TRANSFER-ENCODING: CHUNKED\r\n") != std::string::npos)
+    {
         chunked.append(buf, num);
-	else
+    }
+    else
+    {
         requestmsg.append(buf, num);
+    }
 	// check if the message has completed headers = \r\n\r\n
 	if (requestmsg.find("\r\n\r\n") != std::string::npos)
 	{
