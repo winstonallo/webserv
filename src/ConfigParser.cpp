@@ -85,6 +85,13 @@ void	ConfigParser::store_key_value_pairs(const std::pair <std::string, int> line
 
 	_nesting_level.push(_nesting_level.top() + ":" + bottom_pair[0]);
 
+	if (_nesting_level.top().find("server") == std::string::npos)
+	{
+		Utils::config_error_on_line(line.second, INVALID_SCOPE);
+		_nesting_level.pop();
+		return ;
+	}
+
 	std::vector <std::string> value = bottom_pair;
 	value.erase(value.begin());
 	_config[_nesting_level.top()] = std::make_pair(value, line.second);

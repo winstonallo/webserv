@@ -54,23 +54,16 @@ class ConfigParser
 
 #define SERVER_PREFIX "webserv:server"
 #define EXPECTED_EXT ".conf"
-#define UNINITIALIZED_SCOPE "uninitialized scope: expected identifier"             
-#define UNEXPECTED_NL "unexpected newline - terminate value lines with ';'"
-#define UNTERM_VALUE_SCOPE "unterminated value scope - terminate value lines with ';'"
-#define EMPTY "config file is empty"
-#define MISSING_CLOSING_BRACE "missing closing brace - terminate scope with '}'"
-#define EXTRA_CLOSING_BRACE "extraneous closing brace"
-#define MISSING_OPENING_BRACE "missing opening brace - use '{ }' for nesting"
-#define INVALID_EXT "invalid file extension (expected: '.conf')"
-#define INV_HEADER "invalid config file header (expected: 'webserv')"
-#define NOT_FOUND "could not open file"
-#define FALLBACK "falling back to default config: '\033[1mconfig/webserv.conf\033[0m'"
-#define RULES "refer to '\033[1mconfig/rules/config-formatting-rules.md\033[0m' for more details"
-
-#define BOLD "\033[1m"
-#define RESET "\033[0m"
-#define UNDERLINE "\033[4m"
-
-std::ostream& operator<<(std::ostream& os, const ConfigParser& config);
+#define UNINITIALIZED_SCOPE "Uninitialized scope: Expected identifier."             
+#define UNEXPECTED_NL "Unexpected newline - Terminate value lines with ';'."
+#define UNTERM_VALUE_SCOPE "Unterminated value scope - Terminate value lines with ';'."
+#define EMPTY "Configuration file is empty."
+#define MISSING_CLOSING_BRACE "Missing closing brace - Terminate scope with '}'."
+#define EXTRA_CLOSING_BRACE "Extraneous closing brace."
+#define MISSING_OPENING_BRACE "Missing opening brace - use '{ }' for nesting."
+#define INVALID_EXT "Invalid file extension (expected: '.conf')."
+#define INV_HEADER "Invalid configuration file header (expected: 'webserv')."
+#define NOT_FOUND "Could not open file."
+#define INVALID_SCOPE "Global values are not supported."
 
 #endif
