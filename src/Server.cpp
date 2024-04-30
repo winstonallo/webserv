@@ -1,18 +1,18 @@
 #include "Server.hpp"
 #include <cstring>
 #include <cerrno>
-#include "LocationInfo.hpp"
 #include <exception>
 #include <netinet/in.h>
 #include <ostream>
 #include <stdexcept>
 #include <string>
 #include <vector>
-#include "Director.hpp"
 #include <fstream>
+#include "LocationInfo.hpp"
 #include "Log.hpp"
 #include "Request.hpp"
 #include "Utils.hpp"
+#include "ClientInfo.hpp"
 
 Server::Server() 
 {
