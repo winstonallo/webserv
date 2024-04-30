@@ -93,6 +93,7 @@ void	ConfigParser::store_key_value_pairs(const std::pair <std::string, int> line
 	}
 
 	std::vector <std::string> value = bottom_pair;
+
 	value.erase(value.begin());
 	_config[_nesting_level.top()] = std::make_pair(value, line.second);
 

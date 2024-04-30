@@ -30,11 +30,6 @@
 //		2. 	performs error handling on file structure
 //		3. 	stores config in a one level map with the config path as key
 //
-// ConfigDispatcher:
-//		1. 	splits the config into logical parts
-//			a. servers
-//			b. error pages
-//
 // Config:
 // 		1. 	gets error pages (already fully parsed in ConfigDispatcher 
 //			since they are simple top level key-value pairs)
