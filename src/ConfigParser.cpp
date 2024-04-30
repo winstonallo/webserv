@@ -12,6 +12,7 @@ ConfigParser::ConfigParser(const std::string& path) : _config_file_path(path), _
 	}
 
 	load_config_from_file(_config_file_path);
+	dispatch_servers();
 }
 
 std::string	ConfigParser::remove_comments(const std::string& config)
@@ -88,12 +89,6 @@ void	ConfigParser::store_key_value_pairs(const std::pair <std::string, int> line
 	value.erase(value.begin());
 	_config[_nesting_level.top()] = std::make_pair(value, line.second);
 
-	if (_nesting_level.top().substr(0, 20) == "webserv:error_pages:")
-	{
-		int status_code = std::atoi(_nesting_level.top().substr(_nesting_level.top().size() - 3).c_str());
-		_error_pages[status_code] = _config[_nesting_level.top()].first[0];
-	}
-
 	_nesting_level.pop();
 }
 
@@ -162,4 +157,38 @@ std::string	ConfigParser::error(const std::string& message)
 	}
 
 	return _config_file_path + ": " + message + ": " + error;
+}
+
+void	ConfigParser::dispatch_servers() 
+{
+	for (line_count_map::iterator it = _config.begin(); it != _config.end(); it++)
+	{
+		store_server_values_in_map(it->first);
+	}
+}
+
+void	ConfigParser::store_server_values_in_map(const std::string& key)
+{
+	size_t server_prefix_size = std::string(SERVER_PREFIX).size();
+
+	if (key.substr(0, server_prefix_size) == SERVER_PREFIX)
+	{
+		int	server_id = Utils::extract_numeric_value(key.substr(server_prefix_size));
+		std::string server_scope_key = key.substr(server_prefix_size + 3);
+		
+		if (server_scope_key.size() > 12)
+		{
+			std::string subkey = server_scope_key.substr(0, 11);
+
+			if (subkey == "error_pages")
+			{
+				std::vector <std::string> error_page;
+				error_page.push_back(server_scope_key.substr(server_scope_key.find_first_of(":") + 1));
+				error_page.push_back(_config[key].first[0]);
+				_servers[server_id][subkey].first = error_page;
+				return ;
+			}
+		}
+		_servers[server_id][server_scope_key] = _config[key];
+	}
 }

@@ -1,5 +1,4 @@
 #include "Config.hpp"
-#include "ConfigDispatcher.hpp"
 #include "ConfigParser.hpp"
 #include "LocationInfo.hpp"
 #include "Server.hpp"
@@ -45,12 +44,9 @@
 Config::Config(const std::string& config_path)
 {
 	ConfigParser 		parser(config_path);
-	ConfigDispatcher 	dispatcher(parser.get_config());
 
-	std::map <int, _map> servers = dispatcher.get_servers();
+	std::map <int, _map> servers = parser.get_servers();
 
-	_error_pages = dispatcher.get_error_pages();
-	_error_status_codes = Utils::get_status_codes();
 	initialize_location_setters();
 	initialize_server_setters();
 	set_servers(servers);
@@ -261,18 +257,6 @@ void	Config::configure_port(_map& server, Server*& new_server)
 	std::string port = server["port"].first[0];
 
 	new_server->set_port(std::atoi(port.c_str()));
-}
-
-std::string	Config::get_error_page(const int key)
-{
-	if (_error_pages.find(key) != _error_pages.end())
-	{
-		return _error_pages[key];
-	}
-	else 
-	{
-		return Utils::generate_default_error_page(key);
-	}
 }
 
 void	Config::initialize_server_setters()
