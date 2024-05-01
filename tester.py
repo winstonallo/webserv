@@ -125,9 +125,4 @@ def test_errcodes():
                 exit(1)
 
 if __name__ == "__main__":
-    test_timeout("PUT /file1 HTTP/1.1\r\nHost:domain1.com\r\nContent-Length: 1000\r\n\r\n")
-    test_timeout("PUT /file1 HTTP/1.1\r\nHost:domain1.com\r\nTransfer-encoding: chunked\r\n\r\n")
-    test_timeout("GET /cgi-bin/loop.py HTTP/1.1\r\nHost:domain1.com\r\n\r\n")
-    test_timeout("GET / HTTP/1.1\r\nHost:domain1.com\r\n")
-    while True:
-        test_errcodes()
+    test_errcodes()

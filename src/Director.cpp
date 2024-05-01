@@ -286,12 +286,7 @@ int	Director::run_servers()
 					{
 						try
 						{
-							if (read_from_client(i) < 0)
-							{
-								std::stringstream ss;
-								ss << "Error reading from client: " << std::endl;
-								Log::log(ss.str(), ERROR_FILE | STD_ERR);
-							}
+							read_from_client(i);
 						}
 						catch(const std::exception& e)
 						{
@@ -585,6 +580,7 @@ int	Director::read_from_client(int client_fd)
 
 	client = dynamic_cast<ClientInfo *>(_nodes[client_fd]);
 	flag = Request::read_request(client_fd, MSG_SIZE, client->_read_msg);
+	std::cout << "flag: " << flag << std::endl;
 	if (flag == 0)
 	{
 		close_client_connection(
@@ -599,7 +595,7 @@ int	Director::read_from_client(int client_fd)
 			" on socket " +
 			Utils::itoa(client_fd) + ".\n"
 		);
-		client->get_request()->clean();
+		// client->_read_msg.clear();
 		return 0;
 	}
 	else if (flag == -1)
@@ -607,12 +603,18 @@ int	Director::read_from_client(int client_fd)
 		close_client_connection(client_fd, "Error: Could not read from socket: " + Utils::itoa(client_fd));
 		client->get_request()->clean();
 		client->_read_msg.clear();
-		return -1;	
+		return -1;
 	}
 	else if (flag == READ)
 	{
-		_client_timeouts[client_fd].last_activity = time(NULL);
-		client->get_request()->init(client->_read_msg);
+		try
+		{
+			client->get_request()->init(client->_read_msg);
+		}
+		catch(const std::exception& e)
+		{
+			Log::log("Error: " + std::string(e.what()) + "\n", STD_ERR | ERROR_FILE);
+		}
 
 		Log::log(
 			"Request: " +
