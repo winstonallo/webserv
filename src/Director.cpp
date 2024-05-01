@@ -13,6 +13,7 @@
 #include <sys/socket.h>
 #include <sys/wait.h>
 #include <vector>
+#include <signal.h>
 #include "ClientInfo.hpp"
 #include "Log.hpp"
 #include "Node.hpp"
@@ -492,6 +493,7 @@ void	Director::close_cgi(ClientInfo* client, int status_code)
 		clear_file_descriptor(client->get_cgi()->response_fd[0]);
 		clear_file_descriptor(client->get_cgi()->request_fd[0]);
 		kill(client->get_pid(), SIGKILL);
+		// kill is in the library: 
 	}
 	client->get_request()->set_errcode(status_code);
 	client->get_server()->create_response(*client->get_request(), client);
