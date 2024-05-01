@@ -58,19 +58,25 @@ class ClientInfo : public Node
 
 		CGI*						get_cgi() { return _cgi; }
 		void						set_cgi(CGI* cgi) { _cgi = cgi; }
+
 		bool						is_cgi() const { return _isCGI; }
 		void						set_is_cgi(bool isCGI) { _isCGI = isCGI; }
+
 		int							get_pid() const { return _pid; }
 		void						set_pid(int pid) { _pid = pid; }
+
 		bool						get_fin() const { return _fin; }
 		void						set_fin(bool fin) { _fin = fin; }
+
 		Server*						get_server() const { return _server; }
 		void						set_server(Server* server) { _server = server; }
-		Request*					get_request() { return &_request; }
+
 		std::string&				get_response() { return _response; }
 		void						set_response(const std::string& response) { _response = response; }
+
 		void						clear_response() { _response.clear(); }
 		void						clear_request() { _request.clean(); }
+		Request*					get_request() { return &_request; }
 
 		std::string					_response;
 		std::string					_read_msg;
