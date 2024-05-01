@@ -76,6 +76,17 @@ test_desc.append("Test 18 send a request with special prcnt sign in uri")
 test_input.append("PUT /file%20with%20spaces HTTP/1.1\r\nHost:domain1.com\r\nContent-Length: 5\r\n\r\n lobok")
 test_output.append("HTTP/1.1 200 OK")
 
+test_desc.append("Test 19 send a request with a not allowed method")
+test_input.append("POST /js HTTP/1.1\r\nHost:domain1.com\r\nContent-Length: 5\r\n\r\n lobok")
+test_output.append("HTTP/1.1 405 Method Not Allowed")
+
+test_desc.append("Test 20 send a get request to an file with no read access permission")
+test_input.append("GET /student.txt HTTP/1.1\r\nHost:domain1.com\r\n\r\n")
+test_output.append("HTTP/1.1 403 Forbidden")
+
+test_desc.append("Test 21 send a post request to a file with no write access permission")
+test_input.append("POST /student.txt HTTP/1.1\r\nHost:domain1.com\r\nContent-Length: 5\r\n\r\n lobok")
+test_output.append("HTTP/1.1 403 Forbidden")
 
 host = "domain1.com"
 url = 'http://localhost:8080'
@@ -92,8 +103,8 @@ def send_string_to_ip( string):
         return response.decode()
 
 def test_timeout(string):
-    print('\033[93m' + "Timeout test" '\033[0m')
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        print('\033[93m' + "Timeout test" '\033[0m')
         s.connect((ip, port))
         s.sendall(string.encode())
         response = s.recv(10240)

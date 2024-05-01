@@ -19,6 +19,8 @@ typedef enum e_exception
 
 namespace Utils
 {
+	bool											write_access(const std::string& path);
+	bool											read_access(const std::string& path);
 	bool											file_exists(const std::string& path);
 	std::string										trim(const std::string& str, const std::string& delimiters);
 	std::string										trim_comment(const std::string& str, const std::string& delimiters);

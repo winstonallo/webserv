@@ -525,13 +525,39 @@ int		Server::process(Request& rq, ClientInfo* ci, std::string& ret_file)
 				return _errcode;
 			}
 		}
-
+		else
+		{
+			std::string file_path;
+			if (loc_info.get_root().empty() == false)
+			{
+				file_path = loc_info.get_root() + rq.get_path().substr(1);
+			}
+			else if (ci->get_server()->get_root().empty() == false)
+			{
+				file_path = ci->get_server()->get_root() + rq.get_path().substr(1);
+			}
+			struct stat buffer;
+			if (stat(file_path.c_str(), &buffer) == 0)
+			{
+				if (!Utils::read_access(file_path.c_str()) && rq.get_method() == "GET")
+				{
+					_errcode = 403;
+					return _errcode;
+				}
+				if (!Utils::write_access(file_path.c_str()) && rq.get_method() == "POST")
+				{
+					_errcode = 403;
+					return _errcode;
+				}
+			}
+		}
 		ret_file = configure_file_path(loc_info, rq);
 
 		if (handle_directory_request(ret_file, rq, loc_info) == false)
 		{
 			return _errcode;
 		}
+
 	}
 	else
 	{
