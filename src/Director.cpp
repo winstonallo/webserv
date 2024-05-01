@@ -1,4 +1,3 @@
-#include "Director.hpp"
 #include <arpa/inet.h>
 #include <cerrno>
 #include <cstddef>
@@ -14,6 +13,8 @@
 #include <sys/wait.h>
 #include <vector>
 #include <signal.h>
+#include <iostream>
+#include "Director.hpp"
 #include "ClientInfo.hpp"
 #include "Log.hpp"
 #include "Node.hpp"
