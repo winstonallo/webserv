@@ -18,9 +18,6 @@ compile_flags.txt
 *.json
 .vscode
 *uploads*
-*5*.html
-*4*.html
-*3*.html
-*2*.html
+./error_pages/*
 *db
 *session-*
