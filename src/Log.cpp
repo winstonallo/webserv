@@ -70,7 +70,7 @@ void* Log::do_async_log(void* args)
                 }
 				else 
 				{
-                    std::cerr << "Error opening log file: " << it->second << std::endl;
+                    Log::log("Error opening log file: " + it->second + ".\n");
                 }
             }
         }

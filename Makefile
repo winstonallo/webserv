@@ -8,7 +8,7 @@ SRCS_DIR	= src
 
 OBJS_DIR	= obj
 
-CXXFLAGS	= -Wall -Wextra -Werror -MP -MD -std=c++98 -Iinc
+CXXFLAGS	= -Wall -Wextra -Werror -MP -MD -std=c++98 -Iinc -g
 
 SRCS   	= \
 		$(SRCS_DIR)/CGI.cpp \
