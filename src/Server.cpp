@@ -3,7 +3,8 @@
 #include <cerrno>
 #include <exception>
 #include <netinet/in.h>
-#include <ostream>
+#include <algorithm>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <vector>

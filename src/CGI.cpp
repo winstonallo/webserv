@@ -167,18 +167,3 @@ void    CGI::clear()
     _env_map.clear();
 	_errcode = 0;
 }
-
-CGI::~CGI()
-{
-    delete_char_array(_env);
-}
-
-std::string& CGI::get_path()
-{
-	return _path;
-}
-
-void	CGI::set_path(const std::string& pa)
-{
-	_path = pa;
-}

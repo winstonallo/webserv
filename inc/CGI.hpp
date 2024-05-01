@@ -17,12 +17,13 @@ class CGI
         void                                    clear();
 
         CGI(char** env=NULL);
-        ~CGI();
+        ~CGI() { delete_char_array(_env); }
+
 		int										request_fd[2];
 		int										response_fd[2];
-		int 									get_error_code() const;
-		std::string&							get_path();
-		void									set_path(const std::string& pa);
+
+		std::string&							get_path() { return _path; }
+		void									set_path(const std::string& path) { _path = path; }
 
     private:
 
