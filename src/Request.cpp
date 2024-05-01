@@ -407,7 +407,7 @@ void Request::validate_uri(void)
 // validate request
 void Request::validate_request()
 {
-    if (get_method() != "GET" && get_method() != "POST" && get_method() != "DELETE" && get_method() != "PUT" && get_method() != "HEAD" )
+    if (get_method() != "GET" && get_method() != "POST" && get_method() != "DELETE" && get_method() != "PUT")
     {
         _errcode = 405;
         throw std::runtime_error("Invalid method: " + get_method());
