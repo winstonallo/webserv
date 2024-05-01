@@ -117,7 +117,8 @@ static bool valid_token(std::string str, std::string valid_chars)
         }
     }
     return true;
-    }
+}
+
 static bool convert_pct(std::string &str)
 {
     for (size_t i = 0; i < str.size(); i++)
@@ -474,12 +475,14 @@ void Request::check_headers()
     }
     if (_headers.find("HOST") == _headers.end())
     {
+        std::cout << "host header is missing" << std::endl;
         _errcode = 400;
         throw std::runtime_error("Invalid request: Host header is missing");
     }
     // check that host is not empty
     if (_headers["HOST"].size() == 0)
     {
+        std::cout << "host header is empty" << std::endl;
         _errcode = 400;
         throw std::runtime_error("Invalid request: Host header is empty");
     }
@@ -492,28 +495,26 @@ void Request::check_headers()
     {
         _host = _headers["HOST"];
     }
-    // if method is post or put, check that CONTENT-LENGTH or chuncked is present
-    if (_method == "POST" || _method == "PUT")
+    if (_method == "POST" || _method == "PUT" || _method == "GET")
     {
-        if (_headers.find("CONTENT-LENGTH") == _headers.end() && _headers.find("TRANSFER-ENCODING") == _headers.end())
+        if (_method != "GET" && _headers.find("CONTENT-LENGTH") == _headers.end() && _headers.find("TRANSFER-ENCODING") == _headers.end())
         {
             _errcode = 411;
             throw std::runtime_error("Invalid request: Content-Length and Transfer-Encoding is missing");
         }
-        // if both content-length and transfer-encoding are present, return 400
-        if (_headers.find("CONTENT-LENGTH") != _headers.end() && _headers.find("TRANSFER-ENCODING") != _headers.end())
+        if (_method != "GET" && _headers.find("CONTENT-LENGTH") != _headers.end() && _headers.find("TRANSFER-ENCODING") != _headers.end())
         {
             _errcode = 400;
             throw std::runtime_error("Invalid request: Content-Length and Transfer-Encoding are both present");
         }
-        // if content-length is present, check that it is a number
         if (_headers.find("CONTENT-LENGTH") != _headers.end())
         {
             std::string content_length = _headers["CONTENT-LENGTH"];
-            if (!valid_token(content_length, DIGIT))
+            std::cout << "content length: " << content_length << std::endl;
+            if (!valid_token(content_length, DIGIT) || std::atoi(content_length.c_str()) < 0)
             {
                 _errcode = 400;
-                throw std::runtime_error("Invalid request: Content-Length is not a number");
+                throw std::runtime_error("Invalid request: Content-Length is not a positive number");
             }
         }
     
