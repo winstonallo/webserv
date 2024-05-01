@@ -607,9 +607,12 @@ int	Director::read_from_client(int client_fd)
 	}
 	else if (flag == READ)
 	{
-		_client_timeouts[client_fd].last_activity = time(NULL);
-		client->get_request()->init(client->_read_msg);
-
+		try
+		{
+				client->get_request()->init(client->_read_msg);
+		}
+		catch(const std::exception& e)
+		{}
 		Log::log(
 			"Request: " +
 			Utils::itoa(client_fd) +
