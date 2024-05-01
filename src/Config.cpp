@@ -230,7 +230,7 @@ void	Config::configure_server_names(_map& server, Server*& new_server)
 {
 	if (server.find("server_name") == server.end() or server["server_name"].first.empty() == true)
 	{
-		server["server_name"].first.push_back("localhost:8080");
+		server["server_name"].first.push_back("default.com");
 	}
 
 	std::vector <std::string> new_server_names = server["server_name"].first;
