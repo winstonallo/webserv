@@ -4,7 +4,7 @@
 #include <sstream>
 #include <fstream>
 
-ConfigParser::ConfigParser(const std::string& path) : _config_file_path(path), _server_count(0)
+ConfigParser::ConfigParser(const std::string& path) : _config_file_path(path), _server_count(0), _in_webserv_block(false)
 {
 	if (_config_file_path.size() < 5 or _config_file_path.substr(_config_file_path.size() - 5) != EXPECTED_EXT)
 	{
@@ -69,6 +69,10 @@ void	ConfigParser::parse_config_from_vector(const std::vector <std::pair <std::s
 		else if (config[i].first == ";")
 		{
 			store_key_value_pairs(config[i - 1]);
+		}
+		if (_nesting_level.empty() == true and i < config.size() - 1)
+		{
+			Utils::config_error_on_line(config[i].second + 1, EXTRA_WEBSERV_BLOCK, THROW);
 		}
 	}
 	validate_nesting(config[config.size() - 1].second + 1);

@@ -37,7 +37,6 @@ class ConfigParser
 		void																	store_server_values_in_map(const std::string& key);
 		void																	dispatch_servers();
 
-	
 		std::string																_config_file_path;
 		std::stack <std::string> 												_nesting_level;
 		size_t																	_server_count;
@@ -64,5 +63,6 @@ class ConfigParser
 #define INV_HEADER "Invalid configuration file header (expected: 'webserv')."
 #define NOT_FOUND "Could not open file."
 #define INVALID_SCOPE "Global values are not supported."
+#define EXTRA_WEBSERV_BLOCK "Extraneous 'webserv' block; only one is allowed."
 
 #endif
