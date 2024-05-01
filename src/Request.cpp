@@ -8,9 +8,9 @@
 
 std::string Request::get_header(const std::string& key) const
 {
-    if (this->headers.find(key) != this->headers.end())
+    if (_headers.find(key) != _headers.end())
     {
-    	return this->headers.at(key);
+    	return _headers.at(key);
     }
     return "default";
 }
@@ -31,21 +31,21 @@ void Request::parse(std::string request)
     std::getline(iss, line);
     if (std::count(line.begin(), line.end(), ' ') != 2)
     {
-        this->errcode = 400;
+        _errcode = 400;
         throw std::runtime_error("Invalid request: line does not contain 2 spaces between method, uri and protocol");
     }
     for (size_t i = 0; i < line.size() - 2; i++)
     {
         if (std::isspace(line[i]) != 0 && line[i] != ' ')
         {
-            this->errcode = 400;
+            _errcode = 400;
             throw std::runtime_error("Invalid request: line contains white spaces except for the 2 spaces between method, uri and protocol");
         }
     }
 
     if (line[line.size() - 1] != '\r')
     {
-        this->errcode = 400;
+        _errcode = 400;
         throw std::runtime_error("Invalid request: line does not end with \\r");
     }
     std::istringstream iss_line(line);
@@ -57,12 +57,12 @@ void Request::parse(std::string request)
     iss_line >> protocol;
     if (method.size() == 0 || uri.size() == 0 || protocol.size() == 0)
     {
-        this->errcode = 400;
+        _errcode = 400;
         throw std::runtime_error("Invalid request: method, uri or protocol is empty");
     }
-    this->method = method;
-    this->uri = uri;
-    this->protocol = protocol;
+    _method = method;
+    _uri = uri;
+    _protocol = protocol;
 
     while (std::getline(iss, line))
     {
@@ -78,25 +78,25 @@ void Request::parse(std::string request)
 
         if (value.end()[-1] != '\r')
         {
-            this->errcode = 400;
+            _errcode = 400;
             throw std::runtime_error("Invalid request: header does not end with \\r");
         }
         for (size_t i = 0; i < key.size(); i++)
         {
             key[i] = std::toupper(key[i]);
         }
-        if (this->headers.find(key) != this->headers.end())
+        if (_headers.find(key) != _headers.end())
         {
-            value = this->headers[key] + "," + Utils::trim(value, " \t\n\r");
-            this->headers[key] = value;
+            value = _headers[key] + "," + Utils::trim(value, " \t\n\r");
+            _headers[key] = value;
         }
         else{
-            this->headers[key] = Utils::trim(value, " \t\n\r");}
+            _headers[key] = Utils::trim(value, " \t\n\r");}
         
     }
     while (std::getline(iss, line))
     {
-        this->body += line + "\n";
+        body += line + "\n";
     }
 
 }
@@ -260,21 +260,21 @@ int Request::read_request(int client_fd, int size,std::string& requestmsg)
 
 void Request::pct_decode()
 {
-    if ( convert_pct(this->userinfo)== false ||
-    convert_pct(this->host)== false ||
-    convert_pct(this->port)== false ||
-    convert_pct(this->path)== false ||
-    convert_pct(this->query)== false ||
-    convert_pct(this->fragment)== false)
+    if ( convert_pct(_userinfo)== false ||
+    convert_pct(_host)== false ||
+    convert_pct(_port)== false ||
+    convert_pct(_path)== false ||
+    convert_pct(_query)== false ||
+    convert_pct(_fragment)== false)
     {
-        this->errcode = 400;
+        _errcode = 400;
         throw std::runtime_error("Invalid pct encoding");
     }
 } 
 
 void Request::validate_uri(void)
 {
-    std::string uri = this->get_uri();
+    std::string uri = get_uri();
     size_t pos = uri.find(":");
 
     if (pos != std::string::npos && pos < uri.find("/"))
@@ -286,7 +286,7 @@ void Request::validate_uri(void)
         }
         if (schema != "http")
         {
-            this->errcode = 400;
+            _errcode = 400;
             throw std::runtime_error("Invalid schema: " + schema);
         }
         uri = uri.substr(pos + 1);
@@ -298,10 +298,10 @@ void Request::validate_uri(void)
         std::string fragment = uri.substr(pos + 1);
         if (!valid_token(fragment, FRAGMENT))
         {
-            this->errcode = 400;
+            _errcode = 400;
             throw std::runtime_error("Invalid fragment: " + fragment);
         }
-        this->fragment = fragment;
+        _fragment = fragment;
         uri = uri.substr(0, pos);
     }
 
@@ -311,10 +311,10 @@ void Request::validate_uri(void)
         std::string query = uri.substr(pos + 1);
         if (!valid_token(query, QUERY))
         {
-            this->errcode = 400;
+            _errcode = 400;
             throw std::runtime_error("Invalid query: " + query);
         }
-        this->query = query;
+        _query = query;
         uri = uri.substr(0, pos);
     }
 
@@ -327,10 +327,10 @@ void Request::validate_uri(void)
             std::string userinfo = uri.substr(0, pos);
             if (!valid_token(userinfo, USERINFO))
             {
-                this->errcode = 400;
+                _errcode = 400;
                 throw std::runtime_error("Invalid userinfo: " + userinfo);
             }
-            this->userinfo = userinfo;
+            _userinfo = userinfo;
             uri = uri.substr(pos + 1);
         }
         pos = uri.find("/");
@@ -339,10 +339,10 @@ void Request::validate_uri(void)
             std::string path = uri.substr(pos);
             if (!valid_token(path, PATH))
             {
-                this->errcode = 400;
+                _errcode = 400;
                 throw std::runtime_error("Invalid path: " + path);
             }
-            this->path = path;
+            _path = path;
             uri = uri.substr(0, pos);
         }
 
@@ -352,33 +352,33 @@ void Request::validate_uri(void)
             std::string port = uri.substr(pos + 1);
             if (!valid_token(port, DIGIT))
             {
-                this->errcode = 400;
+                _errcode = 400;
                 throw std::runtime_error("Invalid port: " + port);
             }
-            this->port = port;
+            _port = port;
             uri = uri.substr(0, pos);
         }
 
         std::string host = uri;
         if (!valid_token(host, HOST))
         {
-            this->errcode = 400;
+            _errcode = 400;
             throw std::runtime_error("Invalid host: " + host);
         }
-        this->host = host;
+        _host = host;
     }
     else 
     {
         std::string path = uri;
         if (!valid_token(path, PATH))
         {
-            this->errcode = 400;
+            _errcode = 400;
             throw std::runtime_error("Invalid path: " + path);
         }
-        this->path = path;
+        _path = path;
     }
     std::vector<std::string> path_parts;
-    std::istringstream iss(this->path);
+    std::istringstream iss(_path);
     std::string part;
     while (std::getline(iss, part, '/'))
     {
@@ -397,7 +397,7 @@ void Request::validate_uri(void)
         }
         if (count < 0)
         {
-            this->errcode = 404;
+            _errcode = 404;
             throw std::runtime_error("Error: Invalid path in request: '..' goes out of root");
         }
     }
@@ -406,38 +406,38 @@ void Request::validate_uri(void)
 // validate request
 void Request::validate_request()
 {
-    if (this->get_method() != "GET" && this->get_method() != "POST" && this->get_method() != "DELETE" && this->get_method() != "PUT" && this->get_method() != "HEAD" )
+    if (get_method() != "GET" && get_method() != "POST" && get_method() != "DELETE" && get_method() != "PUT" && get_method() != "HEAD" )
     {
-        this->errcode = 405;
-        throw std::runtime_error("Invalid method: " + this->get_method());
+        _errcode = 405;
+        throw std::runtime_error("Invalid method: " + get_method());
     }
-    if (this->get_protocol() != "HTTP/1.1")
+    if (get_protocol() != "HTTP/1.1")
     {
-        this->errcode = 505;
-        throw std::runtime_error("Invalid protocol: " + this->get_protocol());
+        _errcode = 505;
+        throw std::runtime_error("Invalid protocol: " + get_protocol());
     }
     // validate headers - field-names
-    for (std::map <std::string, std::string>::iterator it = this->headers.begin(); it != this->headers.end(); it++)
+    for (std::map <std::string, std::string>::iterator it = _headers.begin(); it != _headers.end(); it++)
     {
         if (it->first.size() == 0)
         {
-            this->errcode = 400;
+            _errcode = 400;
             throw std::runtime_error("Invalid header: empty field-name");
         }
         if (!valid_token(it->first, TCHAR) )
         {
-            this->errcode = 400;
+            _errcode = 400;
             throw std::runtime_error("Invalid header: invalid field-name");
         }
     }
     // validate headers - field-values - printable ascii characters
-    for (std::map <std::string, std::string>::iterator it = this->headers.begin(); it != this->headers.end(); it++)
+    for (std::map <std::string, std::string>::iterator it = _headers.begin(); it != _headers.end(); it++)
     {
         for (size_t i = 0; i < it->second.size(); i++)
         {
             if (!std::isprint(it->second[i]))
             {
-                this->errcode = 400;
+                _errcode = 400;
                 throw std::runtime_error("Invalid header: invalid field-value");
             }
         }
@@ -447,20 +447,20 @@ void Request::validate_request()
 
 void Request::check_length()
 {
-    if (this->get_uri().size() > MAX_URL_LENGTH)
+    if (get_uri().size() > MAX_URL_LENGTH)
     {
-        this->errcode = 414;
+        _errcode = 414;
         throw std::runtime_error("Request-URI Too Long");
     }
     // check that sum of all headers is not greater than 8kb
     int count = 0;
-    for (std::map <std::string, std::string>::iterator it = this->headers.begin(); it != this->headers.end(); it++)
+    for (std::map <std::string, std::string>::iterator it = _headers.begin(); it != _headers.end(); it++)
     {
         count += it->first.size() + it->second.size();
     }
     if (count > MAX_HEADER_LENGTH)
     {
-        this->errcode = 431;
+        _errcode = 431;
         throw std::runtime_error("Request Header Fields Too Large");
     }
 
@@ -468,51 +468,51 @@ void Request::check_length()
 void Request::check_headers()
 {
     // if no connection header is present, set it to keep-alive
-    if (this->headers.find("CONNECTION") == this->headers.end())
+    if (_headers.find("CONNECTION") == _headers.end())
     {
-        this->headers["CONNECTION"] = "keep-alive";
+        _headers["CONNECTION"] = "keep-alive";
     }
-    if (this->headers.find("HOST") == this->headers.end())
+    if (_headers.find("HOST") == _headers.end())
     {
-        this->errcode = 400;
+        _errcode = 400;
         throw std::runtime_error("Invalid request: Host header is missing");
     }
     // check that host is not empty
-    if (this->headers["HOST"].size() == 0)
+    if (_headers["HOST"].size() == 0)
     {
-        this->errcode = 400;
+        _errcode = 400;
         throw std::runtime_error("Invalid request: Host header is empty");
     }
-    if (this->headers["HOST"].find(":") != std::string::npos)
+    if (_headers["HOST"].find(":") != std::string::npos)
     {
-        this->host = this->headers["HOST"].substr(0, this->headers["HOST"].find(":"));
-        this->port = this->headers["HOST"].substr(this->headers["HOST"].find(":") + 1);
+        _host = _headers["HOST"].substr(0, _headers["HOST"].find(":"));
+        _port = _headers["HOST"].substr(_headers["HOST"].find(":") + 1);
     }
     else
     {
-        this->host = this->headers["HOST"];
+        _host = _headers["HOST"];
     }
     // if method is post or put, check that CONTENT-LENGTH or chuncked is present
-    if (this->method == "POST" || this->method == "PUT")
+    if (_method == "POST" || _method == "PUT")
     {
-        if (this->headers.find("CONTENT-LENGTH") == this->headers.end() && this->headers.find("TRANSFER-ENCODING") == this->headers.end())
+        if (_headers.find("CONTENT-LENGTH") == _headers.end() && _headers.find("TRANSFER-ENCODING") == _headers.end())
         {
-            this->errcode = 411;
+            _errcode = 411;
             throw std::runtime_error("Invalid request: Content-Length and Transfer-Encoding is missing");
         }
         // if both content-length and transfer-encoding are present, return 400
-        if (this->headers.find("CONTENT-LENGTH") != this->headers.end() && this->headers.find("TRANSFER-ENCODING") != this->headers.end())
+        if (_headers.find("CONTENT-LENGTH") != _headers.end() && _headers.find("TRANSFER-ENCODING") != _headers.end())
         {
-            this->errcode = 400;
+            _errcode = 400;
             throw std::runtime_error("Invalid request: Content-Length and Transfer-Encoding are both present");
         }
         // if content-length is present, check that it is a number
-        if (this->headers.find("CONTENT-LENGTH") != this->headers.end())
+        if (_headers.find("CONTENT-LENGTH") != _headers.end())
         {
-            std::string content_length = this->headers["CONTENT-LENGTH"];
+            std::string content_length = _headers["CONTENT-LENGTH"];
             if (!valid_token(content_length, DIGIT))
             {
-                this->errcode = 400;
+                _errcode = 400;
                 throw std::runtime_error("Invalid request: Content-Length is not a number");
             }
         }
@@ -522,7 +522,7 @@ void Request::check_headers()
 
 void Request::init(std::string request)
 {
-    this->errcode = 0;
+    _errcode = 0;
     parse(request);
     validate_request();
     validate_uri();
@@ -532,16 +532,16 @@ void Request::init(std::string request)
 }
 void Request::clean(void)
 {
-    this->method.clear();
-    this->uri.clear();
-    this->protocol.clear();
-    this->headers.clear();
-    this->body.clear();
-    this->host.clear();
-    this->port.clear();
-    this->path.clear();
-    this->query.clear();
-    this->fragment.clear();
-    this->userinfo.clear();
-    this->errcode = 0;
+    _method.clear();
+    _uri.clear();
+    _protocol.clear();
+    _headers.clear();
+    body.clear();
+    _host.clear();
+    _port.clear();
+    _path.clear();
+    _query.clear();
+    _fragment.clear();
+    _userinfo.clear();
+    _errcode = 0;
 }

@@ -17,20 +17,20 @@ class Request
         void                                init(std::string request);
         void                                clean(void);
         
-        std::map <std::string, std::string> get_headers() const { return this->headers; }
-        std::string                         get_method() const { return this->method; }
-        std::string                         get_uri() const { return this->uri; }
-        std::string&                        get_body() { return this->body; }
-        std::string                         get_protocol() const { return this->protocol; }
-        std::string                         get_userinfo() const { return this->userinfo; }
-        std::string                         get_host() const { return this->host; }
-        std::string                         get_port() const { return this->port; }
-        std::string                         get_path() const { return this->path; }
-        std::string                         get_query() const { return this->query; }
-        std::string                         get_fragment() const { return this->fragment; }
+        std::map <std::string, std::string> get_headers() const { return _headers; }
+        std::string                         get_method() const { return _method; }
+        std::string                         get_uri() const { return _uri; }
+        std::string&                        get_body() { return body; }
+        std::string                         get_protocol() const { return _protocol; }
+        std::string                         get_userinfo() const { return _userinfo; }
+        std::string                         get_host() const { return _host; }
+        std::string                         get_port() const { return _port; }
+        std::string                         get_path() const { return _path; }
+        std::string                         get_query() const { return _query; }
+        std::string                         get_fragment() const { return _fragment; }
 
-        int                                 get_errcode() const{ return this->errcode; }
-        void                                set_errcode(int code){ this->errcode = code; }
+        int                                 get_errcode() const{ return _errcode; }
+        void                                set_errcode(int code){ _errcode = code; }
 
         std::string                         get_header(const std::string& key) const;
         static int                          read_request(int client_fd, int size,std::string& requestmsg);
@@ -38,17 +38,17 @@ class Request
 
 	private:
 
-		std::string 					    protocol;
-        std::string 					    method;
-        std::string 					    uri;
-        std::map <std::string, std::string> headers;
-        std::string 					    userinfo;
-        std::string 					    host;
-        std::string 					    port;
-        std::string 					    path;
-        std::string 					    query;
-        std::string 					    fragment;
-        int                                 errcode;
+		std::string 					    _protocol;
+        std::string 					    _method;
+        std::string 					    _uri;
+        std::map <std::string, std::string> _headers;
+        std::string 					    _userinfo;
+        std::string 					    _host;
+        std::string 					    _port;
+        std::string 					    _path;
+        std::string 					    _query;
+        std::string 					    _fragment;
+        int                                 _errcode;
 		void                                parse(std::string request);
         void                                validate_request(void);
         void                                validate_uri(void);

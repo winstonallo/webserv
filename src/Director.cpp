@@ -453,7 +453,7 @@ std::vector <int>	Director::get_timed_out_clients()
 {
 	std::vector <int> timed_out_clients;
 	time_t current_time = time(NULL);
-	int timeout = 60;
+	int timeout = 5;
 
 	for (std::map<int, TimeoutInfo>::iterator client = _client_timeouts.begin(); client != _client_timeouts.end(); client++)
 	{
@@ -581,7 +581,6 @@ int	Director::read_from_client(int client_fd)
 
 	client = dynamic_cast<ClientInfo *>(_nodes[client_fd]);
 	flag = Request::read_request(client_fd, MSG_SIZE, client->_read_msg);
-	std::cout << "flag: " << flag << std::endl;
 	if (flag == 0)
 	{
 		close_client_connection(
