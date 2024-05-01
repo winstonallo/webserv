@@ -69,6 +69,11 @@ namespace Utils
 	{
 	    return access(path.c_str(), W_OK) == 0;
 	}
+	
+	bool	read_access(const std::string& path)
+	{
+	    return access(path.c_str(), R_OK) == 0;
+	}
 
 	bool	file_exists(const std::string& path)
 	{
