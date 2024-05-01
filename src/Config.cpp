@@ -230,7 +230,7 @@ void	Config::configure_server_names(_map& server, Server*& new_server)
 {
 	if (server.find("server_name") == server.end() or server["server_name"].first.empty() == true)
 	{
-		Utils::config_error_on_line(-1, "missing server_name in server '" + new_server->get_server_name()[0] + "', server will not be initialized\n", THROW);
+		server["server_name"].first.push_back("localhost:8080");
 	}
 
 	std::vector <std::string> new_server_names = server["server_name"].first;
