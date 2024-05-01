@@ -286,12 +286,7 @@ int	Director::run_servers()
 					{
 						try
 						{
-							if (read_from_client(i) < 0)
-							{
-								std::stringstream ss;
-								ss << "Error reading from client: " << std::endl;
-								Log::log(ss.str(), ERROR_FILE | STD_ERR);
-							}
+							read_from_client(i);
 						}
 						catch(const std::exception& e)
 						{
@@ -599,7 +594,8 @@ int	Director::read_from_client(int client_fd)
 			" on socket " +
 			Utils::itoa(client_fd) + ".\n"
 		);
-		client->get_request()->clean();
+		client->_read_msg.clear();
+		// client->get_request()->clean();
 		return 0;
 	}
 	else if (flag == -1)
