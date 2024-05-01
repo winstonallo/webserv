@@ -81,26 +81,6 @@ namespace Utils
 		return str.substr(first, (last - first + 1));
 	}
 
-	std::vector <std::string>	split(const std::string& str, const std::string& delimiters)
-	{
-		size_t						left = str.find_first_not_of(delimiters, 0), right = 0;
-		std::vector <std::string>	ret;
-		
-		while (left != std::string::npos)
-		{
-			right = str.find_first_of(delimiters, left);
-			if (right == std::string::npos)
-			{
-				if (left != std::string::npos)
-					ret.push_back(str.substr(left));
-				break ;
-			}
-			ret.push_back(str.substr(left, right - left));
-			left = str.find_first_not_of(delimiters, right + 1);
-		}
-		return ret;
-	}
-
 	std::vector <std::string>	split_keep_quoted_words(const std::string& str, const std::string& delimiters)
 	{
 		bool						in_quotes = false;
@@ -219,22 +199,6 @@ namespace Utils
 		std::string numeric_value = str.substr(str.find_first_of("0123456789"), str.find_last_of("0123456789"));
 
 		return std::atoi(numeric_value.c_str());
-	}
-
-	std::string	file_to_string(const std::string& path)
-	{
-		std::ifstream	input_file(path.c_str());
-
-		if (input_file.is_open() == false)
-		{
-			throw std::runtime_error("error: could not open " + path + ": " +  strerror(errno));
-		}
-
-		std::stringstream buffer;
-		
-		buffer << input_file.rdbuf();
-
-		return buffer.str();
 	}
 
 	std::map <int, std::string>	get_status_codes()
@@ -366,17 +330,6 @@ namespace Utils
 
 		oss << default_html;
 		return new_html_path;
-	}
-
-	std::map <std::string, std::string>		get_environment_map(char **env)
-	{
-		std::map <std::string, std::string>	env_map;
-		for (int i = 0; env[i]; i++)
-		{
-			std::string line = std::string(env[i]);
-			env_map[line.substr(0, line.find_first_of("="))] = line.substr(line.find_first_of("=") + 1);
-		}
-		return env_map;
 	}
 
 	std::string pathconcat(std::string s1, std::string s2)

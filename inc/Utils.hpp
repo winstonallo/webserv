@@ -39,8 +39,6 @@ namespace Utils
 	void											notify_client_connection(Server* server, int client_socket, struct sockaddr_storage client_addr);
 	std::string										get_cgi_script_name(const std::string& uri);
 	std::string										to_lower(const std::string& str);
-	template <typename T>
-	std::string										to_string(const T val);
 	std::string										extract_cgi_identifier(const std::string& key);
 	void											config_error_on_line(int line_number, const std::string& error_message, e_exception throw_exception=LOG);
 	std::string										safe_ifstream(const std::string& path);
