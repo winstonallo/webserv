@@ -595,7 +595,7 @@ int	Director::read_from_client(int client_fd)
 			" on socket " +
 			Utils::itoa(client_fd) + ".\n"
 		);
-		client->_read_msg.clear();
+		// client->_read_msg.clear();
 		return 0;
 	}
 	else if (flag == -1)
@@ -609,10 +609,13 @@ int	Director::read_from_client(int client_fd)
 	{
 		try
 		{
-				client->get_request()->init(client->_read_msg);
+			client->get_request()->init(client->_read_msg);
 		}
 		catch(const std::exception& e)
-		{}
+		{
+			Log::log("Error: " + std::string(e.what()) + "\n", STD_ERR | ERROR_FILE);
+		}
+
 		Log::log(
 			"Request: " +
 			Utils::itoa(client_fd) +
