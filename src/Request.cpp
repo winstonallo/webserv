@@ -2,6 +2,9 @@
 #include "Utils.hpp"
 #include "Config.hpp"
 #include "Request.hpp"
+#include <sstream>
+#include <algorithm>
+#include "Utils.hpp"
 
 Request::~Request(){}
 
