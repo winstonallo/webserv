@@ -580,6 +580,7 @@ int	Director::read_from_client(int client_fd)
 
 	client = dynamic_cast<ClientInfo *>(_nodes[client_fd]);
 	flag = Request::read_request(client_fd, MSG_SIZE, client->_read_msg);
+	std::cout << "flag: " << flag << std::endl;
 	if (flag == 0)
 	{
 		close_client_connection(
@@ -595,7 +596,6 @@ int	Director::read_from_client(int client_fd)
 			Utils::itoa(client_fd) + ".\n"
 		);
 		client->_read_msg.clear();
-		// client->get_request()->clean();
 		return 0;
 	}
 	else if (flag == -1)
@@ -603,7 +603,7 @@ int	Director::read_from_client(int client_fd)
 		close_client_connection(client_fd, "Error: Could not read from socket: " + Utils::itoa(client_fd));
 		client->get_request()->clean();
 		client->_read_msg.clear();
-		return -1;	
+		return -1;
 	}
 	else if (flag == READ)
 	{
