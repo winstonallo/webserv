@@ -258,7 +258,7 @@ int	Director::run_servers()
 			}
 
 			std::stringstream ss;
-			ss << "Error while select: " << strerror(errno) << std::endl;
+			ss << "Error: Could not select: " << strerror(errno) << std::endl;
 			Log::log(ss.str(), ERROR_FILE | STD_ERR);
 			return -1;
 		}
@@ -291,7 +291,7 @@ int	Director::run_servers()
 						}
 						catch(const std::exception& e)
 						{
-							Log::log("Error reading from client: " + std::string(e.what()) + "\n", STD_ERR | ERROR_FILE);
+							Log::log("Error: Could not read from client: " + std::string(e.what()) + "\n", STD_ERR | ERROR_FILE);
 						}
 					}
 					if (FD_ISSET(i, &writefds_backup))
@@ -316,7 +316,7 @@ int	Director::run_servers()
 							if (send < 0)
 							{
 								std::stringstream ss;
-								ss << "Error sending request body to CGI: " << strerror(errno);
+								ss << "Error: Could not send request body to CGI: " << strerror(errno);
 								Log::log(ss.str(), STD_ERR | ERROR_FILE);
 								close_cgi(client, 500);
 							}
@@ -355,7 +355,7 @@ int	Director::run_servers()
 							else if (receive < 0)
 							{
 								std::stringstream ss;
-								ss << "Error reading CGI response: " << strerror(errno);
+								ss << "Error: Could not read CGI response: " << strerror(errno);
 								Log::log(ss.str(), STD_ERR | ERROR_FILE);
 								clear_file_descriptor(client->get_cgi()->response_fd[0]);
 								clear_file_descriptor(client->get_cgi()->request_fd[0]);
@@ -374,7 +374,7 @@ int	Director::run_servers()
 							if(write_to_client(i) < 0)
 							{
 								std::stringstream ss;
-								ss << "Error writing to client." << std::endl;
+								ss << "Error: Could not write to client." << std::endl;
 								Log::log(ss.str(), ERROR_FILE | STD_ERR);
 							}
 						}
@@ -416,9 +416,13 @@ void Director::cgi_timeout(int client_fd, ClientInfo* client)
 {
 	if (client && client->get_type() == CLIENT_NODE && client->is_cgi() == true)
 	{
-		Log::log("Error reading CGI response on socket " +
-		Utils::itoa(client_fd) + ": client timed out.\n",
-		STD_ERR | ERROR_FILE);
+		Log::log(
+			"Error: Could not read CGI response on socket " +
+
+		Utils::itoa(client_fd) +
+		": client timed out.\n",
+		STD_ERR | ERROR_FILE
+		);
 		
 		clear_file_descriptor(client->get_cgi()->response_fd[0]);
 		clear_file_descriptor(client->get_cgi()->request_fd[0]);
@@ -476,6 +480,12 @@ void Director::close_client_connection(int client_fd, const std::string& message
 		Log::log(message, STD_OUT | ACCEPT_FILE);
 	}
 
+	ClientInfo* client = dynamic_cast<ClientInfo*>(_nodes[client_fd]);
+	if (client and client->is_cgi() == true)
+	{
+		close_cgi(client, 500);
+	}
+
 	clear_file_descriptor(client_fd);
 	delete _nodes[client_fd];
 	_nodes.erase(client_fd);
@@ -489,7 +499,6 @@ void	Director::close_cgi(ClientInfo* client, int status_code)
 		clear_file_descriptor(client->get_cgi()->response_fd[0]);
 		clear_file_descriptor(client->get_cgi()->request_fd[0]);
 		kill(client->get_pid(), SIGKILL);
-		// kill is in the library: 
 	}
 	client->get_request()->set_errcode(status_code);
 	client->get_server()->create_response(*client->get_request(), client);
@@ -613,6 +622,10 @@ int	Director::read_from_client(int client_fd)
 		}
 		catch(const std::exception& e)
 		{
+			if (client->is_cgi() == true)
+			{
+				close_cgi(client, 500);
+			}
 			Log::log("Error: " + std::string(e.what()) + "\n", STD_ERR | ERROR_FILE);
 		}
 
@@ -689,7 +702,7 @@ int	Director::write_to_client(int fd)
 			fd,
 			"Error sending a response: " +
 			std::string(strerror(errno)) +
-			"\n."
+			".\n"
 		);
 	}
 	else if (num_bytes == (int)(content.size()) || num_bytes == 0)

@@ -510,7 +510,6 @@ void Request::check_headers()
         if (_headers.find("CONTENT-LENGTH") != _headers.end())
         {
             std::string content_length = _headers["CONTENT-LENGTH"];
-            std::cout << "content length: " << content_length << std::endl;
             if (!valid_token(content_length, DIGIT) || std::atoi(content_length.c_str()) < 0)
             {
                 _errcode = 400;
