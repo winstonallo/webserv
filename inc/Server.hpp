@@ -17,8 +17,6 @@
 class LocationInfo;
 class Director;
 class ClientInfo;
-//purpose:	Data class for the parsed values (from the config file)
-//			It is used fjor the initialization and the running of the servers.
 
 class Server : public Node
 {
@@ -96,11 +94,19 @@ class Server : public Node
 		std::string							get_body(Request& rq, ClientInfo *ci);
 		int									process(Request &rq, ClientInfo* ci, std::string& loc_path);
 		bool								handle_empty_location_path(Request& request, const std::string& ret_file);
-		bool								handle_directory_request(std::string& ret_file, const Request& request, const LocationInfo& location);
+		bool								handle_directory_request(
+														std::string& ret_file,
+														const Request& request,
+														const LocationInfo& location
+													);
 
-		void								get_best_location_match(std::vector<LocationInfo*> locs, 
-														Request& rq, std::string& best_match, 
-														LocationInfo* locinfo);
+		void								get_best_location_match(
+														std::vector<LocationInfo*> locs, 
+														Request& rq,
+														std::string& best_match, 
+														LocationInfo* locinfo
+													);
+
 		int									get_directory_list(std::string &path, std::string& body);
 		void								init_cgi(Request rq, LocationInfo loc);
 
