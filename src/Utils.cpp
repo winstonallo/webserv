@@ -65,11 +65,6 @@ namespace Utils
 		}
 	}
 
-	bool	write_access(const std::string& path)
-	{
-	    return access(path.c_str(), W_OK) == 0;
-	}
-
 	bool	file_exists(const std::string& path)
 	{
 		std::ifstream	file(path.c_str());

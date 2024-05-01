@@ -19,25 +19,20 @@ typedef enum e_exception
 
 namespace Utils
 {
-	bool											write_access(const std::string& path);
 	bool											file_exists(const std::string& path);
-	void											get_pair(const std::string& str, std::vector <std::pair <std::string, int> >& ret, size_t left, size_t right, int& line_number);
 	std::string										trim(const std::string& str, const std::string& delimiters);
 	std::string										trim_comment(const std::string& str, const std::string& delimiters);
 	std::string										itoa(int num);
-	std::vector <std::string>						split(const std::string& str, const std::string& delimiters);
 	std::vector <std::string>						split_keep_quoted_words(const std::string& str, const std::string& delimiters);
 	std::vector <std::pair <std::string, int> > 	split_keep_delimiters(const std::string& str, const std::string& delimiters);
 	std::string 									get_file_extension(const std::string& file_path);
 	int												extract_numeric_value(const std::string& str);
 	int												parse_client_max_body_size(const std::string& client_max_body_size);
-	std::string										file_to_string(const std::string& path);
 	std::map <int, std::string>						get_status_codes();
 	std::map <std::string, std::string>				get_content_types();
 	std::string										pathconcat(std::string s1, std::string s2);
 	std::string										generate_default_error_page(const int status_code);
 	std::string										extract_location_name(const std::string& location);
-	std::map <std::string, std::string>				get_environment_map(char **env);
 	void											validate_required_server_values(Server* new_server);
 	bool											is_file(const std::string& path);
 	bool											is_directory(const std::string& path);
@@ -46,8 +41,6 @@ namespace Utils
 	std::string										to_lower(const std::string& str);
 	template <typename T>
 	std::string										to_string(const T val);
-	void											print_server_info(std::ostream& out, Server* server);
-	void											print_location_info(std::ostream& out, LocationInfo* location);
 	std::string										extract_cgi_identifier(const std::string& key);
 	void											config_error_on_line(int line_number, const std::string& error_message, e_exception throw_exception=LOG);
 	std::string										safe_ifstream(const std::string& path);
