@@ -7,26 +7,6 @@
 
 int Log::output_flag = 0;
 
-Log::Log()
-{}
-
-Log::~Log()
-{}
-
-Log::Log(const Log& rhs)
-{
-	*this = rhs;
-}
-
-Log& Log::operator=(const Log& rhs)
-{
-	if (this != &rhs)
-	{
-
-	}
-	return (*this);
-}
-
 std::string	Log::get_error_file()
 {
 	return error_file;
