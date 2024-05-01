@@ -9,7 +9,6 @@
 #include <exception>
 #include <netinet/in.h>
 #include <string>
-#include "Log.hpp"
 #include <cstdlib>
 #include <sys/socket.h>
 #include <vector>
@@ -77,7 +76,16 @@ void	Config::set_servers(std::map <int, _map>& raw_servers)
 		catch (const std::exception& e)
 		{
 			delete new_server;
-			continue ;
+
+			for (std::vector <Server *>::iterator server = _servers.begin(); server != _servers.end(); it++)
+			{
+				delete *server;
+			}
+			for (std::vector <LocationInfo *>::iterator location = _locations.begin(); location != _locations.end(); location++)
+			{
+				delete *location;
+			}
+			throw std::runtime_error("Error: Configuration file is invalid\n");
 		}
 	}
 }
@@ -148,7 +156,8 @@ void	Config::configure_locations(const _map& server, Server*& new_server)
 			}
 			catch (const std::exception& e)
 			{
-				Log::log(e.what(), STD_ERR | ERROR_FILE);
+				delete new_location;
+				Utils::config_error_on_line(it->second.second, e.what(), THROW);
 			}
 		}
 		else

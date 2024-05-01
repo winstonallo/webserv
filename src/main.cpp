@@ -41,7 +41,7 @@ Director	*webserv_init(int argc, char** argv)
 
 int main(int argc, char **argv)
 {
-	Director* director;
+	Director* director = NULL;
 
 	try
 	{
@@ -53,7 +53,10 @@ int main(int argc, char **argv)
 	catch (const std::exception& e)
 	{
 		Log::log(e.what(), ERROR_FILE | STD_ERR);
-		delete director;
+		if (director != NULL)
+		{
+			delete director;
+		}
 		return 1;
 	}
 

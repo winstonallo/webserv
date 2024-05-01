@@ -1,4 +1,5 @@
 #include <cstdlib>
+#include <stdexcept>
 #include "ConfigSetters.hpp"
 #include "Config.hpp"
 #include "Server.hpp"
@@ -87,6 +88,10 @@ namespace Setters
 
     void	set_cgi_handler(const std::vector <std::string>& cgi_path, LocationInfo*& new_location)
     {
+        if (access(cgi_path[0].c_str(), X_OK) == -1)
+        {
+            throw std::runtime_error("CGI handler '" + cgi_path[0] + "' is not executable.");
+        }
         set_string_value(cgi_path, new_location, &LocationInfo::set_cgi_handler);
     }
 
