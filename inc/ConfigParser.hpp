@@ -17,7 +17,6 @@ class ConfigParser
 		ConfigParser(const std::string& path="assets/config/webserv.conf");
 		~ConfigParser() {}
 
-		std::map <std::string, std::pair <std::vector <std::string>, int> >		get_config() const { return _config; }
 		std::map <int, line_count_map>											get_servers() { return _servers; }
 
 	private:

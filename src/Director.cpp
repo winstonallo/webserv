@@ -1,4 +1,3 @@
-#include "Director.hpp"
 #include <arpa/inet.h>
 #include <cerrno>
 #include <cstddef>
@@ -14,6 +13,8 @@
 #include <sys/wait.h>
 #include <vector>
 #include <signal.h>
+#include <iostream>
+#include "Director.hpp"
 #include "ClientInfo.hpp"
 #include "Log.hpp"
 #include "Node.hpp"
@@ -580,7 +581,6 @@ int	Director::read_from_client(int client_fd)
 
 	client = dynamic_cast<ClientInfo *>(_nodes[client_fd]);
 	flag = Request::read_request(client_fd, MSG_SIZE, client->_read_msg);
-	std::cout << "flag: " << flag << std::endl;
 	if (flag == 0)
 	{
 		close_client_connection(

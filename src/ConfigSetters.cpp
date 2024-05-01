@@ -1,7 +1,9 @@
+#include <cstdlib>
 #include "ConfigSetters.hpp"
 #include "Config.hpp"
 #include "Server.hpp"
 #include "Log.hpp"
+#include "Utils.hpp"
 
 namespace Setters
 {

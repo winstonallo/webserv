@@ -43,8 +43,6 @@ class Director
 		int								init_servers();
 		int								run_servers();
 
-		Config*							get_config() const { return _config; }
-
 	private:
 										Director(const Director&) {}
 		Director&						operator=(const Director&) { return *this; }

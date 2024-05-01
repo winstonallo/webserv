@@ -18,6 +18,7 @@ enum node_types
 class Node 
 {
 	public:
+
 									Node() {}
 		virtual						~Node() {}
 									Node(

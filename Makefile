@@ -6,7 +6,7 @@ RM			= rm -rf
 
 SRCS_DIR	= src
 
-OBJS_DIR		= obj
+OBJS_DIR	= obj
 
 CXXFLAGS	= -Wall -Wextra -Werror -MP -MD -std=c++98 -g -Iinc
 
