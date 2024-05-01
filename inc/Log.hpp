@@ -28,22 +28,23 @@ enum LogDest
 class Log
 {
 	public:
+
 		static bool				log(const std::string& msg, int output = STD_OUT);
-		static void				init_outfiles(const std::string& error_file, const std::string& accept_file);
-		static std::string		get_error_file();
-		static void				set_error_file(const std::string& ferror);
-		static std::string		get_accept_file();
-		static void				set_accept_file(const std::string& faccept);
 		static void				create_logs_directory();
-		static std::string 		logmessage(const std::string& msg);
 		static int				output_flag;
 
 	private:
+
 								Log();
 								~Log();
 								Log(const Log& rhs);
 		Log&					operator=(const Log& rhs);
+
+		static void				init_outfiles(const std::string& error_file, const std::string& accept_file);
 		static std::string		get_time_stamp();
+
+		static std::string 		logmessage(const std::string& msg);
+		static void* 			do_async_log(void* args);
 		static std::ofstream	logfile;
 		static std::string		error_file;
 		static std::string		accept_file;

@@ -7,26 +7,6 @@
 
 int Log::output_flag = 0;
 
-std::string	Log::get_error_file()
-{
-	return error_file;
-}
-
-std::string Log::get_accept_file()
-{
-	return accept_file;
-}
-
-void	Log::set_error_file(const std::string& ferr)
-{
-	error_file = ferr;
-}
-
-void	Log::set_accept_file(const std::string& ferr)
-{
-	accept_file = ferr;
-}
-
 std::string Log::get_time_stamp()
 {
 	time_t cur_time;
@@ -44,10 +24,6 @@ std::string Log::logmessage(const std::string& msg)
 	return ss.str();
 }
 
-std::ofstream	Log::logfile;
-std::string		Log::error_file = "./logs/error.log";
-std::string		Log::accept_file = "./logs/accept.log";
-
 void	Log::create_logs_directory()
 {
 	if (mkdir("./logs", 0755) == -1)
@@ -59,14 +35,14 @@ void	Log::create_logs_directory()
 	}
 }
 
-void* async_log(void* args)
+void* Log::do_async_log(void* args)
 {
     std::string* message = static_cast<std::string*>(args);
     std::map<int, std::string> filemapping;
     filemapping.insert(std::make_pair(STD_OUT, "stdout"));
     filemapping.insert(std::make_pair(STD_ERR, "stderr"));
-    filemapping.insert(std::make_pair(ERROR_FILE, Log::get_error_file()));
-    filemapping.insert(std::make_pair(ACCEPT_FILE, Log::get_accept_file()));
+    filemapping.insert(std::make_pair(ERROR_FILE, "./logs/error.log"));
+    filemapping.insert(std::make_pair(ACCEPT_FILE, "./logs/accept.log"));
 
     for (std::map<int, std::string>::iterator it = filemapping.begin(); it != filemapping.end(); it++)
 	{
@@ -109,7 +85,7 @@ bool Log::log(const std::string& msg, int output)
 
     Log::output_flag = output;
 
-    int result = pthread_create(&logging_thread, NULL, async_log, (void*)message);
+    int result = pthread_create(&logging_thread, NULL, do_async_log, (void*)message);
     if (result != 0)
 	{
         std::cerr << "Error creating logging thread." << std::endl;
