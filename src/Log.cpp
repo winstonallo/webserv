@@ -63,14 +63,10 @@ void* Log::do_async_log(void* args)
 			{
                 std::ofstream logfile;
                 logfile.open(it->second.c_str(), std::ios::app);
-				if (logfile.is_open()) 
+                if (logfile.is_open()) 
 				{
                     logfile << log_msg;
                     logfile.close();
-                }
-				else 
-				{
-                    Log::log("Error opening log file: " + it->second + ".\n");
                 }
             }
         }

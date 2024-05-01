@@ -464,7 +464,7 @@ namespace Utils
 
 		else
 		{
-			Log::log("Config file: Error: " + error_message + "\n");
+			Log::log("Configuration Error: " + error_message + "\n");
 		}
 
 		if (throw_exception == THROW)
