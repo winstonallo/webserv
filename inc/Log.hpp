@@ -2,7 +2,6 @@
 #define LOG_HPP
 
 
-#include <fstream> 
 #include <string>
 #include <sys/time.h>
 
@@ -45,9 +44,6 @@ class Log
 
 		static std::string 		logmessage(const std::string& msg);
 		static void* 			do_async_log(void* args);
-		static std::ofstream	logfile;
-		static std::string		error_file;
-		static std::string		accept_file;
 };
 
 #endif

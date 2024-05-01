@@ -1,5 +1,6 @@
 #include "Log.hpp"
 #include <map>
+#include <fstream>
 #include <iostream>
 #include <sstream>
 #include <sys/stat.h>
