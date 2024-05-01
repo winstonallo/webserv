@@ -63,6 +63,6 @@ class ConfigParser
 #define INV_HEADER "Invalid configuration file header (expected: 'webserv')."
 #define NOT_FOUND "Could not open file."
 #define INVALID_SCOPE "Global values are not supported."
-#define EXTRA_WEBSERV_BLOCK "Extraneous 'webserv' block; only one is allowed."
+#define EXTRA_WEBSERV_BLOCK "Extraneous block in config; only one 'webserv' block is allowed."
 
 #endif

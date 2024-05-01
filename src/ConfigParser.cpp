@@ -4,7 +4,7 @@
 #include <sstream>
 #include <fstream>
 
-ConfigParser::ConfigParser(const std::string& path) : _config_file_path(path), _server_count(0), _in_webserv_block(false)
+ConfigParser::ConfigParser(const std::string& path) : _config_file_path(path), _server_count(0)
 {
 	if (_config_file_path.size() < 5 or _config_file_path.substr(_config_file_path.size() - 5) != EXPECTED_EXT)
 	{

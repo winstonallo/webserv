@@ -53,6 +53,7 @@ int main(int argc, char **argv)
 	catch (const std::exception& e)
 	{
 		Log::log(e.what(), ERROR_FILE | STD_ERR);
+
 		if (director != NULL)
 		{
 			delete director;
