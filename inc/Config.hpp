@@ -28,13 +28,14 @@ class Config
 	private:
 
 		void									set_servers(std::map <int, _map>& raw_servers);
-		void									set_error_pages(const std::map <int, std::string>& error_pages);
 
 		void									configure_port(_map& server, Server*& new_server);
 		void									configure_server_names(_map& server, Server*& new_server);
 		void									configure_host(_map& server, Server*& new_server);
+
 		void									initialize_cgi(LocationInfo*& new_location, const std::string& identifier);
 		location_setter_map::iterator			configure_cgi(int line_count, const std::string key, LocationInfo*& new_location);
+
 		location_setter_map::iterator			initialize_location(int line_count, const std::string& key, const std::string& name, LocationInfo*& new_location);
 		void									configure_locations(const _map& server, Server*& new_server);
 		void									add_location(LocationInfo*& new_location, Server* new_server=NULL, bool add_to_server=false);
