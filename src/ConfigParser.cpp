@@ -8,7 +8,7 @@ ConfigParser::ConfigParser(const std::string& path) : _config_file_path(path), _
 {
 	if (_config_file_path.size() < 5 or _config_file_path.substr(_config_file_path.size() - 5) != EXPECTED_EXT)
 	{
-		Utils::config_error_on_line(0, INVALID_EXT, THROW);
+		Utils::config_error_on_line(0, INVALID_EXT);
 	}
 
 	load_config_from_file(_config_file_path);
@@ -30,24 +30,16 @@ std::string	ConfigParser::remove_comments(const std::string& config)
 
 void 	ConfigParser::load_config_from_file(const std::string& path)
 {
-    std::ifstream 				config_file(path.c_str());
-    std::stringstream 			buffer;
-
-	if (config_file.is_open() == false)
+	try
 	{
-		Utils::config_error_on_line(0, error(NOT_FOUND), THROW);
+		std::string config_string = Utils::safe_ifstream(path);
+		parse_config_from_vector(Utils::split_keep_delimiters(remove_comments(config_string), "{};"));
+	}
+	catch (const std::exception& e)
+	{
+		Utils::config_error_on_line(0, "Invalid file type.");
 	}
 
-    buffer << config_file.rdbuf();
-
-	if (buffer.str().empty() == true)
-	{
-		Utils::config_error_on_line(0, EMPTY, THROW);
-	}
-
-    config_file.close();
-
-	parse_config_from_vector(Utils::split_keep_delimiters(remove_comments(buffer.str()), "{};"));
 }
 
 void	ConfigParser::parse_config_from_vector(const std::vector <std::pair <std::string, int> >& config)
@@ -72,7 +64,7 @@ void	ConfigParser::parse_config_from_vector(const std::vector <std::pair <std::s
 		}
 		if (_nesting_level.empty() == true and i < config.size() - 1)
 		{
-			Utils::config_error_on_line(config[i].second + 1, EXTRA_WEBSERV_BLOCK, THROW);
+			Utils::config_error_on_line(config[i].second + 1, EXTRA_WEBSERV_BLOCK);
 		}
 	}
 	validate_nesting(config[config.size() - 1].second + 1);
@@ -82,7 +74,7 @@ void	ConfigParser::store_key_value_pairs(const std::pair <std::string, int> line
 {
 	if (line.first.find("\n") != std::string::npos)
 	{
-		Utils::config_error_on_line(line.second + 1, UNEXPECTED_NL, THROW);
+		Utils::config_error_on_line(line.second + 1, UNEXPECTED_NL);
 	}
 
 	std::vector <std::string> bottom_pair = Utils::split_keep_quoted_words(line.first, " \t");
@@ -115,7 +107,7 @@ void	ConfigParser::handle_opening_brace(const std::pair <std::string, int>& prev
 	}
 	if (prev_line.first.find_first_of(";{}") != std::string::npos)
 	{
-		Utils::config_error_on_line(prev_line.second + 1, UNINITIALIZED_SCOPE, THROW);
+		Utils::config_error_on_line(prev_line.second + 1, UNINITIALIZED_SCOPE);
 	}
 	_nesting_level.push(_nesting_level.top() + ":" + name);
 }
@@ -124,11 +116,11 @@ void	ConfigParser::handle_closing_brace(const std::pair <std::string, int>& prev
 {
 	if (_nesting_level.empty() == true)
 	{
-		Utils::config_error_on_line(prev_line.second + 1, EXTRA_CLOSING_BRACE, THROW);
+		Utils::config_error_on_line(prev_line.second + 1, EXTRA_CLOSING_BRACE);
 	}
 	else if (prev_line.first.find_first_of("{};") == std::string::npos)
 	{
-		Utils::config_error_on_line(prev_line.second + 1, UNTERM_VALUE_SCOPE, THROW);
+		Utils::config_error_on_line(prev_line.second + 1, UNTERM_VALUE_SCOPE);
 	}
 	_nesting_level.pop();
 }
@@ -137,17 +129,17 @@ void	ConfigParser::validate_config_header(const std::vector <std::pair <std::str
 {
 	if (config[0].first == UNCLOSED_QUOTE)
 	{
-		Utils::config_error_on_line(config[0].second, UNCLOSED_QUOTE, THROW);
+		Utils::config_error_on_line(config[0].second, UNCLOSED_QUOTE);
 	}
 
 	if (Utils::trim(config[0].first.substr(0, 7), " \t\n") != "webserv")
 	{
-		Utils::config_error_on_line(config[0].second, INV_HEADER, THROW);
+		Utils::config_error_on_line(config[0].second, INV_HEADER);
 	}
 
 	if (config[1].first != "{")
 	{
-		Utils::config_error_on_line(config[1].second, MISSING_OPENING_BRACE, THROW);
+		Utils::config_error_on_line(config[1].second, MISSING_OPENING_BRACE);
 	}
 }
 
@@ -155,7 +147,7 @@ void	ConfigParser::validate_nesting(int line_count)
 {
 	if (_nesting_level.empty() == false)
 	{
-		Utils::config_error_on_line(line_count, MISSING_CLOSING_BRACE, THROW);
+		Utils::config_error_on_line(line_count, MISSING_CLOSING_BRACE);
 	}
 }
 

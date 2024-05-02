@@ -85,7 +85,7 @@ void	Config::set_servers(std::map <int, _map>& raw_servers)
 			{
 				delete *location;
 			}
-			throw std::runtime_error("Error: Configuration file is invalid\n");
+			throw std::runtime_error("Aborting initialization, please double-check your server configuration.\n");
 		}
 	}
 }
@@ -157,12 +157,12 @@ void	Config::configure_locations(const _map& server, Server*& new_server)
 			catch (const std::exception& e)
 			{
 				delete new_location;
-				Utils::config_error_on_line(it->second.second, e.what(), THROW);
+				Utils::config_error_on_line(it->second.second, std::string(e.what()) + "Invalid configuration.");
 			}
 		}
 		else
 		{
-			Utils::config_error_on_line(it->second.second, "'" + it->first + "' is not a valid location setting", LOG);
+			Utils::config_error_on_line(it->second.second, "'" + it->first + "' is not a valid location setting");
 		}
 	}
 	add_location(new_location, new_server, true);
@@ -189,7 +189,7 @@ Config::location_setter_map::iterator	Config::configure_cgi(int line_count, cons
 	std::string cgi_identifier = Utils::extract_cgi_identifier(key);
 	if (cgi_identifier.empty() == true)
 	{
-		Utils::config_error_on_line(line_count, "missing CGI identifier in location '" + key + "', location will not be initialized", LOG);
+		Utils::config_error_on_line(line_count, "missing CGI identifier in location '" + key + "', location will not be initialized");
 		return _location_setters.end();
 	}
 
@@ -206,7 +206,7 @@ void	Config::configure_host(_map& server, Server*& new_server)
 {
 	if (server.find("host") == server.end() or server["host"].first.empty() == true)
 	{
-		Utils::config_error_on_line(-1, "missing host in server '" + new_server->get_server_name()[0] + "', server will not be initialized.", THROW);
+		Utils::config_error_on_line(-1, "missing host in server '" + new_server->get_server_name()[0] + "'.");
 	}
 
 	std::string host = server["host"].first[0];
@@ -220,7 +220,7 @@ void	Config::configure_host(_map& server, Server*& new_server)
 	
 	if (inet_pton(AF_INET, host.c_str(), &ip_address) != 1)
 	{
-		Utils::config_error_on_line(server["host"].second, "'" + host + "' is not a valid IPv4 address, server will not be initialized.", THROW);
+		Utils::config_error_on_line(server["host"].second, "'" + host + "' is not a valid IPv4 address.");
 	}
 
 	new_server->set_host_address(ip_address);
@@ -239,7 +239,7 @@ void	Config::configure_server_names(_map& server, Server*& new_server)
 	{
 		if (std::find(_server_names.begin(), _server_names.end(), *it) != _server_names.end())
 		{
-			Utils::config_error_on_line(server["server_name"].second, "on server: '" + *it + "': name already taken, server will not be initialized.", THROW);
+			Utils::config_error_on_line(server["server_name"].second, "on server: '" + *it + "': name already taken.");
 		}
 	}
 
@@ -253,7 +253,7 @@ void	Config::configure_port(_map& server, Server*& new_server)
 {
 	if (server.find("port") == server.end() or server["port"].first.empty() == true)
 	{
-		Utils::config_error_on_line(-1, "missing port in server '" + new_server->get_server_name()[0] + "', server will not be initialized.", THROW);	
+		Utils::config_error_on_line(-1, "missing port in server '" + new_server->get_server_name()[0] + "'.");	
 	}
 
 	std::string port = server["port"].first[0];

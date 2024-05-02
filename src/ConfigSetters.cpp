@@ -32,7 +32,7 @@ namespace Setters
             }
             else 
             {
-                Utils::config_error_on_line(-1, "value for boolean config, use enabled/disabled\n", LOG);
+                Utils::config_error_on_line(-1, "Invalid value for boolean config, use enabled/disabled.");
             }
         }
     }
@@ -103,11 +103,21 @@ namespace Setters
     void	set_autoindex(const std::vector <std::string>& autoindex, LocationInfo*& new_location)
     {
         set_bool_value(autoindex, new_location, &LocationInfo::set_autoindex);
+
+        if (new_location->get_cgi() == true and new_location->get_autoindex() == true)
+        {
+            Utils::config_error_on_line(-1, "'autoindex' is not a valid setting for cgi-bin.");
+        }
     }
 
     void	set_index(const std::vector <std::string>& index, LocationInfo*& new_location)
     {
         set_string_value(index, new_location, &LocationInfo::set_index_path);
+
+        if (new_location->get_cgi() == true)
+        {
+            Utils::config_error_on_line(-1, "'index' is not a valid setting for cgi-bin.");
+        }
     }
 
     void	configure_access_log(const std::vector <std::string>& access_log_vector, Server*& new_server)
@@ -147,7 +157,7 @@ namespace Setters
     {
         if (body_size_vector.empty() == true)
         {
-            Utils::config_error_on_line(-1, "No client max body size configured in server '" + new_server->get_server_name()[0] + "', falling back to default (1M).\n", LOG);
+            Log::log("No client max body size configured in server '" + new_server->get_server_name()[0] + "', default is 1M.");
             new_server->set_client_max_body_size(CLIENT_MAX_BODY_SIZE_DEFAULT);
             return ;
         }
@@ -157,12 +167,12 @@ namespace Setters
 
         if (size > CLIENT_MAX_BODY_SIZE_MAX)
         {
-            Utils::config_error_on_line(-1, "Client max body size too high, capping to 16M.\n", LOG);
+            Utils::config_error_on_line(-1, "Client max body size too high, capping to 16M.");
             size = CLIENT_MAX_BODY_SIZE_MAX;
         }
         else if (size < 0)
         {
-            Utils::config_error_on_line(-1, "Client max body size '" + client_max_body_size + "' is not valid, falling back to default (1M).\n", LOG);
+            Utils::config_error_on_line(-1, "Client max body size '" + client_max_body_size + "' is not valid, falling back to default (1M).");
             size = CLIENT_MAX_BODY_SIZE_DEFAULT;
         }
         new_server->set_client_max_body_size(size);

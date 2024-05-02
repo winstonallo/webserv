@@ -40,8 +40,7 @@ namespace Utils
 				itoa(input) +
 				"M is not valid, using closest supported value: " +
 				itoa(closest_size) +
-				"M.",
-				LOG
+				"M."
 			);
 		}
 		return closest_size;
@@ -455,22 +454,18 @@ namespace Utils
 		return cgi_identifier;
 	}
 
-	void config_error_on_line(int line_number, const std::string& error_message, e_exception throw_exception)
+	void config_error_on_line(int line_number, const std::string& error_message)
 	{
 		if (line_number != -1)
 		{
-			Log::log("Config file (line " + Utils::itoa(line_number) + "): Error: " + error_message + "\n");
+			Log::log("Configuration file (line " + Utils::itoa(line_number) + "): Error: " + error_message + "\n");
 		}
 
 		else
 		{
 			Log::log("Configuration Error: " + error_message + "\n");
 		}
-
-		if (throw_exception == THROW)
-		{
-			throw std::runtime_error("");
-		}
+		throw std::runtime_error("Invalid configuration.\n");
 	}
 
 	bool is_regular_file(const std::string& path)
@@ -518,6 +513,8 @@ namespace Utils
 			throw std::runtime_error(error_message);
 		}
 
+		file.close();
+		
 		return std::string(buffer.begin(), buffer.end());
 	}
 }
