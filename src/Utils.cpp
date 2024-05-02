@@ -517,4 +517,15 @@ namespace Utils
 		
 		return std::string(buffer.begin(), buffer.end());
 	}
+
+	bool valid_server_setting(const std::string &setting)
+	{
+		return (
+			setting == "server_name" or
+			setting == "port" or
+			setting == "host" or
+			setting.find("location") != std::string::npos or
+			setting.find("error_page") != std::string::npos
+		);
+	}
 }

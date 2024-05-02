@@ -38,6 +38,7 @@ namespace Utils
 	std::string										extract_cgi_identifier(const std::string& key);
 	void											config_error_on_line(int line_number, const std::string& error_message);
 	std::string										safe_ifstream(const std::string& path);
+	bool											valid_server_setting(const std::string& setting);
 }
 
 #define MAX_FILE_SIZE 140000
