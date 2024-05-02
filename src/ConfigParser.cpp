@@ -30,24 +30,16 @@ std::string	ConfigParser::remove_comments(const std::string& config)
 
 void 	ConfigParser::load_config_from_file(const std::string& path)
 {
-    std::ifstream 				config_file(path.c_str());
-    std::stringstream 			buffer;
-
-	if (config_file.is_open() == false)
+	try
 	{
-		Utils::config_error_on_line(0, error(NOT_FOUND));
+		std::string config_string = Utils::safe_ifstream(path);
+		parse_config_from_vector(Utils::split_keep_delimiters(remove_comments(config_string), "{};"));
+	}
+	catch (const std::exception& e)
+	{
+		Utils::config_error_on_line(0, "Invalid file type.");
 	}
 
-    buffer << config_file.rdbuf();
-
-	if (buffer.str().empty() == true)
-	{
-		Utils::config_error_on_line(0, EMPTY);
-	}
-
-    config_file.close();
-
-	parse_config_from_vector(Utils::split_keep_delimiters(remove_comments(buffer.str()), "{};"));
 }
 
 void	ConfigParser::parse_config_from_vector(const std::vector <std::pair <std::string, int> >& config)
