@@ -8,6 +8,7 @@
 #include <cstddef>
 #include <exception>
 #include <netinet/in.h>
+#include <stdexcept>
 #include <string>
 #include <cstdlib>
 #include <sys/socket.h>
@@ -66,6 +67,12 @@ void	Config::set_servers(std::map <int, _map>& raw_servers)
 			{
 				if (_server_setters.find(map_it->first) == _server_setters.end())
 				{
+					Utils::config_error_on_line(
+						map_it->second.second,
+						"'" +
+						map_it->first +
+						"' is not a valid server setting."
+					);
 					continue ;
 				}
 				(_server_setters[map_it->first])(map_it->second.first, new_server);
@@ -157,7 +164,7 @@ void	Config::configure_locations(const _map& server, Server*& new_server)
 			catch (const std::exception& e)
 			{
 				delete new_location;
-				Utils::config_error_on_line(it->second.second, std::string(e.what()) + "Invalid configuration.");
+				Utils::config_error_on_line(it->second.second, std::string(e.what()));
 			}
 		}
 		else
