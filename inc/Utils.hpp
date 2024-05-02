@@ -11,12 +11,6 @@
 class Server;
 class LocationInfo;
 
-typedef enum e_exception
-{
-	THROW,
-	LOG
-} e_exception;
-
 namespace Utils
 {
 	bool											write_access(const std::string& path);
@@ -42,7 +36,7 @@ namespace Utils
 	std::string										get_cgi_script_name(const std::string& uri);
 	std::string										to_lower(const std::string& str);
 	std::string										extract_cgi_identifier(const std::string& key);
-	void											config_error_on_line(int line_number, const std::string& error_message, e_exception throw_exception=LOG);
+	void											config_error_on_line(int line_number, const std::string& error_message);
 	std::string										safe_ifstream(const std::string& path);
 }
 

@@ -91,7 +91,7 @@ class ClientInfo : public Node
 		bool						_fin;
 
 		ClientInfo&					operator=(const ClientInfo&) { return *this; }
-									ClientInfo(const ClientInfo&) {}
+									ClientInfo(const ClientInfo&) : Node() {}
 };
 
 #endif
