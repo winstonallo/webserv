@@ -369,11 +369,6 @@ namespace Utils
 
 	void	validate_required_server_values(Server* new_server)
 	{
-		if (new_server->get_server_name().empty() == true)
-		{
-			Log::log("error: server block missing server_name\n", STD_ERR | ERROR_FILE);
-			throw std::runtime_error("server block missing server_name");
-		}
 		if (new_server->get_host_address().s_addr == 0)
 		{
 			Log::log("error: server block missing host address\n", STD_ERR | ERROR_FILE);

@@ -85,19 +85,24 @@ void	Config::set_servers(std::map <int, _map>& raw_servers)
 		}
 		catch (const std::exception& e)
 		{
-			delete new_server;
-
-			for (std::vector <Server *>::iterator server = _servers.begin(); server != _servers.end(); server++)
-			{
-				delete *server;
-			}
-			for (std::vector <LocationInfo *>::iterator location = _locations.begin(); location != _locations.end(); location++)
-			{
-				delete *location;
-			}
-			throw std::runtime_error("Aborting initialization, please double-check your server configuration.\n");
+			abort(new_server);
 		}
 	}
+}
+
+void	Config::abort(Server*& new_server)
+{
+	delete new_server;
+
+	for (std::vector <Server *>::iterator server = _servers.begin(); server != _servers.end(); server++)
+	{
+		delete *server;
+	}
+	for (std::vector <LocationInfo *>::iterator location = _locations.begin(); location != _locations.end(); location++)
+	{
+		delete *location;
+	}
+	throw std::runtime_error("Aborting initialization, please double-check your server configuration.\n");
 }
 
 void	Config::add_location(LocationInfo*& new_location, Server* new_server, bool add_to_server)

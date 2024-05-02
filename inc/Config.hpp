@@ -29,6 +29,8 @@ class Config
 
 		void									set_servers(std::map <int, _map>& raw_servers);
 
+		void									abort(Server*& new_server);
+
 		void									configure_port(_map& server, Server*& new_server);
 		void									configure_server_names(_map& server, Server*& new_server);
 		void									configure_host(_map& server, Server*& new_server);
