@@ -237,7 +237,14 @@ void	Server::do_post(std::string& location_path, Request& request)
 void	Server::do_delete(std::string& location_path, Request& request)
 {
 	std::string filename = request.get_uri().substr(request.get_uri().find_last_of("=") + 1);
-	filename = location_path.substr(0, location_path.find_last_of("/") + 1) + filename;
+	if (request.get_uri().find("delete?filename=") != request.get_uri().npos)
+	{
+		filename = location_path.substr(0, location_path.find_last_of("/") + 1) + filename;
+	}
+	else
+	{
+		filename = location_path;
+	}
 
 	if (Utils::file_exists(filename) == false)
 	{

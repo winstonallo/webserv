@@ -6,6 +6,7 @@ url = 'http://localhost:8080'
 import time
 import socket
 import os
+import sys
 from time import sleep
 test_desc = []
 test_input = []
@@ -80,13 +81,15 @@ test_desc.append("Test 19 send a request with a not allowed method")
 test_input.append("POST /js HTTP/1.1\r\nHost:domain1.com\r\nContent-Length: 5\r\n\r\n lobok")
 test_output.append("HTTP/1.1 405 Method Not Allowed")
 
+
 test_desc.append("Test 20 send a get request to an file with no read access permission")
 test_input.append("GET /student.txt HTTP/1.1\r\nHost:domain1.com\r\n\r\n")
 test_output.append("HTTP/1.1 403 Forbidden")
 
 test_desc.append("Test 21 send a post request to a file with no write access permission")
-test_input.append("POST /student.txt HTTP/1.1\r\nHost:domain1.com\r\nContent-Length: 5\r\n\r\n lobok")
+test_input.append("POST /student.txt HTTP/1.1\r\nHost:domain1.com\r\nContent-Length: 5\r\n\r\nlobok")
 test_output.append("HTTP/1.1 403 Forbidden")
+
 
 host = "domain1.com"
 url = 'http://localhost:8080'
@@ -136,4 +139,21 @@ def test_errcodes():
                 exit(1)
 
 if __name__ == "__main__":
-    test_errcodes()
+
+	if not os.path.exists("assets/domains/0/student.txt"):
+		with open("assets/domains/0/student.txt", 'w') as f:
+			pass
+		try:
+			os.chmod("assets/domains/0/student.txt", 0o000);
+			print("file permission changed", file=sys.stderr)
+		except FileNotFoundError:
+			print("File not found.")
+		except PermissionError:
+			print("Permission denied. You may need elevated privileges.")
+		except OSError as e:
+			print(f"Error: {e}")
+
+#test cases:
+	test_errcodes()
+
+	os.remove("assets/domains/0/student.txt")
