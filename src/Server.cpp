@@ -106,6 +106,7 @@ void	Server::create_response(Request& rq, ClientInfo* client_info)
 	std::string			body;
 	bool				failed = true;
 
+	reset();
 	if ((_errcode = rq.get_errcode()) == 0)
 	{
 		try
@@ -665,7 +666,6 @@ int	Server::get_directory_list(std::string &path, std::string& body)
 
 void	Server::reset()
 {
-	_autoindex = false;
 	_errcode = 0;
 	_reloc.clear();
 	_autoindex = false;

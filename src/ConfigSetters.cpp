@@ -114,8 +114,7 @@ namespace Setters
     {
         set_string_value(index, new_location, &LocationInfo::set_index_path);
 
-        if (new_location->get_cgi() == true)
-        {
+        if (new_location->get_cgi() == true) {
             Utils::config_error_on_line(-1, "'index' is not a valid setting for cgi-bin.");
         }
     }

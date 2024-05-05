@@ -90,6 +90,13 @@ test_desc.append("Test 21 send a post request to a file with no write access per
 test_input.append("POST /student.txt HTTP/1.1\r\nHost:domain1.com\r\nContent-Length: 5\r\n\r\nlobok")
 test_output.append("HTTP/1.1 403 Forbidden")
 
+test_desc.append("Test 22 GET /js")
+test_input.append("GET /js HTTP/1.1\r\nHost:domain1.com\r\n\r\n")
+test_output.append("HTTP/1.1 301 Moved Permanently")
+
+test_desc.append("Test 16 send a valid get request")
+test_input.append("GET /asdfasdf HTTP/1.1\r\nHost:domain1.com\r\n\r\n")
+test_output.append("HTTP/1.1 404 Not Found")
 
 host = "domain1.com"
 url = 'http://localhost:8080'
