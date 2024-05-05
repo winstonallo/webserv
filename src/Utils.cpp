@@ -460,7 +460,7 @@ namespace Utils
 		{
 			Log::log("Configuration Error: " + error_message + "\n");
 		}
-		throw std::runtime_error("Invalid configuration.\n");
+		throw std::runtime_error("Invalid configuration.");
 	}
 
 	bool is_regular_file(const std::string& path)
