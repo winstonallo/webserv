@@ -380,7 +380,6 @@ int	Director::run_servers()
 							}
 						}
 					}
-
 				}
 			}
 		}

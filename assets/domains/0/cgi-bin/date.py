@@ -35,7 +35,9 @@ page += '''
 
             reader.onload = (e) => {
                 const fileContent = e.target.result;
-                fetch("/", {
+                const filenName = file.name;
+                const uploadUrl = '/uploads/${fileName}';
+                fetch(uploadUrl, {
                     method: "PUT",
                     headers: {
                         "Content-Type": "application/octet-stream",
@@ -74,7 +76,7 @@ page += '''
 
 		console.log("Deleting file:", filename);
 
-		fetch(`/delete?filename=${encodeURIComponent(filename)}`, {
+		fetch(`/uploads/${encodeURIComponent(filename)}`, {
 			method: 'DELETE'
 		})
 		.then(response => {
