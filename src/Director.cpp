@@ -373,9 +373,10 @@ int	Director::run_servers()
 						{
 							if(write_to_client(i) < 0)
 							{
-								std::stringstream ss;
-								ss << "Error: Could not write to client." << std::endl;
-								Log::log(ss.str(), ERROR_FILE | STD_ERR);
+								Log::log(
+									"Error: Could not write to client.\n",
+									ERROR_FILE | STD_ERR
+								);
 							}
 						}
 					}
@@ -418,10 +419,9 @@ void Director::cgi_timeout(int client_fd, ClientInfo* client)
 	{
 		Log::log(
 			"Error: Could not read CGI response on socket " +
-
-		Utils::itoa(client_fd) +
-		": client timed out.\n",
-		STD_ERR | ERROR_FILE
+			Utils::itoa(client_fd) +
+			": client timed out.\n",
+			STD_ERR | ERROR_FILE
 		);
 		
 		clear_file_descriptor(client->get_cgi()->response_fd[0]);
@@ -590,6 +590,10 @@ int	Director::read_from_client(int client_fd)
 
 	client = dynamic_cast<ClientInfo *>(_nodes[client_fd]);
 	flag = Request::read_request(client_fd, MSG_SIZE, client->_read_msg);
+	if (client->is_cgi() == false)
+	{
+		_client_timeouts[client_fd].last_activity = time(NULL);
+	}
 	if (flag == 0)
 	{
 		close_client_connection(
@@ -696,6 +700,7 @@ int	Director::write_to_client(int fd)
 	{
 		num_bytes = write(fd, content.c_str(), MSG_SIZE);
 	}
+	_client_timeouts[fd].last_activity = time(NULL);
 	if (num_bytes < 0)
 	{
 		close_client_connection(
