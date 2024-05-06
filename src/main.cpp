@@ -4,6 +4,10 @@
 #include <exception>
 #include <signal.h>
 #include <stdexcept>
+#include <unistd.h>
+#include <fcntl.h>
+#include <cerrno>
+
 
 void	pipe_signal_handler(int signal)
 {
@@ -39,6 +43,15 @@ Director	*webserv_init(int argc, char** argv)
 	return director;
 }
 
+void closeAllFileDescriptors() {
+    for (int fd = 3; fd < 1024; ++fd) {
+        if (fcntl(fd, F_GETFD) != -1 || errno != EBADF) {
+            close(fd);
+        }
+    }
+}
+
+
 int main(int argc, char **argv)
 {
 	Director* director = NULL;
@@ -62,5 +75,6 @@ int main(int argc, char **argv)
 	}
 
 	delete director;
+	closeAllFileDescriptors();
 	return 0;
 }
