@@ -260,7 +260,6 @@ int	Director::run_servers()
 			std::stringstream ss;
 			ss << "Error: Could not select: " << strerror(errno) << std::endl;
 			Log::log(ss.str(), ERROR_FILE | STD_ERR);
-			return -1;
 		}
 		for (int i = 0; i <= _fdmax; i++)
 		{
