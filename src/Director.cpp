@@ -322,7 +322,7 @@ int	Director::run_servers()
 							}
 							else if (send == 0 || (size_t) send == reqb.size())
 							{
-								clear_file_descriptor(client->get_cgi()->response_fd[1]);
+								// clear_file_descriptor(client->get_cgi()->response_fd[0]);
 								clear_file_descriptor(client->get_cgi()->request_fd[1]);
 							}
 							else
@@ -344,7 +344,7 @@ int	Director::run_servers()
 								if (WEXITSTATUS(status) != 0)
 								{
 									client->get_request()->set_errcode(500);
-									client->get_server()->create_response(*client->get_request(), client);
+									// client->get_server()->create_response(*client->get_request(), client);
 								}
 								if (client->get_response().find("HTTP/1.1") == std::string::npos)
 								{
@@ -358,9 +358,9 @@ int	Director::run_servers()
 								ss << "Error: Could not read CGI response: " << strerror(errno);
 								Log::log(ss.str(), STD_ERR | ERROR_FILE);
 								clear_file_descriptor(client->get_cgi()->response_fd[0]);
-								clear_file_descriptor(client->get_cgi()->request_fd[0]);
+								clear_file_descriptor(client->get_cgi()->request_fd[1]);
 								client->get_request()->set_errcode(500);
-								client->get_server()->create_response(*client->get_request(), client);
+								// client->get_server()->create_response(*client->get_request(), client);
 								client->set_fin(true);
 							}
 							else
@@ -496,12 +496,11 @@ void	Director::close_cgi(ClientInfo* client, int status_code)
 	if (client->get_cgi())
 	{
 		clear_file_descriptor(client->get_cgi()->response_fd[0]);
-		clear_file_descriptor(client->get_cgi()->request_fd[0]);
-		kill(client->get_pid(), SIGKILL);
+		clear_file_descriptor(client->get_cgi()->request_fd[1]);
+		kill(client->get_pid(), SIGTERM);
 	}
 	client->get_request()->set_errcode(status_code);
 	client->get_server()->create_response(*client->get_request(), client);
-								
 }
 
 // purpose: having the server socket file descriptor we create the client connection
