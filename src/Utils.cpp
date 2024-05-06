@@ -537,7 +537,7 @@ namespace Utils
 		
 		if (pthread_create(&thread, NULL, safe_ifstream_thread, &data) < 0)
 		{
-			throw std::runtime_error("pthread_create failed.");
+			throw std::runtime_error("pthread_create failed in safe_ifstream method.");
 		}
 		pthread_join(thread, NULL);
 
