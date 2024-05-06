@@ -13,6 +13,13 @@ class LocationInfo;
 
 namespace Utils
 {
+	struct ThreadData
+	{
+		std::string path;
+		std::string result;
+		std::string error;
+	};
+
 	bool											write_access(const std::string& path);
 	bool											read_access(const std::string& path);
 	bool											file_exists(const std::string& path);
