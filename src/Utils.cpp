@@ -474,7 +474,7 @@ namespace Utils
 		return S_ISREG(path_stat.st_mode);
 	}
 
-	std::string	safe_ifstream(const std::string &path)
+	std::string	async_ifstream(const std::string &path)
 	{
 		if (is_regular_file(path) == false)
 		{
@@ -511,6 +511,44 @@ namespace Utils
 		file.close();
 		
 		return std::string(buffer.begin(), buffer.end());
+	}
+
+	void* safe_ifstream_thread(void* data)
+	{
+		ThreadData* thread_data = static_cast<ThreadData*>(data);
+
+		try
+		{
+			thread_data->result = async_ifstream(thread_data->path);
+		}
+		catch (const std::exception& e)
+		{
+			thread_data->error = e.what();
+		}
+		return NULL;
+	}
+
+	std::string	safe_ifstream(const std::string& path)
+	{
+		ThreadData data;
+		pthread_t thread;
+
+		data.path = path;
+		
+		if (pthread_create(&thread, NULL, safe_ifstream_thread, &data) < 0)
+		{
+			throw std::runtime_error("pthread_create failed in safe_ifstream method.");
+		}
+		pthread_join(thread, NULL);
+
+		if (data.error.empty() == false)
+		{
+			throw std::runtime_error(data.error);
+		}
+		else
+		{
+			return data.result;
+		}
 	}
 
 	bool valid_server_setting(const std::string &setting)
