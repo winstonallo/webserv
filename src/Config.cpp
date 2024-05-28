@@ -16,24 +16,6 @@
 #include <arpa/inet.h>
 #include "ConfigSetters.hpp"
 
-// full initialization of the config in one constructor
-// 
-// HOW TO INITIALIZE:
-//		Config config(optional: std::string config_path);
-//		
-//		@param path:	path to .conf file - if no path is specified, will use: "config_files/webserv.conf"
-//
-// ConfigParser:
-//		1. 	reads the whole config
-//		2. 	performs error handling on file structure
-//		3. 	stores config in a one level map with the config path as key
-//
-// Config:
-// 		1. 	gets error pages (already fully parsed in ConfigDispatcher 
-//			since they are simple top level key-value pairs)
-//		2.	performs final parsing and validation on routes & servers
-//		3.	loads into Server, LocationInfo & Route
-//			objects for server initialization
 Config::Config(const std::string& config_path)
 {
 	ConfigParser 		parser(config_path);
